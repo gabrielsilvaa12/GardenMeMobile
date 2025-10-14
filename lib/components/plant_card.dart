@@ -33,7 +33,7 @@ class PlantCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       padding: const EdgeInsets.fromLTRB(12, 12, 20, 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF689F38),
+        color: const Color(0xFF386641),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
@@ -47,13 +47,11 @@ class PlantCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 15),
-
-          // Coluna para o nome e os ícones
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Nome da Planta
                 Text(
                   nomePlanta,
                   style: const TextStyle(
