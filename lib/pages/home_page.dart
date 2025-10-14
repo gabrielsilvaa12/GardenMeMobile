@@ -11,8 +11,8 @@ class MyHomePage extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: ListView(
-          children: const [
-            Text(
+          children: [
+            const Text(
               'Meu Jardim',
               style: TextStyle(
                 color: Color(0xFF3A5A40),
@@ -21,13 +21,16 @@ class MyHomePage extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             PlantCard(
               nomePlanta: 'Morango',
-              imagemPlanta: 'assets/images/orango.png',
+              imagemPlanta: 'assets/images/moranguito.png',
             ),
-            SizedBox(height: 10),
-            PlantCard(nomePlanta: 'Babosa', imagemPlanta: 'assets/babosa.png'),
+            const SizedBox(height: 10),
+            PlantCard(
+              nomePlanta: 'Babosa',
+              imagemPlanta: 'assets/images/babosada.png',
+            ),
           ],
         ),
       ),

@@ -1,29 +1,40 @@
 import 'package:flutter/material.dart';
 
-class PlantCard extends StatelessWidget {
+class PlantCard extends StatefulWidget {
   final String nomePlanta;
   final String imagemPlanta;
+  late bool? statusRega;
 
-  const PlantCard({
+  PlantCard({
     super.key,
     required this.nomePlanta,
     required this.imagemPlanta,
+    this.statusRega = false,
   });
 
+  @override
+  State<PlantCard> createState() => _PlantCardState();
+}
+
+class _PlantCardState extends State<PlantCard> {
   Widget _buildActionButton({
     required IconData icon,
     required Color backgroundColor,
     required Color iconColor,
+    required VoidCallback function,
   }) {
-    return Container(
-      width: 40,
-      height: 40,
-      margin: const EdgeInsets.only(right: 8.0),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(14),
+    return InkWell(
+      onTap: function,
+      child: Container(
+        width: 40,
+        height: 40,
+        margin: const EdgeInsets.only(right: 8.0),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Icon(icon, size: 22, color: iconColor),
       ),
-      child: Icon(icon, size: 22, color: iconColor),
     );
   }
 
@@ -33,7 +44,7 @@ class PlantCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       padding: const EdgeInsets.fromLTRB(12, 12, 20, 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF386641),
+        color: const Color(0xFF588157),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
@@ -43,7 +54,7 @@ class PlantCard extends StatelessWidget {
             backgroundColor: const Color(0xFFA5D6A7),
             child: CircleAvatar(
               radius: 32,
-              backgroundImage: AssetImage(imagemPlanta),
+              backgroundImage: AssetImage(widget.imagemPlanta),
             ),
           ),
           const SizedBox(width: 15),
@@ -53,7 +64,7 @@ class PlantCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  nomePlanta,
+                  widget.nomePlanta,
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -64,21 +75,44 @@ class PlantCard extends StatelessWidget {
                 Row(
                   children: [
                     _buildActionButton(
+                      function: () {
+                        setState(() {
+                          widget.statusRega = !widget.statusRega!;
+                        });
+                      },
                       icon: Icons.water_drop_outlined,
-                      backgroundColor: const Color(0xFF81D4FA),
+                      backgroundColor: widget.statusRega!
+                          ? const Color(0xFF81D4FA)
+                          : const Color.fromARGB(
+                              255,
+                              30,
+                              56,
+                              35,
+                            ).withValues(alpha: 0.4),
                       iconColor: Colors.white,
                     ),
                     _buildActionButton(
+                      function: () {},
+
                       icon: Icons.notifications_none_outlined,
-                      backgroundColor: const Color(0xFF4E6146),
+                      backgroundColor: const Color.fromARGB(
+                        255,
+                        30,
+                        56,
+                        35,
+                      ).withValues(alpha: 0.4),
                       iconColor: Colors.white,
                     ),
                     _buildActionButton(
+                      function: () {},
+
                       icon: Icons.share_outlined,
                       backgroundColor: const Color(0xFFE0E0E0),
                       iconColor: Colors.black87,
                     ),
                     _buildActionButton(
+                      function: () {},
+
                       icon: Icons.add,
                       backgroundColor: const Color(0xFFE0E0E0),
                       iconColor: Colors.black87,
