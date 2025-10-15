@@ -15,8 +15,7 @@ class Header extends StatelessWidget {
         bottom: false,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Stack(
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -33,14 +32,9 @@ class Header extends StatelessWidget {
                   ),
                 ],
               ),
-              const Spacer(),
-              const Text(
-                'GardenMe',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                ),
+              Positioned(
+                bottom: 0,
+                child: Image.asset('assets/images/logoGarden.png', height: 70),
               ),
             ],
           ),

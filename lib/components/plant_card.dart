@@ -48,8 +48,8 @@ class _PlantCardState extends State<PlantCard> {
           CircleAvatar(
             radius: 35,
             backgroundColor: corPlanta
-                ? Colors.orange
-                : const Color(0xFFA5D6A7),
+                ? const Color(0xFFA5D6A7)
+                : Colors.orange,
             child: CircleAvatar(
               radius: 32,
               backgroundImage: AssetImage(widget.imagemPlanta),
