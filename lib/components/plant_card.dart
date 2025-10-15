@@ -3,20 +3,16 @@ import 'package:flutter/material.dart';
 class PlantCard extends StatefulWidget {
   final String nomePlanta;
   final String imagemPlanta;
-  late bool? statusRega;
 
-  PlantCard({
-    super.key,
-    required this.nomePlanta,
-    required this.imagemPlanta,
-    this.statusRega = false,
-  });
+  PlantCard({super.key, required this.nomePlanta, required this.imagemPlanta});
 
   @override
   State<PlantCard> createState() => _PlantCardState();
 }
 
 class _PlantCardState extends State<PlantCard> {
+  bool statusRega = false;
+  bool corPlanta = false;
   Widget _buildActionButton({
     required IconData icon,
     required Color backgroundColor,
@@ -51,7 +47,9 @@ class _PlantCardState extends State<PlantCard> {
         children: [
           CircleAvatar(
             radius: 35,
-            backgroundColor: const Color(0xFFA5D6A7),
+            backgroundColor: corPlanta
+                ? Colors.orange
+                : const Color(0xFFA5D6A7),
             child: CircleAvatar(
               radius: 32,
               backgroundImage: AssetImage(widget.imagemPlanta),
@@ -76,19 +74,21 @@ class _PlantCardState extends State<PlantCard> {
                   children: [
                     _buildActionButton(
                       function: () {
+                        // LÓGICA CORRIGIDA DENTRO DO SETSTATE
                         setState(() {
-                          widget.statusRega = !widget.statusRega!;
+                          statusRega = !statusRega;
+                          corPlanta = !corPlanta;
                         });
                       },
                       icon: Icons.water_drop_outlined,
-                      backgroundColor: widget.statusRega!
+                      backgroundColor: statusRega
                           ? const Color(0xFF81D4FA)
                           : const Color.fromARGB(
                               255,
                               30,
                               56,
                               35,
-                            ).withValues(alpha: 0.4),
+                            ).withAlpha(102),
                       iconColor: Colors.white,
                     ),
                     _buildActionButton(
