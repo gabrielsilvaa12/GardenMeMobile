@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gardenme/components/curved_background.dart';
+import 'package:gardenme/pages/home_page.dart';
 
 class MyLogin extends StatefulWidget {
   const MyLogin({super.key, required this.title});
@@ -78,7 +79,14 @@ class _MyLoginState extends State<MyLogin> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xff3A5A40),
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MyHomePage(),
+                            ),
+                          );
+                        },
                         child: Text(
                           "Entrar",
                           style: TextStyle(color: Color(0xFFa7c957)),

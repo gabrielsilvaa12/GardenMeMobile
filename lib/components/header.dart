@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gardenme/pages/login.dart';
 
 class Header extends StatelessWidget {
   const Header({super.key});
@@ -29,6 +30,17 @@ class Header extends StatelessWidget {
                     icon: const Icon(Icons.settings, color: Colors.white),
                     onPressed: () {},
                     iconSize: 30,
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MyLogin(title: ""),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
                   ),
                 ],
               ),
