@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gardenme/components/curved_background.dart';
+import 'package:gardenme/components/header.dart';
 import 'package:gardenme/components/plant_card.dart';
 
 class MyHomePage extends StatelessWidget {
@@ -7,33 +8,40 @@ class MyHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return curvedBackground(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: ListView(
-          children: [
-            const Text(
-              'Meu Jardim',
-              style: TextStyle(
-                color: Color(0xFF3A5A40),
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+    return Column(
+      children: [
+        const Header(),
+        SafeArea(
+          child: curvedBackground(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: ListView(
+                children: [
+                  const Text(
+                    'Meu Jardim',
+                    style: TextStyle(
+                      color: Color(0xFF3A5A40),
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  PlantCard(
+                    nomePlanta: 'Morango',
+                    imagemPlanta: 'assets/images/moranguito.png',
+                  ),
+                  const SizedBox(height: 10),
+                  PlantCard(
+                    nomePlanta: 'Babosa',
+                    imagemPlanta: 'assets/images/babosada.png',
+                  ),
+                ],
               ),
-              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
-            PlantCard(
-              nomePlanta: 'Morango',
-              imagemPlanta: 'assets/images/moranguito.png',
-            ),
-            const SizedBox(height: 10),
-            PlantCard(
-              nomePlanta: 'Babosa',
-              imagemPlanta: 'assets/images/babosada.png',
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }

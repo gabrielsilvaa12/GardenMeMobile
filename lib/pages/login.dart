@@ -105,11 +105,7 @@ class _MyLoginState extends State<MyLogin> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text("Entrar com "),
-                            Image.asset(
-                              'assets/images/google.png',
-                              width: 25,
-                              height: 25,
-                            ),
+                            Image.asset('assets/images/google.png'),
                           ],
                         ),
                       ),
