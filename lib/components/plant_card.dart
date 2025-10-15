@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gardenme/components/details_plant.dart';
 
 class PlantCard extends StatefulWidget {
   final String nomePlanta;
@@ -111,8 +112,15 @@ class _PlantCardState extends State<PlantCard> {
                       iconColor: Colors.black87,
                     ),
                     _buildActionButton(
-                      function: () {},
-
+                      function: () {
+                        // Navega para a nova página
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const DetailsPlantCard(),
+                          ),
+                        );
+                      },
                       icon: Icons.add,
                       backgroundColor: const Color(0xFFE0E0E0),
                       iconColor: Colors.black87,
