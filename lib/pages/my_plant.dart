@@ -11,7 +11,7 @@ class MinhaPlantaPage extends StatelessWidget {
     return curvedBackground(
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-        children: const [DetailsPlantCard()],
+        children: const [DetailedPlant()],
       ),
     );
   }

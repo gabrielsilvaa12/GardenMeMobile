@@ -55,9 +55,9 @@ class _PlantCardState extends State<PlantCard> {
       child: Row(
         children: [
           CircleAvatar(
-            radius: 35,
+            radius: 38,
             backgroundColor: corPlanta
-                ? const Color(0xFFA5D6A7)
+                ? const Color(0xFFAFF695)
                 : Colors.orange,
             child: CircleAvatar(
               radius: 32,
