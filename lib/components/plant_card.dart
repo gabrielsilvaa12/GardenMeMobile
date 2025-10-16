@@ -28,8 +28,16 @@ class _PlantCardState extends State<PlantCard> {
         margin: const EdgeInsets.only(right: 8.0),
         decoration: BoxDecoration(
           color: backgroundColor,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 5,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
+
         child: Icon(icon, size: 22, color: iconColor),
       ),
     );
@@ -75,7 +83,6 @@ class _PlantCardState extends State<PlantCard> {
                   children: [
                     _buildActionButton(
                       function: () {
-                        // LÓGICA CORRIGIDA DENTRO DO SETSTATE
                         setState(() {
                           statusRega = !statusRega;
                           corPlanta = !corPlanta;
@@ -113,7 +120,6 @@ class _PlantCardState extends State<PlantCard> {
                     ),
                     _buildActionButton(
                       function: () {
-                        // Navega para a nova página
                         Navigator.push(
                           context,
                           MaterialPageRoute(

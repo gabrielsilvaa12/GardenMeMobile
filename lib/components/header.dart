@@ -6,11 +6,19 @@ class Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 180,
+      height: 160,
       decoration: const BoxDecoration(
-        color: Color(0xFF3A5A40), // verde fixo
+        color: Color(0xFF3A5A40),
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26, // cor da sombra
+            offset: Offset(0, 4), // deslocamento (x, y)
+            blurRadius: 8, // quanto mais alto, mais suave a sombra
+          ),
+        ],
       ),
+
       child: SafeArea(
         bottom: false,
         child: Padding(
