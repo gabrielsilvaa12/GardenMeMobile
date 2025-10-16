@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gardenme/components/curved_background.dart';
 import 'package:gardenme/pages/home_page.dart';
+import 'package:gardenme/pages/password_recover.dart';
 
 class MyLogin extends StatefulWidget {
   const MyLogin({super.key, required this.title});
@@ -88,12 +89,18 @@ class _MyLoginState extends State<MyLogin> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          print("Teste1");
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PasswordRecover(),
+                            ),
+                          );
                         },
                         child: RichText(
                           text: TextSpan(
                             text: " senha?",
                             style: TextStyle(
+                              decoration: TextDecoration.underline,
                               fontSize: 16,
                               color: Color(0xFF386641),
                             ),
@@ -107,13 +114,12 @@ class _MyLoginState extends State<MyLogin> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () {
-                          print("Teste2");
-                        },
+                        onTap: () {},
                         child: RichText(
                           text: TextSpan(
                             text: " cadastre-se.",
                             style: TextStyle(
+                              decoration: TextDecoration.underline,
                               fontSize: 16,
                               color: Color(0xFF386641),
                             ),
@@ -137,7 +143,7 @@ class _MyLoginState extends State<MyLogin> {
                           backgroundColor: Color(0xff3A5A40),
                         ),
                         onPressed: () {
-                          Navigator.push(
+                          Navigator.pop(
                             context,
                             MaterialPageRoute(
                               builder: (context) => MyHomePage(),
