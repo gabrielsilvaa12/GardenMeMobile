@@ -35,13 +35,16 @@ class _MyLoginState extends State<MyLogin> {
                     fillColor: Color(0xFFf2f2f2),
                     label: Text("E-mail de usuário"),
                     border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.0),
                       borderSide: BorderSide(color: Colors.black),
                     ),
 
                     focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.0),
                       borderSide: BorderSide(color: Color(0xFF386641)),
                     ),
                     enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.0),
                       borderSide: BorderSide(color: Color(0xFF386641)),
                     ),
                   ),
@@ -56,14 +59,68 @@ class _MyLoginState extends State<MyLogin> {
                     fillColor: Color(0xFFf2f2f2),
                     label: Text("Senha"),
                     border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.0),
                       borderSide: BorderSide(color: Colors.black),
                     ),
                     focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.0),
                       borderSide: BorderSide(color: Color(0xFF386641)),
                     ),
                     enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.0),
                       borderSide: BorderSide(color: Color(0xFF386641)),
                     ),
+                  ),
+                ),
+              ),
+
+              SizedBox(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 30),
+                  child: Row(
+                    spacing: 0,
+                    children: [
+                      RichText(
+                        text: TextSpan(
+                          text: "Esqueceu sua",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          print("Teste1");
+                        },
+                        child: RichText(
+                          text: TextSpan(
+                            text: " senha?",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Color(0xFF386641),
+                            ),
+                          ),
+                        ),
+                      ),
+                      RichText(
+                        text: TextSpan(
+                          text: " ou ",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          print("Teste2");
+                        },
+                        child: RichText(
+                          text: TextSpan(
+                            text: " cadastre-se.",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Color(0xFF386641),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -89,7 +146,10 @@ class _MyLoginState extends State<MyLogin> {
                         },
                         child: Text(
                           "Entrar",
-                          style: TextStyle(color: Color(0xFFa7c957)),
+                          style: TextStyle(
+                            color: Color(0xFFa7c957),
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     ),
@@ -105,7 +165,11 @@ class _MyLoginState extends State<MyLogin> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text("Entrar com "),
-                            Image.asset('assets/images/google.png'),
+                            Image.asset(
+                              'assets/images/google.png',
+                              width: 30,
+                              height: 30,
+                            ),
                           ],
                         ),
                       ),
