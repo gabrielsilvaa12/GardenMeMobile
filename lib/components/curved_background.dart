@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gardenme/components/header.dart';
 
 class BodyClipper extends CustomClipper<Path> {
   @override
@@ -33,7 +32,6 @@ class curvedBackground extends StatelessWidget {
       backgroundColor: const Color(0xFFa7c957),
       body: Column(
         children: [
-          const Header(),
           Expanded(
             child: Stack(
               fit: StackFit.expand,
