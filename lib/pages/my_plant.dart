@@ -1,5 +1,3 @@
-// lib/pages/minha_planta_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:gardenme/components/curved_background.dart';
 import 'package:gardenme/components/details_plant.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gardenme/components/details_plant.dart';
+import 'package:gardenme/pages/my_plant.dart';
 
 class PlantCard extends StatefulWidget {
   final String nomePlanta;
@@ -117,7 +117,7 @@ class _PlantCardState extends State<PlantCard> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const DetailsPlantCard(),
+                            builder: (context) => const MinhaPlantaPage(),
                           ),
                         );
                       },
