@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gardenme/pages/my_plant.dart';
 
 class PlantCard extends StatefulWidget {
   final String nomePlanta;
@@ -27,8 +28,16 @@ class _PlantCardState extends State<PlantCard> {
         margin: const EdgeInsets.only(right: 8.0),
         decoration: BoxDecoration(
           color: backgroundColor,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 5,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
+
         child: Icon(icon, size: 22, color: iconColor),
       ),
     );
@@ -46,9 +55,9 @@ class _PlantCardState extends State<PlantCard> {
       child: Row(
         children: [
           CircleAvatar(
-            radius: 35,
+            radius: 38,
             backgroundColor: corPlanta
-                ? const Color(0xFFA5D6A7)
+                ? const Color(0xFFAFF695)
                 : Colors.orange,
             child: CircleAvatar(
               radius: 32,
@@ -74,7 +83,6 @@ class _PlantCardState extends State<PlantCard> {
                   children: [
                     _buildActionButton(
                       function: () {
-                        // LÓGICA CORRIGIDA DENTRO DO SETSTATE
                         setState(() {
                           statusRega = !statusRega;
                           corPlanta = !corPlanta;
@@ -111,8 +119,14 @@ class _PlantCardState extends State<PlantCard> {
                       iconColor: Colors.black87,
                     ),
                     _buildActionButton(
-                      function: () {},
-
+                      function: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MinhaPlantaPage(),
+                          ),
+                        );
+                      },
                       icon: Icons.add,
                       backgroundColor: const Color(0xFFE0E0E0),
                       iconColor: Colors.black87,
