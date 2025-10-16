@@ -81,7 +81,7 @@ class DetailsPlantCard extends StatelessWidget {
               ),
               child: const Icon(
                 Icons.notifications_none_outlined,
-                color: Colors.white,
+                color: Color(0xFFf2f2f2),
                 size: 24,
               ),
             ),
@@ -106,7 +106,7 @@ class DetailsPlantCard extends StatelessWidget {
           Text(
             text,
             style: const TextStyle(
-              color: Colors.white,
+              color: Color(0xFFf2f2f2),
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
@@ -121,11 +121,14 @@ class DetailsPlantCard extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Text.rich(
         TextSpan(
-          style: const TextStyle(color: Colors.white, fontSize: 16),
+          style: const TextStyle(color: Color(0xfff2f2f2), fontSize: 16),
           children: [
             TextSpan(
               text: title,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFf2e8cf),
+              ),
             ),
             TextSpan(text: description),
           ],
