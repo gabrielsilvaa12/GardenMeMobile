@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gardenme/components/curved_background.dart';
-import 'package:gardenme/components/header.dart';
 import 'package:gardenme/components/plant_card.dart';
 
 class MyHomePage extends StatelessWidget {
@@ -12,7 +11,6 @@ class MyHomePage extends StatelessWidget {
       backgroundColor: const Color(0xFFa7c957),
       body: Column(
         children: [
-          const Header(),
           Expanded(
             child: curvedBackground(
               child: Container(

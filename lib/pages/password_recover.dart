@@ -54,9 +54,7 @@ class PasswordRecover extends StatelessWidget {
                         onTap: () {
                           Navigator.pop(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => MyLogin(title: ''),
-                            ),
+                            MaterialPageRoute(builder: (context) => MyLogin()),
                           );
                         },
                         child: RichText(

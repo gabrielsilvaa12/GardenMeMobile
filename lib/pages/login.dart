@@ -4,9 +4,7 @@ import 'package:gardenme/pages/home_page.dart';
 import 'package:gardenme/pages/password_recover.dart';
 
 class MyLogin extends StatefulWidget {
-  const MyLogin({super.key, required this.title});
-
-  final String title;
+  const MyLogin({super.key});
 
   @override
   State<MyLogin> createState() => _MyLoginState();
@@ -143,7 +141,7 @@ class _MyLoginState extends State<MyLogin> {
                           backgroundColor: Color(0xff3A5A40),
                         ),
                         onPressed: () {
-                          Navigator.pop(
+                          Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => MyHomePage(),
