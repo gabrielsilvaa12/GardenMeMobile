@@ -43,9 +43,7 @@ class Header extends StatelessWidget {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => MyLogin(title: ""),
-                        ),
+                        MaterialPageRoute(builder: (context) => MyLogin()),
                       );
                     },
                     icon: const Icon(Icons.arrow_back, color: Colors.white),

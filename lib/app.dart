@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:gardenme/pages/home_page.dart';
+
+import 'package:gardenme/pages/login.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -12,7 +13,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.green,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const MyHomePage(),
+      home: const MyLogin(),
       debugShowCheckedModeBanner: false,
     );
   }

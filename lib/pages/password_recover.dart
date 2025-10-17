@@ -52,11 +52,9 @@ class PasswordRecover extends StatelessWidget {
                     children: [
                       GestureDetector(
                         onTap: () {
-                          Navigator.pop(
+                          Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => MyLogin(title: ''),
-                            ),
+                            MaterialPageRoute(builder: (context) => MyLogin()),
                           );
                         },
                         child: RichText(
