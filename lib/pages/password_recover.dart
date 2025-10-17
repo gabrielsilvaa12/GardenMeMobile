@@ -8,6 +8,7 @@ class PasswordRecover extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return curvedBackground(
+      showHeader: false,
       child: Container(
         padding: EdgeInsetsGeometry.all(20),
         child: Center(

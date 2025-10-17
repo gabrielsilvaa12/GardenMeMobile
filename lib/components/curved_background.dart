@@ -24,8 +24,13 @@ class BodyClipper extends CustomClipper<Path> {
 
 class curvedBackground extends StatelessWidget {
   final Widget child;
+  final bool showHeader; // 1. Adicione este parâmetro
 
-  const curvedBackground({super.key, required this.child});
+  const curvedBackground({
+    super.key,
+    required this.child,
+    this.showHeader = true, // 2. Defina o padrão como falso
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +38,8 @@ class curvedBackground extends StatelessWidget {
       backgroundColor: const Color(0xFFa7c957),
       body: Column(
         children: [
-          const Header(),
+          // 3. Adicione a condição para mostrar o Header
+          if (showHeader) const Header(),
           Expanded(
             child: Stack(
               fit: StackFit.expand,
