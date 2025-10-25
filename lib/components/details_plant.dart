@@ -127,7 +127,7 @@ class DetailedPlant extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.notifications,
+                Icons.notifications_none_outlined,
                 color: Colors.white,
                 size: 24,
               ),
