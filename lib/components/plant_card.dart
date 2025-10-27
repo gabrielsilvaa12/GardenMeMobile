@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gardenme/pages/alarms_page.dart';
 import 'package:gardenme/pages/my_plant.dart';
 
 class PlantCard extends StatefulWidget {
@@ -100,7 +101,15 @@ class _PlantCardState extends State<PlantCard> {
                       iconColor: Colors.white,
                     ),
                     _buildActionButton(
-                      function: () {},
+                      function: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                AlarmsPage(plantName: widget.nomePlanta),
+                          ),
+                        );
+                      },
 
                       icon: Icons.notifications_none_outlined,
                       backgroundColor: const Color.fromARGB(
