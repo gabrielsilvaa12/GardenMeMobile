@@ -83,9 +83,9 @@ class _ProfileCardState extends State<ProfileCard> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 10,
-            offset: Offset(0, 5),
+            color: Colors.black.withOpacity(0.35),
+            blurRadius: 15,
+            offset: Offset(0, 10),
           ),
         ],
       ),
@@ -117,18 +117,28 @@ class _ProfileCardState extends State<ProfileCard> {
               borderRadius: BorderRadius.circular(15),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
-                  blurRadius: 5,
-                  offset: const Offset(0, 3),
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
-            child: Column(
+            child: Stack(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Row(
+                const Positioned(
+                  top: 0,
+                  right: 0,
+                  child: Icon(
+                    Icons.info_outline,
+                    color: Color(0xfff2f2f2),
+                    size: 22,
+                  ),
+                ),
+
+                Column(
+                  children: [
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
                           'Mago do Jardim',
@@ -142,35 +152,31 @@ class _ProfileCardState extends State<ProfileCard> {
                         Icon(Icons.star, color: Color(0xff2d2f2d), size: 18),
                       ],
                     ),
-                    Icon(
-                      Icons.info_outline,
-                      color: Color(0xFF3A5A40),
-                      size: 20,
+                    const SizedBox(height: 10),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(3),
+                      child: const LinearProgressIndicator(
+                        value: 0.6,
+                        backgroundColor: Color(0xff344e41),
+                        valueColor: AlwaysStoppedAnimation(Color(0xFF6a994e)),
+                        minHeight: 6,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Meu progresso',
+                      style: TextStyle(color: Color(0xfff2f2f2), fontSize: 16),
                     ),
                   ],
-                ),
-                const SizedBox(height: 10),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(3),
-                  child: const LinearProgressIndicator(
-                    value: 0.6,
-                    backgroundColor: Colors.white54,
-                    valueColor: AlwaysStoppedAnimation(Color(0xFF3A5A40)),
-                    minHeight: 6,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Meu progresso',
-                  style: TextStyle(color: Color(0xfff2f2f2), fontSize: 16),
                 ),
               ],
             ),
           ),
+
           SizedBox(height: 24),
 
           const Align(
-            alignment: Alignment.center,
+            alignment: Alignment.centerLeft,
             child: Text(
               'Perfil',
               style: TextStyle(
