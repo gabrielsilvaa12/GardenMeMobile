@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gardenme/pages/login.dart';
+import 'package:gardenme/pages/profile_page.dart';
 
 class Header extends StatelessWidget {
   const Header({super.key});
@@ -7,7 +8,7 @@ class Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 160,
+      height: 180,
       decoration: const BoxDecoration(
         color: Color(0xFF3A5A40),
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
@@ -31,7 +32,12 @@ class Header extends StatelessWidget {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.person, color: Colors.white),
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => ProfilePage()),
+                      );
+                    },
                     iconSize: 30,
                   ),
                   IconButton(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gardenme/pages/alarms_page.dart';
 import 'package:gardenme/pages/my_plant.dart';
 
 class PlantCard extends StatefulWidget {
@@ -55,20 +56,19 @@ class _PlantCardState extends State<PlantCard> {
       child: Row(
         children: [
           CircleAvatar(
-            radius: 38,
+            radius: 45,
             backgroundColor: corPlanta
                 ? const Color(0xFFAFF695)
                 : Colors.orange,
             child: CircleAvatar(
-              radius: 32,
+              radius: 40,
               backgroundImage: AssetImage(widget.imagemPlanta),
             ),
           ),
           const SizedBox(width: 15),
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
                   widget.nomePlanta,
@@ -80,6 +80,7 @@ class _PlantCardState extends State<PlantCard> {
                 ),
                 const SizedBox(height: 10),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _buildActionButton(
                       function: () {
@@ -100,7 +101,15 @@ class _PlantCardState extends State<PlantCard> {
                       iconColor: Colors.white,
                     ),
                     _buildActionButton(
-                      function: () {},
+                      function: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                AlarmsPage(plantName: widget.nomePlanta),
+                          ),
+                        );
+                      },
 
                       icon: Icons.notifications_none_outlined,
                       backgroundColor: const Color.fromARGB(

@@ -36,6 +36,16 @@ class MyHomePage extends StatelessWidget {
                       nomePlanta: 'Babosa',
                       imagemPlanta: 'assets/images/babosada.png',
                     ),
+                    const SizedBox(height: 10),
+                    PlantCard(
+                      nomePlanta: 'Samambaia',
+                      imagemPlanta: 'assets/images/samambas.png',
+                    ),
+                    const SizedBox(height: 10),
+                    PlantCard(
+                      nomePlanta: 'Jiboia',
+                      imagemPlanta: 'assets/images/jiboia.png',
+                    ),
                   ],
                 ),
               ),
