@@ -16,6 +16,8 @@ class NavbarCard extends StatefulWidget {
 class _NavbarCardState extends State<NavbarCard> {
   late CircularBottomNavigationController _navigationController;
 
+  List<Widget> listPage = [ProfilePage(), MyHomePage()];
+
   final List<TabItem> tabItems = [
     TabItem(
       Icons.person,
@@ -62,55 +64,58 @@ class _NavbarCardState extends State<NavbarCard> {
 
   @override
   Widget build(BuildContext context) {
-    return CircularBottomNavigation(
-      tabItems,
-      controller: _navigationController,
-      barHeight: 70,
-      circleSize: 70,
-      iconsSize: 35,
-      barBackgroundColor: const Color(0xfff2e8cf),
-      animationDuration: const Duration(milliseconds: 300),
-      selectedPos: widget.selectedIndex,
-      selectedCallback: (int? newIndex) {
-        if (newIndex == null) return;
+    return SafeArea(
+      child: CircularBottomNavigation(
+        tabItems,
+        controller: _navigationController,
+        barHeight: 70,
+        circleSize: 70,
+        iconsSize: 35,
+        barBackgroundColor: const Color(0xfff2e8cf),
+        animationDuration: const Duration(milliseconds: 300),
+        selectedPos: widget.selectedIndex,
+        selectedCallback: (int? newIndex) {
+          print(newIndex);
+          if (newIndex == null) return;
 
-        if (newIndex == widget.selectedIndex) return;
+          if (newIndex == widget.selectedIndex) return;
 
-        switch (newIndex) {
-          case 0:
-            Navigator.pushReplacement(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (context, animation1, animation2) =>
-                    const ProfilePage(),
-                transitionDuration: Duration.zero,
-                reverseTransitionDuration: Duration.zero,
-              ),
-            );
-            break;
-          case 1:
-            Navigator.pushReplacement(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (context, animation1, animation2) =>
-                    const MyHomePage(),
-                transitionDuration: Duration.zero,
-                reverseTransitionDuration: Duration.zero,
-              ),
-            );
-            break;
-          case 2:
-            // Navigator.pushReplacement(
-            //   context,
-            //   PageRouteBuilder(
-            //     pageBuilder: (context, animation1, animation2) => const SettingsPage(),
-            //     transitionDuration: Duration.zero,
-            //     reverseTransitionDuration: Duration.zero,
-            //   ),
-            // );
-            break;
-        }
-      },
+          switch (newIndex) {
+            case 0:
+              Navigator.pushReplacement(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation1, animation2) =>
+                      const ProfilePage(),
+                  transitionDuration: Duration.zero,
+                  reverseTransitionDuration: Duration.zero,
+                ),
+              );
+              break;
+            case 1:
+              Navigator.pushReplacement(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation1, animation2) =>
+                      const MyHomePage(),
+                  transitionDuration: Duration.zero,
+                  reverseTransitionDuration: Duration.zero,
+                ),
+              );
+              break;
+            case 2:
+              // Navigator.pushReplacement(
+              //   context,
+              //   PageRouteBuilder(
+              //     pageBuilder: (context, animation1, animation2) => const SettingsPage(),
+              //     transitionDuration: Duration.zero,
+              //     reverseTransitionDuration: Duration.zero,
+              //   ),
+              // );
+              break;
+          }
+        },
+      ),
     );
   }
 }
