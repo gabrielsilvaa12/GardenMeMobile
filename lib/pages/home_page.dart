@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gardenme/components/curved_background.dart';
+import 'package:gardenme/components/navbar_card.dart';
 import 'package:gardenme/components/plant_card.dart';
 
 class MyHomePage extends StatelessWidget {
@@ -8,6 +9,7 @@ class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       backgroundColor: const Color(0xFFa7c957),
       body: Column(
         children: [
@@ -53,6 +55,7 @@ class MyHomePage extends StatelessWidget {
           ),
         ],
       ),
+      bottomNavigationBar: const NavbarCard(selectedIndex: 1),
     );
   }
 }
