@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gardenme/components/curved_background.dart';
 import 'package:gardenme/pages/home_page.dart';
 import 'package:gardenme/pages/password_recover.dart';
+import 'package:gardenme/pages/register.dart';
 
 class MyLogin extends StatefulWidget {
   const MyLogin({super.key});
@@ -117,7 +118,14 @@ class _MyLoginState extends State<MyLogin> {
                         spacing: 0,
                         children: [
                           GestureDetector(
-                            onTap: () {},
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => RegisterAccount(),
+                                ),
+                              );
+                            },
                             child: RichText(
                               text: TextSpan(
                                 text: "Cadastre-se.",
