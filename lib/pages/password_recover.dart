@@ -28,6 +28,7 @@ class PasswordRecover extends StatelessWidget {
                     filled: true,
                     fillColor: Color(0xFFf2f2f2),
                     label: Text("E-mail de usuário"),
+                    labelStyle: TextStyle(color: Color(0xFF386641)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20.0),
                       borderSide: BorderSide(color: Colors.black),
@@ -63,6 +64,7 @@ class PasswordRecover extends StatelessWidget {
                             text: " voltar ",
                             style: TextStyle(
                               decoration: TextDecoration.underline,
+                              fontWeight: FontWeight.bold,
                               fontSize: 16,
                               color: Color(0xFFf2f2f2),
                             ),
@@ -93,7 +95,10 @@ class PasswordRecover extends StatelessWidget {
                     children: [
                       Text(
                         "Recuperar",
-                        style: TextStyle(color: Color(0xFFf2f2f2)),
+                        style: TextStyle(
+                          color: Color(0xFFf2f2f2),
+                          fontSize: 16,
+                        ),
                       ),
                     ],
                   ),
