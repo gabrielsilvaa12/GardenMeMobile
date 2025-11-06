@@ -26,7 +26,7 @@ class _AlarmSettingsCardState extends State<AlarmSettingsCard> {
         Text(
           title,
           style: TextStyle(
-            color: Colors.white,
+            color: Color(0xfff2f2f2),
             fontSize: 20,
             fontWeight: FontWeight.w500,
           ),
