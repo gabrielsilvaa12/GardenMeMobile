@@ -37,7 +37,10 @@ class _MyLoginState extends State<RegisterAccount> {
                       children: [
                         Text(
                           "Cadastro de usuário",
-                          style: TextStyle(fontSize: 20),
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Color(0xFF2d2f2d),
+                          ),
                         ),
                       ],
                     ),
