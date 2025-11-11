@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gardenme/components/curved_background.dart';
 import 'package:gardenme/components/details_plant.dart';
-import 'package:gardenme/components/navbar_card.dart'; // 1. Importe o NavbarCard
 
 class MinhaPlantaPage extends StatelessWidget {
   const MinhaPlantaPage({super.key});
@@ -17,8 +16,6 @@ class MinhaPlantaPage extends StatelessWidget {
           children: const [DetailedPlant()],
         ),
       ),
-
-      bottomNavigationBar: const NavbarCard(selectedIndex: 1),
     );
   }
 }

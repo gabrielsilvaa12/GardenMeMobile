@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gardenme/components/add_plant_modal.dart';
 import 'package:gardenme/components/curved_background.dart';
-import 'package:gardenme/components/navbar_card.dart';
 import 'package:gardenme/components/plant_card.dart';
 
 class MyHomePage extends StatelessWidget {
@@ -93,7 +92,6 @@ class MyHomePage extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: const NavbarCard(selectedIndex: 1),
     );
   }
 }

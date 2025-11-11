@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gardenme/components/curved_background.dart';
-import 'package:gardenme/pages/home_page.dart';
+import 'package:gardenme/pages/main_page.dart';
 import 'package:gardenme/pages/password_recover.dart';
 
 class MyLogin extends StatefulWidget {
@@ -144,9 +144,7 @@ class _MyLoginState extends State<MyLogin> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => MyHomePage(),
-                            ),
+                            MaterialPageRoute(builder: (context) => MainPage()),
                           );
                         },
                         child: Text(
