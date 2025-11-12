@@ -3,7 +3,14 @@ import 'package:gardenme/components/curved_background.dart';
 import 'package:gardenme/components/details_plant.dart';
 
 class MinhaPlantaPage extends StatelessWidget {
-  const MinhaPlantaPage({super.key});
+  final String nomePlanta;
+  final String imagemPlanta;
+
+  const MinhaPlantaPage({
+    super.key,
+    required this.nomePlanta,
+    required this.imagemPlanta,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -12,8 +19,10 @@ class MinhaPlantaPage extends StatelessWidget {
 
       body: curvedBackground(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-          children: const [DetailedPlant()],
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+          children: [
+            DetailedPlant(nomePlanta: nomePlanta, imagemPlanta: imagemPlanta),
+          ],
         ),
       ),
     );

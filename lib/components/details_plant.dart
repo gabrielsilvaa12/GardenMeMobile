@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
 class DetailedPlant extends StatelessWidget {
-  const DetailedPlant({super.key});
+  final String nomePlanta;
+  final String imagemPlanta;
+
+  const DetailedPlant({
+    super.key,
+    required this.nomePlanta,
+    required this.imagemPlanta,
+  });
 
   Widget _buildInfoIcon(IconData icon, String text) {
     return Container(
@@ -68,20 +75,20 @@ class DetailedPlant extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Center(
+              Center(
                 child: CircleAvatar(
                   radius: 75,
                   backgroundColor: Color(0xFFAFF695),
                   child: CircleAvatar(
                     radius: 65,
-                    backgroundImage: AssetImage('assets/images/moranguito.png'),
+                    backgroundImage: AssetImage(imagemPlanta),
                   ),
                 ),
               ),
               const SizedBox(height: 16),
 
-              const Text(
-                'Morango',
+              Text(
+                nomePlanta,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Color(0xfff2f2f2),

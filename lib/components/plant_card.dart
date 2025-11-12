@@ -132,7 +132,10 @@ class _PlantCardState extends State<PlantCard> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const MinhaPlantaPage(),
+                            builder: (context) => MinhaPlantaPage(
+                              nomePlanta: widget.nomePlanta,
+                              imagemPlanta: widget.imagemPlanta,
+                            ),
                           ),
                         );
                       },

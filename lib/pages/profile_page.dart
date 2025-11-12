@@ -13,7 +13,7 @@ class ProfilePage extends StatelessWidget {
 
       body: curvedBackground(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 150),
           child: const ProfileCard(),
         ),
       ),
