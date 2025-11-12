@@ -23,7 +23,7 @@ class _MyLoginState extends State<MyLogin> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
-                'assets/images/logo_vertical.png',
+                'assets/images/logoLogin.png',
                 width: 250,
                 height: 250,
               ),
