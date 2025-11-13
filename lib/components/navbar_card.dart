@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:circular_bottom_navigation/circular_bottom_navigation.dart';
 import 'package:circular_bottom_navigation/tab_item.dart';
-import 'package:gardenme/pages/home_page.dart';
-import 'package:gardenme/pages/profile_page.dart';
+
+typedef OnItemSelectedCallback = void Function(int index);
 
 class NavbarCard extends StatefulWidget {
   final int selectedIndex;
+  // 2. Use o typedef para o callback
+  final OnItemSelectedCallback onItemSelected;
 
-  const NavbarCard({super.key, required this.selectedIndex});
-
+  const NavbarCard({
+    super.key,
+    required this.selectedIndex,
+    required this.onItemSelected, // Requer o callback
+  });
   @override
   State<NavbarCard> createState() => _NavbarCardState();
 }
 
 class _NavbarCardState extends State<NavbarCard> {
   late CircularBottomNavigationController _navigationController;
-
-  List<Widget> listPage = [ProfilePage(), MyHomePage()];
 
   final List<TabItem> tabItems = [
     TabItem(
@@ -57,6 +60,14 @@ class _NavbarCardState extends State<NavbarCard> {
   }
 
   @override
+  void didUpdateWidget(covariant NavbarCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedIndex != oldWidget.selectedIndex) {
+      _navigationController.value = widget.selectedIndex;
+    }
+  }
+
+  @override
   void dispose() {
     _navigationController.dispose();
     super.dispose();
@@ -64,58 +75,30 @@ class _NavbarCardState extends State<NavbarCard> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: CircularBottomNavigation(
-        tabItems,
-        controller: _navigationController,
-        barHeight: 70,
-        circleSize: 70,
-        iconsSize: 35,
-        barBackgroundColor: const Color(0xfff2e8cf),
-        animationDuration: const Duration(milliseconds: 300),
-        selectedPos: widget.selectedIndex,
-        selectedCallback: (int? newIndex) {
-          print(newIndex);
-          if (newIndex == null) return;
+    final mediaQuery = MediaQuery.of(context);
+    final double bottomPadding = mediaQuery.padding.bottom;
 
-          if (newIndex == widget.selectedIndex) return;
-
-          switch (newIndex) {
-            case 0:
-              Navigator.pushReplacement(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, animation1, animation2) =>
-                      const ProfilePage(),
-                  transitionDuration: Duration.zero,
-                  reverseTransitionDuration: Duration.zero,
-                ),
-              );
-              break;
-            case 1:
-              Navigator.pushReplacement(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, animation1, animation2) =>
-                      const MyHomePage(),
-                  transitionDuration: Duration.zero,
-                  reverseTransitionDuration: Duration.zero,
-                ),
-              );
-              break;
-            case 2:
-              // Navigator.pushReplacement(
-              //   context,
-              //   PageRouteBuilder(
-              //     pageBuilder: (context, animation1, animation2) => const SettingsPage(),
-              //     transitionDuration: Duration.zero,
-              //     reverseTransitionDuration: Duration.zero,
-              //   ),
-              // );
-              break;
-          }
-        },
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CircularBottomNavigation(
+          tabItems,
+          controller: _navigationController,
+          barHeight: 70,
+          circleSize: 70,
+          iconsSize: 35,
+          barBackgroundColor: const Color(0xfff2e8cf),
+          animationDuration: const Duration(milliseconds: 300),
+          selectedPos: widget.selectedIndex,
+          selectedCallback: (int? newIndex) {
+            if (newIndex != null) {
+              widget.onItemSelected(newIndex);
+            }
+          },
+        ),
+        if (bottomPadding > 0 && mediaQuery.viewInsets.bottom == 0)
+          Container(height: bottomPadding, color: const Color(0xfff2e8cf)),
+      ],
     );
   }
 }

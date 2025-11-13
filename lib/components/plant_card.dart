@@ -75,7 +75,7 @@ class _PlantCardState extends State<PlantCard> {
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Color(0xfff2f2f2),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -98,7 +98,7 @@ class _PlantCardState extends State<PlantCard> {
                               56,
                               35,
                             ).withAlpha(102),
-                      iconColor: Colors.white,
+                      iconColor: Color(0xfff2f2f2),
                     ),
                     _buildActionButton(
                       function: () {
@@ -118,7 +118,7 @@ class _PlantCardState extends State<PlantCard> {
                         56,
                         35,
                       ).withValues(alpha: 0.4),
-                      iconColor: Colors.white,
+                      iconColor: Color(0xfff2f2f2),
                     ),
                     _buildActionButton(
                       function: () {},
@@ -132,7 +132,10 @@ class _PlantCardState extends State<PlantCard> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const MinhaPlantaPage(),
+                            builder: (context) => MinhaPlantaPage(
+                              nomePlanta: widget.nomePlanta,
+                              imagemPlanta: widget.imagemPlanta,
+                            ),
                           ),
                         );
                       },

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gardenme/components/curved_background.dart';
-import 'package:gardenme/pages/home_page.dart';
+import 'package:gardenme/pages/main_page.dart';
 import 'package:gardenme/pages/password_recover.dart';
 import 'package:gardenme/pages/register.dart';
 
@@ -24,7 +24,7 @@ class _MyLoginState extends State<MyLogin> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
-                'assets/images/logo_vertical.png',
+                'assets/images/logoLogin.png',
                 width: 250,
                 height: 250,
               ),
@@ -159,9 +159,7 @@ class _MyLoginState extends State<MyLogin> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => MyHomePage(),
-                            ),
+                            MaterialPageRoute(builder: (context) => MainPage()),
                           );
                         },
                         child: Text(

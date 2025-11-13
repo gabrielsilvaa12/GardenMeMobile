@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gardenme/components/curved_background.dart';
 import 'package:gardenme/components/profile_card.dart';
-import 'package:gardenme/components/navbar_card.dart'; // 1. Importe o NavbarCard
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -14,14 +13,10 @@ class ProfilePage extends StatelessWidget {
 
       body: curvedBackground(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 150),
           child: const ProfileCard(),
         ),
       ),
-
-      bottomNavigationBar: const NavbarCard(
-        selectedIndex: 0,
-      ), // 0 é o índice de "Perfil"
     );
   }
 }
