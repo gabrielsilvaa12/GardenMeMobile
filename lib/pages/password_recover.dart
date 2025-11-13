@@ -17,9 +17,9 @@ class PasswordRecover extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
-                'assets/images/logo_vertical.png',
-                width: 250,
-                height: 250,
+                'assets/images/logoLogin.png',
+                width: 200,
+                height: 200,
               ),
               SizedBox(
                 width: 320,

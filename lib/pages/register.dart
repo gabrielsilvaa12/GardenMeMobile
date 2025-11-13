@@ -25,8 +25,8 @@ class _MyLoginState extends State<RegisterAccount> {
               children: [
                 Image.asset(
                   'assets/images/logo_vertical.png',
-                  width: 250,
-                  height: 250,
+                  width: 200,
+                  height: 200,
                 ),
 
                 Column(

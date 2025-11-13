@@ -25,8 +25,8 @@ class _MyLoginState extends State<MyLogin> {
             children: [
               Image.asset(
                 'assets/images/logoLogin.png',
-                width: 250,
-                height: 250,
+                width: 200,
+                height: 200,
               ),
               SizedBox(
                 width: 320,
