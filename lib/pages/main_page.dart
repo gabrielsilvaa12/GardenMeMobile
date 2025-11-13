@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gardenme/components/navbar_card.dart';
 import 'package:gardenme/pages/home_page.dart';
 import 'package:gardenme/pages/profile_page.dart';
+import 'package:gardenme/pages/settings.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -13,7 +14,11 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   int selectedPos = 1;
 
-  final List<Widget> _pages = [const ProfilePage(), const MyHomePage()];
+  final List<Widget> _pages = [
+    const ProfilePage(),
+    const MyHomePage(),
+    Settings(),
+  ];
 
   @override
   Widget build(BuildContext context) {
