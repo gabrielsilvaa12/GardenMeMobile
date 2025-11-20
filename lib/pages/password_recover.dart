@@ -8,6 +8,7 @@ class PasswordRecover extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return curvedBackground(
+      showHeader: false,
       child: Container(
         padding: EdgeInsetsGeometry.all(20),
         child: Center(
@@ -16,9 +17,9 @@ class PasswordRecover extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
-                'assets/images/logo_vertical.png',
-                width: 250,
-                height: 250,
+                'assets/images/logoLogin.png',
+                width: 200,
+                height: 200,
               ),
               SizedBox(
                 width: 320,
@@ -27,6 +28,7 @@ class PasswordRecover extends StatelessWidget {
                     filled: true,
                     fillColor: Color(0xFFf2f2f2),
                     label: Text("E-mail de usuário"),
+                    labelStyle: TextStyle(color: Color(0xFF386641)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20.0),
                       borderSide: BorderSide(color: Colors.black),
@@ -52,7 +54,7 @@ class PasswordRecover extends StatelessWidget {
                     children: [
                       GestureDetector(
                         onTap: () {
-                          Navigator.pop(
+                          Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => MyLogin()),
                           );
@@ -62,6 +64,7 @@ class PasswordRecover extends StatelessWidget {
                             text: " voltar ",
                             style: TextStyle(
                               decoration: TextDecoration.underline,
+                              fontWeight: FontWeight.bold,
                               fontSize: 16,
                               color: Color(0xFFf2f2f2),
                             ),
@@ -92,7 +95,10 @@ class PasswordRecover extends StatelessWidget {
                     children: [
                       Text(
                         "Recuperar",
-                        style: TextStyle(color: Color(0xFFf2f2f2)),
+                        style: TextStyle(
+                          color: Color(0xFFf2f2f2),
+                          fontSize: 16,
+                        ),
                       ),
                     ],
                   ),
