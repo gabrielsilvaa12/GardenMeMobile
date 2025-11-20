@@ -182,7 +182,10 @@ class _MyLoginState extends State<MyLogin> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text("Entrar com "),
+                            Text(
+                              "Entrar com ",
+                              style: TextStyle(color: Color(0xff3A5A40)),
+                            ),
                             Image.asset(
                               'assets/images/google.png',
                               width: 30,

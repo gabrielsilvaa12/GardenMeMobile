@@ -262,14 +262,6 @@ class _SettingsState extends State<Settings> {
                       ),
                     ),
                   ),
-
-                  _buildDivider(),
-
-                  // --- SUPORTE ---
-                  _buildSectionTitle("Suporte"),
-                  _buildLinkText("Contato", () {}),
-                  _buildLinkText("Sobre nós", () {}),
-                  _buildLinkText("Termos e condições", () {}),
                 ],
               ),
             ),
