@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "56110415944",
+    "project_id": "gardenme-bfc64",
+    "storage_bucket": "gardenme-bfc64.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:56110415944:android:32f5351222dc480d9d587d",
+        "android_client_info": {
+          "package_name": "com.example.gardenme"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBDYVOxXSl0cOhkw3iiDFeU4i7x3FDbDms"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

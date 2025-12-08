@@ -1,6 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gardenme/components/curved_background.dart';
-import 'package:gardenme/pages/home_page.dart';
 import 'package:gardenme/pages/login.dart';
 
 class RegisterAccount extends StatefulWidget {
@@ -11,7 +12,106 @@ class RegisterAccount extends StatefulWidget {
 }
 
 class _MyLoginState extends State<RegisterAccount> {
+  final _nomeController = TextEditingController();
+  final _sobrenomeController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _confirmaEmailController = TextEditingController();
+  final _celularController = TextEditingController();
+  final _senhaController = TextEditingController();
+  final _confirmaSenhaController = TextEditingController();
+
+  bool _senhaVisivel = false;
+  bool _confirmaSenhaVisivel = false;
+
+  Future<void> _cadastrarUsuario() async {
+    // 1. Validações Básicas
+    if (_nomeController.text.isEmpty ||
+        _emailController.text.isEmpty ||
+        _senhaController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Preencha os campos obrigatórios!')),
+      );
+      return;
+    }
+    if (_emailController.text.trim() != _confirmaEmailController.text.trim()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Os e-mails não coincidem!')),
+      );
+      return;
+    }
+
+    if (_senhaController.text != _confirmaSenhaController.text) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('As senhas não coincidem!')));
+      return;
+    }
+    try {
+      // 2. Criar usuário no Firebase Authentication
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: _emailController.text.trim(),
+            password: _senhaController.text.trim(),
+          );
+
+      // 3. Salvar dados adicionais no Firestore
+      String userId = userCredential.user!.uid;
+
+      await FirebaseFirestore.instance.collection('users').doc(userId).set({
+        'nome': _nomeController.text.trim(),
+        'sobrenome': _sobrenomeController.text.trim(),
+        'email': _emailController.text.trim(),
+        'celular': _celularController.text.trim(),
+        'criadoEm': FieldValue.serverTimestamp(),
+      });
+
+      // Sucesso! Vai para a Home
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Conta criada com sucesso!'),
+            backgroundColor: Color(0xff6a994e),
+          ),
+        );
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const MyLogin()),
+          (route) => false, // Remove todas as rotas anteriores da pilha
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      String erro = 'Erro ao cadastrar';
+      if (e.code == 'weak-password') {
+        erro = 'A senha é muito fraca (mínimo 6 caracteres).';
+      } else if (e.code == 'email-already-in-use') {
+        erro = 'Este e-mail já está em uso.';
+      } else if (e.code == 'invalid-email') {
+        erro = 'O formato do e-mail é inválido.';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(erro), backgroundColor: Colors.redAccent),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro: $e')));
+    }
+  }
+
   @override
+  void dispose() {
+    // Limpar controladores da memória
+    _nomeController.dispose();
+    _sobrenomeController.dispose();
+    _emailController.dispose();
+    _confirmaEmailController.dispose();
+    _celularController.dispose();
+    _senhaController.dispose();
+    _confirmaSenhaController.dispose();
+    super.dispose();
+  }
+
   Widget build(BuildContext context) {
     return curvedBackground(
       showHeader: false,
@@ -82,6 +182,7 @@ class _MyLoginState extends State<RegisterAccount> {
                 SizedBox(
                   width: 320,
                   child: TextField(
+                    controller: _nomeController,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Color(0xFFf2f2f2),
@@ -107,6 +208,7 @@ class _MyLoginState extends State<RegisterAccount> {
                 SizedBox(
                   width: 320,
                   child: TextField(
+                    controller: _sobrenomeController,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Color(0xFFf2f2f2),
@@ -132,6 +234,7 @@ class _MyLoginState extends State<RegisterAccount> {
                 SizedBox(
                   width: 320,
                   child: TextField(
+                    controller: _emailController,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Color(0xFFf2f2f2),
@@ -157,6 +260,7 @@ class _MyLoginState extends State<RegisterAccount> {
                 SizedBox(
                   width: 320,
                   child: TextField(
+                    controller: _confirmaEmailController,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Color(0xFFf2f2f2),
@@ -182,6 +286,7 @@ class _MyLoginState extends State<RegisterAccount> {
                 SizedBox(
                   width: 320,
                   child: TextField(
+                    controller: _celularController,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Color(0xFFf2f2f2),
@@ -204,26 +309,49 @@ class _MyLoginState extends State<RegisterAccount> {
                   ),
                 ),
 
+                // Em register.dart
                 SizedBox(
                   width: 320,
                   child: TextField(
+                    controller: _senhaController,
+                    obscureText: !_senhaVisivel,
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: Color(0xFFf2f2f2),
-                      label: Text("Senha"),
-                      labelStyle: TextStyle(color: Color(0xFF386641)),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Colors.black),
-                      ),
+                      fillColor: const Color(0xFFf2f2f2),
+                      label: const Text("Senha"),
+                      labelStyle: const TextStyle(color: Color(0xFF386641)),
 
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Color(0xFF386641)),
-                      ),
+                      // ESTA É A BORDA PADRÃO (Quando o campo não está em foco)
+                      // Ela estava quadrada antes. Agora forçamos o circular(20.0)
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Color(0xFF386641)),
+                        borderSide: const BorderSide(color: Color(0xFF386641)),
+                      ),
+
+                      // Borda quando o campo é clicado (Foco)
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20.0),
+                        borderSide: const BorderSide(color: Color(0xFF386641)),
+                      ),
+
+                      // Borda genérica de fallback
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20.0),
+                        borderSide: const BorderSide(color: Colors.black),
+                      ),
+
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _senhaVisivel
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: const Color(0xFF386641),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _senhaVisivel = !_senhaVisivel;
+                          });
+                        },
                       ),
                     ),
                   ),
@@ -232,6 +360,8 @@ class _MyLoginState extends State<RegisterAccount> {
                 SizedBox(
                   width: 320,
                   child: TextField(
+                    controller: _confirmaSenhaController,
+                    obscureText: !_confirmaSenhaVisivel,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Color(0xFFf2f2f2),
@@ -242,38 +372,44 @@ class _MyLoginState extends State<RegisterAccount> {
                         borderSide: BorderSide(color: Colors.black),
                       ),
 
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20.0),
+                        borderSide: const BorderSide(color: Color(0xFF386641)),
+                      ),
+
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
                         borderSide: BorderSide(color: Color(0xFF386641)),
                       ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Color(0xFF386641)),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _confirmaSenhaVisivel
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: const Color(0xFF386641),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _confirmaSenhaVisivel = !_confirmaSenhaVisivel;
+                          });
+                        },
                       ),
                     ),
                   ),
                 ),
 
                 Padding(
-                  padding: EdgeInsetsGeometry.all(20),
+                  padding: const EdgeInsets.all(20),
                   child: Column(
-                    spacing: 20,
                     children: [
                       SizedBox(
                         width: 200,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xffA7C957),
+                            backgroundColor: const Color(0xffA7C957),
                           ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => MyHomePage(),
-                              ),
-                            );
-                          },
-                          child: Text(
+                          onPressed: _cadastrarUsuario,
+                          child: const Text(
                             "Cadastrar",
                             style: TextStyle(
                               color: Color(0xFF2d2f2d),

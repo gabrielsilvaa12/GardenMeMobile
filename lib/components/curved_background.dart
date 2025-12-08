@@ -35,6 +35,7 @@ class curvedBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: const Color(0xFFa7c957),
       body: Column(
         children: [
