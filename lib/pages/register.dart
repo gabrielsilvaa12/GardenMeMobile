@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:gardenme/components/curved_background.dart';
 import 'package:gardenme/pages/login.dart';
 
+// Importe o seu model aqui (ajuste o caminho se necessário)
+// import 'package:gardenme/models/user_model.dart';
+
 class RegisterAccount extends StatefulWidget {
   const RegisterAccount({super.key});
 
@@ -24,79 +27,84 @@ class _MyLoginState extends State<RegisterAccount> {
   bool _confirmaSenhaVisivel = false;
 
   Future<void> _cadastrarUsuario() async {
-    // 1. Validações Básicas
+    // 1. Validações Básicas (RN02: Senha mínima 6 caracteres)
     if (_nomeController.text.isEmpty ||
         _emailController.text.isEmpty ||
         _senhaController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Preencha os campos obrigatórios!')),
-      );
+      _mostrarSnackBar('Preencha os campos obrigatórios!');
       return;
     }
+
+    if (_senhaController.text.length < 6) {
+      _mostrarSnackBar('A senha deve ter no mínimo 6 caracteres.');
+      return;
+    }
+
     if (_emailController.text.trim() != _confirmaEmailController.text.trim()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Os e-mails não coincidem!')),
-      );
+      _mostrarSnackBar('Os e-mails não coincidem!');
       return;
     }
 
     if (_senhaController.text != _confirmaSenhaController.text) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('As senhas não coincidem!')));
+      _mostrarSnackBar('As senhas não coincidem!');
       return;
     }
+
     try {
-      // 2. Criar usuário no Firebase Authentication
+      // 2. Criar usuário no Firebase Authentication (RF01)
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
             email: _emailController.text.trim(),
             password: _senhaController.text.trim(),
           );
 
-      // 3. Salvar dados adicionais no Firestore
+      // 3. Salvar dados adicionais no Firestore (Bloco 1 - Usuário)
       String userId = userCredential.user!.uid;
 
-      await FirebaseFirestore.instance.collection('users').doc(userId).set({
+      // Usando a estrutura de campos definida para o Bloco 1 e 3
+      await FirebaseFirestore.instance.collection('usuarios').doc(userId).set({
+        'id': userId,
         'nome': _nomeController.text.trim(),
         'sobrenome': _sobrenomeController.text.trim(),
         'email': _emailController.text.trim(),
-        'celular': _celularController.text.trim(),
-        'criadoEm': FieldValue.serverTimestamp(),
+        'telefone': _celularController.text.trim(),
+        'foto_url': null, // Inicialmente nulo (Bloco 3 cuidará do upload)
+        'nivel': 'Iniciante', // Gamificação Inicial (RF11)
+        'pontos': 0, // Gamificação Inicial (RF11)
+        'criadoEm': FieldValue.serverTimestamp(), // Para auditoria (RNF09)
       });
 
-      // Sucesso! Vai para a Home
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Conta criada com sucesso!'),
-            backgroundColor: Color(0xff6a994e),
-          ),
+        _mostrarSnackBar(
+          'Conta criada com sucesso!',
+          cor: const Color(0xff6a994e),
         );
+
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const MyLogin()),
-          (route) => false, // Remove todas as rotas anteriores da pilha
+          (route) => false,
         );
       }
     } on FirebaseAuthException catch (e) {
       String erro = 'Erro ao cadastrar';
       if (e.code == 'weak-password') {
-        erro = 'A senha é muito fraca (mínimo 6 caracteres).';
+        erro = 'A senha é muito fraca.';
       } else if (e.code == 'email-already-in-use') {
         erro = 'Este e-mail já está em uso.';
       } else if (e.code == 'invalid-email') {
         erro = 'O formato do e-mail é inválido.';
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(erro), backgroundColor: Colors.redAccent),
-      );
+      _mostrarSnackBar(erro, cor: Colors.redAccent);
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Erro: $e')));
+      _mostrarSnackBar('Erro inesperado: $e');
     }
+  }
+
+  void _mostrarSnackBar(String mensagem, {Color cor = Colors.black87}) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(mensagem), backgroundColor: cor));
   }
 
   @override
@@ -320,9 +328,6 @@ class _MyLoginState extends State<RegisterAccount> {
                       fillColor: const Color(0xFFf2f2f2),
                       label: const Text("Senha"),
                       labelStyle: const TextStyle(color: Color(0xFF386641)),
-
-                      // ESTA É A BORDA PADRÃO (Quando o campo não está em foco)
-                      // Ela estava quadrada antes. Agora forçamos o circular(20.0)
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
                         borderSide: const BorderSide(color: Color(0xFF386641)),

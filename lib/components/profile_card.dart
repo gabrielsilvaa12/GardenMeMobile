@@ -1,216 +1,202 @@
+import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:gardenme/pages/edit_profile_page.dart';
+import 'package:gardenme/pages/login.dart';
 
-class ProfileCard extends StatefulWidget {
+class ProfileCard extends StatelessWidget {
   const ProfileCard({super.key});
 
   @override
-  State<ProfileCard> createState() => _ProfileCardState();
-}
-
-class _ProfileCardState extends State<ProfileCard> {
-  final _nome = TextEditingController();
-  final _sobrenome = TextEditingController();
-  final _email = TextEditingController();
-  final _telefone = TextEditingController();
-
-  void dispose() {
-    _nome.dispose();
-    _sobrenome.dispose();
-    _email.dispose();
-    _telefone.dispose();
-    super.dispose();
-  }
-
-  Widget _campo(
-    String label,
-    TextEditingController controller, {
-    bool opcional = false,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          opcional ? '$label (opcional)' : '$label *',
-          style: TextStyle(
-            color: Color(0xFFf2f2f2),
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.white.withOpacity(0.9),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(25),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          ),
-        ),
-        SizedBox(height: 16),
-      ],
-    );
-  }
-
-  void _salvar() {
-    if (_nome.text.isEmpty || _email.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Por favor, preencha os campos obrigatórios.'),
-          backgroundColor: Colors.redAccent,
-        ),
-      );
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Perfil salvo com sucesso!'),
-        backgroundColor: Color(0xff6a994e),
-      ),
-    );
-
-    Navigator.pop(context);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Color(0xff588157),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.35),
-            blurRadius: 15,
-            offset: Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 52,
-            backgroundColor: Color(0xFFa7c957).withOpacity(0.5),
-            child: CircleAvatar(
-              radius: 48,
-              backgroundImage: AssetImage('assets/images/moranguito.png'),
-            ),
-          ),
-          SizedBox(height: 16),
-          Text(
-            'Joselito',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFFf2f2f2),
-            ),
-          ),
-          SizedBox(height: 20),
+    final String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFa7c957),
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Stack(
-              children: [
-                const Positioned(
-                  top: 0,
-                  right: 0,
-                  child: Icon(
-                    Icons.info_outline,
-                    color: Color(0xfff2f2f2),
-                    size: 22,
-                  ),
-                ),
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('usuarios')
+          .doc(uid)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.white),
+          );
+        }
 
-                Column(
+        var userData = snapshot.data!.data() as Map<String, dynamic>;
+        int pontos = userData['pontos'] ?? 0;
+        double progressoVisivel = (pontos % 100) / 100;
+
+        // Lógica da Foto Local
+        String? fotoPath = userData['foto_url'];
+        ImageProvider avatarImage;
+        if (fotoPath != null &&
+            fotoPath.isNotEmpty &&
+            fotoPath.startsWith('/')) {
+          avatarImage = FileImage(File(fotoPath));
+        } else {
+          avatarImage = const AssetImage('assets/images/garden.png');
+        }
+
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: const Color(0xff588157),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 10,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              CircleAvatar(
+                radius: 60,
+                backgroundColor: const Color(0xFFa7c957).withOpacity(0.5),
+                child: CircleAvatar(radius: 56, backgroundImage: avatarImage),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "${userData['nome']} ${userData['sobrenome'] ?? ''}",
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xf2f2f2f2),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFa7c957),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Column(
                   children: [
-                    const Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Mago do Jardim',
-                          style: TextStyle(
+                          userData['nivel'] ?? 'Iniciante',
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: Color(0xff2d2f2d),
+                            color: Color(0xff344E41),
                             fontSize: 20,
                           ),
                         ),
-                        SizedBox(width: 4),
-                        Icon(Icons.star, color: Color(0xff2d2f2d), size: 18),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.star,
+                          color: Color(0xff344E41),
+                          size: 18,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 10),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(3),
-                      child: const LinearProgressIndicator(
-                        value: 0.6,
-                        backgroundColor: Color(0xff344e41),
-                        valueColor: AlwaysStoppedAnimation(Color(0xFF6a994e)),
-                        minHeight: 6,
+                    LinearProgressIndicator(
+                      value: progressoVisivel,
+                      backgroundColor: const Color(0xff344E41),
+                      valueColor: const AlwaysStoppedAnimation(
+                        Color(0xFF6A994E),
                       ),
                     ),
                     const SizedBox(height: 6),
                     const Text(
                       'Meu progresso',
-                      style: TextStyle(color: Color(0xfff2f2f2), fontSize: 16),
+                      style: TextStyle(color: Color(0xfff2f2f2), fontSize: 14),
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-
-          SizedBox(height: 24),
-
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Perfil',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Color(0xfff2f2f2),
               ),
-            ),
-          ),
-          SizedBox(height: 16),
-          _campo('Nome', _nome),
-          _campo('Sobrenome', _sobrenome, opcional: true),
-          _campo('E-mail', _email),
-          _campo('Telefone', _telefone, opcional: true),
 
-          SizedBox(height: 16),
+              const SizedBox(height: 25),
 
-          ElevatedButton(
-            onPressed: _salvar,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFA7C957),
-              foregroundColor: const Color(0xFF3A5A40),
-              padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildStatItem("0", "Plantas"),
+                  _buildDivider(),
+                  _buildStatItem(pontos.toString(), "Pontos"),
+                  _buildDivider(),
+                  _buildStatItem("0", "Regas"),
+                ],
               ),
-            ),
-            child: const Text(
-              'Salvar',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+
+              const SizedBox(height: 25),
+
+              ElevatedButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => EditProfilePage(userData: userData),
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFA7C957),
+                  foregroundColor: const Color(0xFF3A5A40),
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                child: const Text(
+                  'Editar Perfil',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              TextButton.icon(
+                onPressed: () async {
+                  await FirebaseAuth.instance.signOut();
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MyLogin()),
+                    (r) => false,
+                  );
+                },
+                icon: const Icon(
+                  Icons.logout,
+                  color: Colors.redAccent,
+                  size: 18,
+                ),
+                label: const Text(
+                  "Sair da conta",
+                  style: TextStyle(color: Colors.redAccent),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
+
+  Widget _buildStatItem(String value, String label) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color(0xffF2E8CF),
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, color: Color(0xfff2f2f2)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDivider() =>
+      Container(height: 25, width: 1, color: Colors.white24);
 }
