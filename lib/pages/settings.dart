@@ -178,7 +178,7 @@ class _SettingsState extends State<Settings> {
     return curvedBackground(
       child: SingleChildScrollView(
         padding: const EdgeInsets.only(
-          bottom: 120,
+          bottom: 170,
           top: 24,
         ), // Espaço extra para scroll
         child: Center(
