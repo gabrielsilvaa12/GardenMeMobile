@@ -19,7 +19,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController _nomeController;
   late TextEditingController _sobrenomeController;
   late TextEditingController _telefoneController;
+  final _senhaAtualController = TextEditingController();
+  final _novaSenhaController = TextEditingController();
+  final _confirmarSenhaController = TextEditingController();
 
+  bool _mostrarSenha = false;
   File? _imagemLocal;
   bool _estaCarregando = false;
 
@@ -33,6 +37,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _telefoneController = TextEditingController(
       text: widget.userData['telefone'] ?? '',
     );
+  }
+
+  @override
+  void dispose() {
+    _nomeController.dispose();
+    _sobrenomeController.dispose();
+    _telefoneController.dispose();
+    _senhaAtualController.dispose();
+    _novaSenhaController.dispose();
+    _confirmarSenhaController.dispose();
+    super.dispose();
   }
 
   Future<void> _selecionarImagem(ImageSource source) async {
@@ -56,7 +71,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Future<void> _salvar() async {
     setState(() => _estaCarregando = true);
     try {
-      String uid = FirebaseAuth.instance.currentUser!.uid;
+      User? user = FirebaseAuth.instance.currentUser;
+      String uid = user!.uid;
 
       Map<String, dynamic> dadosParaAtualizar = {
         'nome': _nomeController.text.trim(),
@@ -73,24 +89,55 @@ class _EditProfilePageState extends State<EditProfilePage> {
           .doc(uid)
           .update(dadosParaAtualizar);
 
-      if (mounted) Navigator.pop(context);
+      if (_novaSenhaController.text.isNotEmpty) {
+        if (_novaSenhaController.text == _confirmarSenhaController.text) {
+          if (_novaSenhaController.text.length < 6) {
+            throw "A senha deve ter pelo menos 6 caracteres.";
+          }
+
+          // Tenta atualizar a senha no Firebase Auth
+          await user.updatePassword(_novaSenhaController.text.trim());
+        } else {
+          throw "As novas senhas não coincidem.";
+        }
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Perfil atualizado com sucesso!")),
+        );
+        Navigator.pop(context);
+      }
     } catch (e) {
       setState(() => _estaCarregando = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Erro ao salvar: $e")));
+
+      // Tratamento amigável para erro de segurança do Firebase
+      String erroMsg = e.toString();
+      if (erroMsg.contains("requires-recent-login")) {
+        erroMsg = "Por segurança, faça login novamente para alterar sua senha.";
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(erroMsg), backgroundColor: Colors.redAccent),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    double tecladoAltura = MediaQuery.of(context).viewInsets.bottom;
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: const Color(0xFFa7c957),
       body: curvedBackground(
         showHeader: true,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(25, 25, 25, 100),
+          padding: EdgeInsets.fromLTRB(
+            25,
+            25,
+            25,
+            tecladoAltura > 0 ? tecladoAltura + 20 : 100,
+          ),
           child: Container(
             // --- ESTILIZAÇÃO DO CARD VERDE ESCURO ---
             padding: const EdgeInsets.all(24),
@@ -166,6 +213,64 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   _telefoneController,
                   "Telefone",
                   teclado: TextInputType.phone,
+                ),
+
+                const SizedBox(height: 30),
+                const Divider(color: Colors.white24, thickness: 1),
+                const SizedBox(height: 20),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Segurança",
+                    style: TextStyle(
+                      color: Color(0xFFf2f2f2),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 15),
+
+                _buildInput(
+                  _senhaAtualController,
+                  "Senha atual",
+                  obscure: !_mostrarSenha,
+                  sufixo: IconButton(
+                    icon: Icon(
+                      _mostrarSenha ? Icons.visibility : Icons.visibility_off,
+                      color: const Color(0xff386641),
+                    ),
+                    onPressed: () =>
+                        setState(() => _mostrarSenha = !_mostrarSenha),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                _buildInput(
+                  _novaSenhaController,
+                  "Nova senha",
+                  obscure: !_mostrarSenha,
+                  sufixo: IconButton(
+                    icon: Icon(
+                      _mostrarSenha ? Icons.visibility : Icons.visibility_off,
+                      color: const Color(0xff386641),
+                    ),
+                    onPressed: () =>
+                        setState(() => _mostrarSenha = !_mostrarSenha),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                _buildInput(
+                  _confirmarSenhaController,
+                  "Confirmar nova senha",
+                  obscure: !_mostrarSenha,
+                  sufixo: IconButton(
+                    icon: Icon(
+                      _mostrarSenha ? Icons.visibility : Icons.visibility_off,
+                      color: const Color(0xff386641),
+                    ),
+                    onPressed: () =>
+                        setState(() => _mostrarSenha = !_mostrarSenha),
+                  ),
                 ),
 
                 const SizedBox(height: 40),
@@ -247,6 +352,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
     TextEditingController controller,
     String label, {
     TextInputType teclado = TextInputType.text,
+    bool obscure = false,
+    Widget? sufixo,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -262,9 +369,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
         TextField(
           controller: controller,
           keyboardType: teclado,
+          obscureText: obscure,
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.white.withOpacity(0.9),
+            suffixIcon: sufixo,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(25),
               borderSide: BorderSide.none,

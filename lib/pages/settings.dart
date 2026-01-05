@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gardenme/components/curved_background.dart';
 
@@ -11,23 +12,9 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
-  // Variáveis de estado existentes
   ThemeOption _selectedTheme = ThemeOption.folha;
   bool _notificacoesAtivas = true;
   bool _alertasClimaticos = true;
-
-  // Controladores para os campos de senha (Novos)
-  final _senhaAtualController = TextEditingController();
-  final _novaSenhaController = TextEditingController();
-  final _confirmarSenhaController = TextEditingController();
-
-  @override
-  void dispose() {
-    _senhaAtualController.dispose();
-    _novaSenhaController.dispose();
-    _confirmarSenhaController.dispose();
-    super.dispose();
-  }
 
   // --- Widgets Auxiliares ---
 
@@ -66,15 +53,10 @@ class _SettingsState extends State<Settings> {
           setState(() => _selectedTheme = newValue);
         }
       },
-      activeColor: const Color(
-        0xfff2f2f2,
-      ), // Mudado para branco/claro conforme imagem
-      fillColor: MaterialStateProperty.resolveWith((states) {
-        if (states.contains(MaterialState.selected)) {
-          return const Color(0xfff2f2f2); // Borda branca quando selecionado
-        }
-        return const Color(0xfff2f2f2); // Borda branca quando não selecionado
-      }),
+      activeColor: const Color(0xfff2f2f2),
+      fillColor: WidgetStateProperty.resolveWith(
+        (states) => const Color(0xfff2f2f2),
+      ),
       visualDensity: VisualDensity.compact,
       contentPadding: EdgeInsets.zero,
     );
@@ -103,71 +85,96 @@ class _SettingsState extends State<Settings> {
     );
   }
 
-  Widget _buildPasswordField(String label, TextEditingController controller) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: Color(0xfff2f2f2),
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(25),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
+  Widget _buildLinkText(
+    String text,
+    VoidCallback onTap, {
+    Color color = const Color(0xFFA7C957),
+    IconData? icone,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icone != null) ...[
+              Icon(icone, color: color, size: 20),
+              const SizedBox(width: 8),
             ],
-          ),
-          child: TextField(
-            controller: controller,
-            obscureText: true,
-            style: const TextStyle(color: Colors.black87),
-            decoration: InputDecoration(
-              hintStyle: TextStyle(
-                color: Colors.black.withOpacity(0.6),
-                fontSize: 14,
-                letterSpacing: 2,
-              ),
-              filled: true,
-              fillColor: const Color(0xfff2f2f2),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 10,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(25),
-                borderSide: BorderSide.none,
+            Text(
+              text,
+              style: TextStyle(
+                color: color,
+                decoration: TextDecoration.underline,
+                decorationColor: color,
+                fontSize: 16,
               ),
             ),
-          ),
+          ],
         ),
-        const SizedBox(height: 16),
-      ],
+      ),
     );
   }
 
-  Widget _buildLinkText(String text, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Text(
-          text,
-          style: const TextStyle(
-            color: Color(0xFFA7C957), // Cor esverdeada clara para links
-            decoration: TextDecoration.underline,
-            decorationColor: Color(0xFFA7C957),
-            fontSize: 16,
-          ),
+  void _mostrarInfoModal(BuildContext context, String titulo, String conteudo) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
+        decoration: const BoxDecoration(
+          color: Color(0xff588157),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 5,
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            const SizedBox(height: 30),
+            Text(
+              titulo,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              conteudo,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 16,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 30),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFA7C957),
+                foregroundColor: const Color(0xFF3A5A40),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                minimumSize: const Size(150, 45),
+              ),
+              child: const Text(
+                "Entendi",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -177,10 +184,7 @@ class _SettingsState extends State<Settings> {
   Widget build(BuildContext context) {
     return curvedBackground(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.only(
-          bottom: 170,
-          top: 24,
-        ), // Espaço extra para scroll
+        padding: const EdgeInsets.fromLTRB(25, 24, 25, 150),
         child: Center(
           child: Container(
             width: 364,
@@ -200,7 +204,6 @@ class _SettingsState extends State<Settings> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // --- TEMA ---
                   _buildSectionTitle("Tema"),
                   _buildThemeOption(ThemeOption.claro, "Claro"),
                   _buildThemeOption(ThemeOption.escuro, "Escuro"),
@@ -208,58 +211,53 @@ class _SettingsState extends State<Settings> {
 
                   _buildDivider(),
 
-                  // --- NOTIFICAÇÕES ---
                   _buildSectionTitle("Notificações"),
                   _buildNotificationOption(
                     "Ativar notificações",
                     _notificacoesAtivas,
-                    (v) => _notificacoesAtivas = v,
+                    (v) => setState(() => _notificacoesAtivas = v),
                   ),
                   _buildNotificationOption(
                     "Alertas climáticos",
                     _alertasClimaticos,
-                    (v) => _alertasClimaticos = v,
+                    (v) => setState(() => _alertasClimaticos = v),
                   ),
 
                   _buildDivider(),
 
-                  // --- SEGURANÇA ---
-                  _buildSectionTitle("Segurança"),
-                  _buildPasswordField("Senha atual*", _senhaAtualController),
-                  _buildPasswordField("Nova senha*", _novaSenhaController),
-                  _buildPasswordField(
-                    "Confirme a nova senha*",
-                    _confirmarSenhaController,
+                  _buildSectionTitle("Sobre o GardenMe"),
+                  _buildLinkText("Termos de Uso", () {
+                    _mostrarInfoModal(
+                      context,
+                      "Termos de Uso",
+                      "Ao utilizar o GardenMe, concordas em cuidar bem das tuas plantas e espalhar o verde pela comunidade.",
+                    );
+                  }),
+                  _buildLinkText("Política de Privacidade", () {
+                    _mostrarInfoModal(
+                      context,
+                      "Privacidade",
+                      "Os teus dados são encriptados e utilizados apenas para melhorar a tua experiência de jardinagem.",
+                    );
+                  }),
+
+                  const SizedBox(height: 25),
+                  Center(
+                    child: _buildLinkText(
+                      "Sair da Conta",
+                      () async {
+                        await FirebaseAuth.instance.signOut();
+                      },
+                      color: Colors.redAccent,
+                      icone: Icons.logout,
+                    ),
                   ),
 
-                  const SizedBox(height: 10),
-                  Center(
-                    child: SizedBox(
-                      width: 140,
-                      height: 40,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // Lógica de salvar senha
-                          FocusScope.of(context).unfocus(); // Esconde teclado
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFA7C957),
-                          foregroundColor: const Color(
-                            0xFF3A5A40,
-                          ), // Cor do texto
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          elevation: 2,
-                        ),
-                        child: const Text(
-                          "Salvar",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
+                  const SizedBox(height: 25),
+                  const Center(
+                    child: Text(
+                      "Versão 1.0.0",
+                      style: TextStyle(color: Colors.white38, fontSize: 12),
                     ),
                   ),
                 ],
