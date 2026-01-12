@@ -2,10 +2,43 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:gardenme/components/gamification_modal.dart';
 import 'package:gardenme/pages/edit_profile_page.dart';
 
 class ProfileCard extends StatelessWidget {
   const ProfileCard({super.key});
+
+  // Função para verificar se o usuário esqueceu de regar ontem e resetar o streak
+  // Esta função deve ser chamada antes de exibir o card para garantir dados reais
+  Future<void> verificarStreak(String uid, int streakAtual) async {
+    final userDoc = FirebaseFirestore.instance.collection('usuarios').doc(uid);
+    final snap = await userDoc.get();
+
+    if (!snap.exists) return;
+
+    final data = snap.data() as Map<String, dynamic>;
+    final String? ultimaRegaStr = data['ultima_rega_data'];
+
+    if (ultimaRegaStr == null) return;
+
+    DateTime ultimaRega = DateTime.parse(ultimaRegaStr);
+    DateTime hoje = DateTime.now();
+
+    // Compara apenas as datas (ano, mês, dia)
+    DateTime hojeSemHora = DateTime(hoje.year, hoje.month, hoje.day);
+    DateTime ultimaRegaSemHora = DateTime(
+      ultimaRega.year,
+      ultimaRega.month,
+      ultimaRega.day,
+    );
+
+    int diferencaDias = hojeSemHora.difference(ultimaRegaSemHora).inDays;
+
+    // Se passou mais de 1 dia sem regar, o foguinho apaga
+    if (diferencaDias > 1 && streakAtual > 0) {
+      await userDoc.update({'streak_atual': 0});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,31 +58,55 @@ class ProfileCard extends StatelessWidget {
 
         var userData = snapshot.data!.data() as Map<String, dynamic>;
         int pontos = userData['pontos'] ?? 0;
-
-        // Lógica de Níveis (0-99, 100-199, etc.)
-        String nivelNome;
-        int metaNivel;
-        if (pontos < 100) {
-          nivelNome = "Iniciante";
-          metaNivel = 100;
-        } else if (pontos < 200) {
-          nivelNome = "Cuidador"; // Nome sugerido
-          metaNivel = 200;
-        } else if (pontos < 300) {
-          nivelNome = "Jardineiro";
-          metaNivel = 300;
-        } else {
-          nivelNome = "Mestre Verde";
-          metaNivel = pontos + 100; // Caso passe de tudo
-        }
-
-        int pontosFaltantes = metaNivel - pontos;
-        double progressoVisivel = (pontos % 100) / 100;
-
-        // Lógica do Foguinho (Streak)
         int diasSeguidos = userData['streak_atual'] ?? 0;
 
-        // Lógica da Foto Local
+        // Chama a verificação de streak (sem travar a interface)
+        verificarStreak(uid, diasSeguidos);
+
+        // Lógica de Níveis com Emojis
+        String nivelNome;
+        int minPontos;
+        int maxPontos;
+
+        if (pontos < 100) {
+          nivelNome = "Iniciante da Jardinagem";
+          minPontos = 0;
+          maxPontos = 100;
+        } else if (pontos < 200) {
+          nivelNome = "Aprendiz de Jardinagem";
+          minPontos = 100;
+          maxPontos = 200;
+        } else if (pontos < 400) {
+          nivelNome = "Cultivador Iniciante";
+          minPontos = 200;
+          maxPontos = 400;
+        } else if (pontos < 600) {
+          nivelNome = "Jardineiro Experiente";
+          minPontos = 400;
+          maxPontos = 600;
+        } else if (pontos < 800) {
+          nivelNome = "Especialista em Jardinagem";
+          minPontos = 600;
+          maxPontos = 800;
+        } else if (pontos < 1000) {
+          nivelNome = "Mestre Aprendiz";
+          minPontos = 800;
+          maxPontos = 1000;
+        } else {
+          nivelNome = "Mestre do Jardim";
+          minPontos = 1000;
+          maxPontos = 1000;
+        }
+
+        // Barra de progresso resetável por nível
+        double progressoVisivel = pontos >= 1000
+            ? 1.0
+            : (pontos - minPontos) / (maxPontos - minPontos);
+
+        progressoVisivel = progressoVisivel.clamp(0.0, 1.0);
+        int pontosFaltantes = pontos >= 1000 ? 0 : maxPontos - pontos;
+
+        // Lógica da Foto
         String? fotoPath = userData['foto_url'];
         ImageProvider avatarImage;
         if (fotoPath != null &&
@@ -124,52 +181,76 @@ class ProfileCard extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // --- SEÇÃO DE PROGRESSO ---
               Container(
-                padding: const EdgeInsets.all(16),
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 20,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFa7c957),
                   borderRadius: BorderRadius.circular(15),
                 ),
-                child: Column(
+                child: Stack(
+                  clipBehavior: Clip.none,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          userData['nivel'] ?? 'Iniciante',
+                          nivelNome,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Color(0xff344E41),
-                            fontSize: 20,
+                            fontSize: 18,
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        const Icon(
-                          Icons.star,
-                          color: Color(0xff344E41),
-                          size: 18,
+
+                        const SizedBox(height: 6),
+
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: LinearProgressIndicator(
+                            value: progressoVisivel,
+                            backgroundColor: const Color(0xff344E41),
+                            valueColor: const AlwaysStoppedAnimation(
+                              Color(0xFF588157),
+                            ),
+                            minHeight: 10,
+                          ),
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        Text(
+                          '$pontosFaltantes Pontos para o próximo nível!',
+                          style: const TextStyle(
+                            color: Color(0xff344E41),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
-                    LinearProgressIndicator(
-                      value: progressoVisivel,
-                      backgroundColor: const Color(0xff344E41),
-                      valueColor: const AlwaysStoppedAnimation(
-                        Color(0xFF6A994E),
-                      ),
-                      minHeight: 8,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      pontosFaltantes > 0
-                          ? '$pontosFaltantes pontos para o próximo nível'
-                          : 'Nível Máximo atingido!',
-                      style: const TextStyle(
-                        color: Color(0xff344E41),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+
+                    // ÍCONE INFO (i) NO CANTO SUPERIOR DIREITO
+                    Positioned(
+                      top: -18,
+                      right: -18,
+                      child: IconButton(
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            backgroundColor: Colors.transparent,
+                            isScrollControlled: true,
+                            builder: (_) => const GamificationModal(),
+                          );
+                        },
+                        icon: const Icon(
+                          Icons.info_outline_rounded,
+                          size: 22,
+                          color: Color(0xff344E41),
+                        ),
                       ),
                     ),
                   ],
@@ -177,7 +258,6 @@ class ProfileCard extends StatelessWidget {
               ),
 
               const SizedBox(height: 25),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -194,9 +274,7 @@ class ProfileCard extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(height: 30),
-
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
@@ -243,9 +321,7 @@ class ProfileCard extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: 30),
-
               ElevatedButton(
                 onPressed: () => Navigator.push(
                   context,
