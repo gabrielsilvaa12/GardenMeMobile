@@ -1,48 +1,22 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:gardenme/pages/login.dart';
-import 'package:gardenme/pages/main_page.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:gardenme/app.dart'; // Certifique-se que seu App widget está aqui
+import 'package:gardenme/services/notification_service.dart';
+// import 'firebase_options.dart'; // Descomente se usar firebase_options gerado pelo CLI
 
 void main() async {
+  // Garante que a engine do Flutter esteja pronta antes de rodar código assíncrono
   WidgetsFlutterBinding.ensureInitialized();
-
+  
+  // 1. Inicializa o Firebase
+  // Se você usa o arquivo gerado pelo FlutterFire CLI, use:
+  // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Caso contrário (setup manual android/ios):
   await Firebase.initializeApp();
 
+  // 2. Inicializa o Sistema de Notificações (Local & Fuso Horário)
+  // Isso é crucial para que os alarmes funcionem
+  await NotificationService().init();
+
   runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'GardenMe',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF3A5A40)),
-        useMaterial3: true,
-      ),
-
-      home: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(color: Color(0xFF3A5A40)),
-              ),
-            );
-          }
-
-          if (snapshot.hasData && snapshot.data != null) {
-            return const MainPage();
-          }
-
-          return const MyLogin();
-        },
-      ),
-    );
-  }
 }

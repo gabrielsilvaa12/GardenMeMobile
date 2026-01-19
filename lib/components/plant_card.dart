@@ -1,65 +1,66 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:gardenme/models/planta.dart';
+import 'package:gardenme/services/planta_service.dart';
 import 'package:gardenme/pages/alarms_page.dart';
 import 'package:gardenme/pages/my_plant.dart';
 
 class PlantCard extends StatefulWidget {
-  final String nomePlanta;
-  final String imagemPlanta;
+  final Planta planta;
 
-  PlantCard({super.key, required this.nomePlanta, required this.imagemPlanta});
+  const PlantCard({
+    super.key,
+    required this.planta,
+  });
 
   @override
   State<PlantCard> createState() => _PlantCardState();
 }
 
 class _PlantCardState extends State<PlantCard> {
-  bool statusRega = false;
-  bool corPlanta = false;
-  bool _pontosDistribuidos = false;
+  final PlantaService _plantaService = PlantaService();
 
-  Future<void> _atualizarDadosUsuario() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    final userDoc = FirebaseFirestore.instance
-        .collection('usuarios')
-        .doc(user.uid);
-
-    String hoje = DateTime.now().toString().split(' ')[0];
-
-    if (statusRega && !_pontosDistribuidos) {
-      DocumentSnapshot snap = await userDoc.get();
-      var userData = snap.data() as Map<String, dynamic>;
-      String? ultimaRega = userData['ultima_rega_data'];
-
-      Map<String, dynamic> updates = {
-        'pontos': FieldValue.increment(10),
-        'regas_count': FieldValue.increment(1),
-      };
-
-      if (ultimaRega != hoje) {
-        int atualStreak = (userData['streak_atual'] ?? 0) + 1;
-        int melhorStreak = userData['melhor_streak'] ?? 0;
-
-        updates['streak_atual'] = FieldValue.increment(1);
-        updates['ultima_rega_data'] = hoje;
-
-        if (atualStreak > melhorStreak) {
-          updates['melhor_streak'] = atualStreak;
-        }
-      }
-
-      await userDoc.update(updates);
-      _pontosDistribuidos = true;
-    } else if (!statusRega && _pontosDistribuidos) {
-      await userDoc.update({
-        'pontos': FieldValue.increment(-10),
-        'regas_count': FieldValue.increment(-1),
-      });
-      _pontosDistribuidos = false;
+  // Helper para decidir a imagem (URL ou Asset)
+  ImageProvider _getImagemPlanta() {
+    if (widget.planta.imagemUrl != null && widget.planta.imagemUrl!.isNotEmpty) {
+      return NetworkImage(widget.planta.imagemUrl!);
     }
+
+    // Fallback para assets baseado no nome (para plantas padrão)
+    switch (widget.planta.nome) {
+      case 'Morango':
+      case 'Morangueiro':
+        return const AssetImage('assets/images/moranguito.png');
+      case 'Babosa':
+      case 'Aloe Vera':
+        return const AssetImage('assets/images/babosada.png');
+      case 'Samambaia':
+      case 'Fern':
+        return const AssetImage('assets/images/samambas.png');
+      case 'Jiboia':
+      case 'Pothos':
+        return const AssetImage('assets/images/jiboia.png');
+      default:
+        return const AssetImage('assets/images/logoGarden.png'); 
+    }
+  }
+
+  // Ação de Regar
+  void _toggleRega() {
+    bool novoStatus = !widget.planta.rega;
+    
+    _plantaService.atualizarStatus(
+      widget.planta.id, 
+      rega: novoStatus,
+    );
+    
+    final msg = novoStatus ? 'Planta regada! 💧 (+10 Pontos)' : 'Rega cancelada.';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        duration: const Duration(seconds: 1),
+        backgroundColor: const Color(0xff386641),
+      ),
+    );
   }
 
   Widget _buildActionButton({
@@ -92,6 +93,8 @@ class _PlantCardState extends State<PlantCard> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isRegada = widget.planta.rega;
+    
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       padding: const EdgeInsets.fromLTRB(12, 12, 20, 12),
@@ -101,86 +104,86 @@ class _PlantCardState extends State<PlantCard> {
       ),
       child: Row(
         children: [
+          // Avatar da Planta
           CircleAvatar(
             radius: 45,
-            backgroundColor: corPlanta
+            backgroundColor: isRegada
                 ? const Color(0xFFAFF695)
                 : Colors.orange,
             child: CircleAvatar(
               radius: 40,
-              backgroundImage: AssetImage(widget.imagemPlanta),
+              backgroundColor: Colors.white,
+              backgroundImage: _getImagemPlanta(),
             ),
           ),
           const SizedBox(width: 15),
+          
+          // Informações
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  widget.nomePlanta,
+                  widget.planta.nome,
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Color(0xfff2f2f2),
                   ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 10),
+                
+                // Botões de Ação
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    // 1. Botão Regar
                     _buildActionButton(
-                      function: () {
-                        setState(() {
-                          statusRega = !statusRega;
-                          corPlanta = !corPlanta;
-                        });
-                        // Chama a sua lógica de usuário
-                        _atualizarDadosUsuario();
-                      },
-                      icon: Icons.water_drop_outlined,
-                      backgroundColor: statusRega
+                      function: _toggleRega,
+                      icon: isRegada ? Icons.water_drop : Icons.water_drop_outlined,
+                      backgroundColor: isRegada
                           ? const Color(0xFF81D4FA)
-                          : const Color.fromARGB(
-                              255,
-                              30,
-                              56,
-                              35,
-                            ).withAlpha(102),
+                          : const Color.fromARGB(255, 30, 56, 35).withOpacity(0.4),
                       iconColor: const Color(0xfff2f2f2),
                     ),
+                    
+                    // 2. Botão Alarme (ATUALIZADO COM plantaId)
                     _buildActionButton(
                       function: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                AlarmsPage(plantName: widget.nomePlanta),
+                            builder: (context) => AlarmsPage(
+                              plantName: widget.planta.nome,
+                              plantaId: widget.planta.id, // Correção aqui!
+                            ),
                           ),
                         );
                       },
                       icon: Icons.notifications_none_outlined,
-                      backgroundColor: const Color.fromARGB(
-                        255,
-                        30,
-                        56,
-                        35,
-                      ).withOpacity(0.4),
+                      backgroundColor: const Color.fromARGB(255, 30, 56, 35).withOpacity(0.4),
                       iconColor: const Color(0xfff2f2f2),
                     ),
+                    
+                    // 3. Botão Compartilhar (Placeholder)
                     _buildActionButton(
                       function: () {},
                       icon: Icons.share_outlined,
                       backgroundColor: const Color(0xFFE0E0E0),
                       iconColor: Colors.black87,
                     ),
+                    
+                    // 4. Botão Detalhes
                     _buildActionButton(
                       function: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => MinhaPlantaPage(
-                              nomePlanta: widget.nomePlanta,
-                              imagemPlanta: widget.imagemPlanta,
+                              planta: widget.planta,
                             ),
                           ),
                         );

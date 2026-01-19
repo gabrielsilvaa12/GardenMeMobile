@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:gardenme/components/add_plant_modal.dart';
 import 'package:gardenme/components/curved_background.dart';
 import 'package:gardenme/components/plant_card.dart';
+import 'package:gardenme/models/planta.dart';
+import 'package:gardenme/services/planta_service.dart';
 
 class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key});
@@ -51,8 +53,9 @@ class MyHomePage extends StatelessWidget {
             child: curvedBackground(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: ListView(
+                child: Column(
                   children: [
+                    const SizedBox(height: 20),
                     const Text(
                       'Meu Jardim',
                       style: TextStyle(
@@ -63,28 +66,60 @@ class MyHomePage extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
-                    PlantCard(
-                      nomePlanta: 'Morango',
-                      imagemPlanta: 'assets/images/moranguito.png',
+                    
+                    // Listagem Dinâmica com StreamBuilder
+                    Expanded(
+                      child: StreamBuilder<List<Planta>>(
+                        stream: PlantaService().getMinhasPlantas(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFF3A5A40),
+                              ),
+                            );
+                          }
+                          
+                          if (snapshot.hasError) {
+                            return const Center(child: Text('Erro ao carregar jardim.'));
+                          }
+
+                          // Lista de plantas do banco (ou vazia)
+                          final plantas = snapshot.data ?? [];
+
+                          if (plantas.isEmpty) {
+                             return Column(
+                               mainAxisAlignment: MainAxisAlignment.center,
+                               children: [
+                                 const Text("Seu jardim está vazio 🌱", style: TextStyle(color: Color(0xFF3A5A40), fontSize: 18)),
+                                 const SizedBox(height: 20),
+                                 _buildAddPlantButton(context),
+                               ],
+                             );
+                          }
+
+                          return ListView.builder(
+                            itemCount: plantas.length + 1, // +1 para o botão adicionar no final
+                            padding: EdgeInsets.zero,
+                            itemBuilder: (context, index) {
+                              // Se for o último item, renderiza o botão
+                              if (index == plantas.length) {
+                                return Column(
+                                  children: [
+                                    const SizedBox(height: 20),
+                                    _buildAddPlantButton(context),
+                                    const SizedBox(height: 100), // Espaço extra para o menu inferior
+                                  ],
+                                );
+                              }
+
+                              final planta = plantas[index];
+                              return PlantCard(planta: planta);
+                            },
+                          );
+                        },
+                      ),
                     ),
-                    const SizedBox(height: 10),
-                    PlantCard(
-                      nomePlanta: 'Babosa',
-                      imagemPlanta: 'assets/images/babosada.png',
-                    ),
-                    const SizedBox(height: 10),
-                    PlantCard(
-                      nomePlanta: 'Samambaia',
-                      imagemPlanta: 'assets/images/samambas.png',
-                    ),
-                    const SizedBox(height: 10),
-                    PlantCard(
-                      nomePlanta: 'Jiboia',
-                      imagemPlanta: 'assets/images/jiboia.png',
-                    ),
-                    const SizedBox(height: 20),
-                    _buildAddPlantButton(context),
-                    const SizedBox(height: 100),
                   ],
                 ),
               ),
