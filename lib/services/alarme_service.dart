@@ -11,8 +11,10 @@ class AlarmeService {
 
   String? get _userId => _auth.currentUser?.uid;
 
+  // CORREÇÃO IMPORTANTE: 'usuarios' em vez de 'users'
   CollectionReference get _alarmesRef {
-    return _firestore.collection('users').doc(_userId).collection('alarmes');
+    if (_userId == null) throw Exception("Usuário não logado");
+    return _firestore.collection('usuarios').doc(_userId).collection('alarmes');
   }
 
   Future<void> criarAlarme({
@@ -23,7 +25,7 @@ class AlarmeService {
     required int minuto,
     required List<int> diasSemana,
   }) async {
-    if (_userId == null) throw Exception("Usuário não logado");
+    if (_userId == null) return;
 
     final docRef = _alarmesRef.doc();
     final int notifId = Random().nextInt(100000); 
@@ -39,24 +41,21 @@ class AlarmeService {
       ativo: true,
     );
 
-    // 1. Tenta Agendar a Notificação no Celular PRIMEIRO
-    // Se falhar aqui (permissão negada), a gente ainda salva no banco mas avisa.
+    // 1. Tenta Agendar
     try {
       await _notificationService.agendarNotificacaoSemanal(
         id: notifId,
         titulo: "Hora de cuidar da $nomePlanta! 🌱",
-        corpo: "Lembrete: $tipo agendada para agora.",
+        corpo: "Seu lembrete de $tipo",
         hora: hora,
         minuto: minuto,
         diasDaSemana: diasSemana,
       );
     } catch (e) {
-      print("Aviso: Falha ao agendar notificação local: $e");
-      // Não damos 'rethrow' aqui para permitir salvar no banco mesmo sem notificação
+      print("Aviso notificação: $e");
     }
 
-    // 2. Salva no Banco de Dados (Firestore)
-    // Isso garante que apareça na lista
+    // 2. Salva no Banco (usando a coleção corrigida 'usuarios')
     await docRef.set(novoAlarme.toMap());
   }
 

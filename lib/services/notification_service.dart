@@ -1,7 +1,7 @@
+import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import 'dart:io'; // Para verificar Platform
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -12,26 +12,25 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
-    // 1. Timezone
     tz.initializeTimeZones();
     try {
+      // Define fuso horário padrão (São Paulo)
       tz.setLocalLocation(tz.getLocation('America/Sao_Paulo'));
     } catch (e) {
-      print("Erro ao definir fuso horário (usando UTC como fallback): $e");
+      print("Erro fuso horário: $e");
     }
 
-    // 2. Configurações Android/iOS
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const DarwinInitializationSettings initializationSettingsDarwin =
+    final DarwinInitializationSettings initializationSettingsDarwin =
         DarwinInitializationSettings(
       requestSoundPermission: true,
       requestBadgePermission: true,
       requestAlertPermission: true,
     );
 
-    const InitializationSettings initializationSettings = InitializationSettings(
+    final InitializationSettings initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsDarwin,
     );
@@ -39,18 +38,9 @@ class NotificationService {
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
 
-  // --- NOVO MÉTODO: Pedir Permissão (Crucial para Android 13+) ---
+  // Permissão explícita para Android 13+
   Future<void> requestPermissions() async {
-    if (Platform.isIOS) {
-      await flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin>()
-          ?.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-          );
-    } else if (Platform.isAndroid) {
+    if (Platform.isAndroid) {
       final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
           flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>();
@@ -68,19 +58,26 @@ class NotificationService {
     required List<int> diasDaSemana,
   }) async {
     
+    // --- CORREÇÃO CRÍTICA AQUI ---
+    // Usamos um ID NOVO ('garden_alarm_v3_popup') para garantir que o Android
+    // recrie o canal com IMPORTANCE_MAX. Se usar o ID antigo, ele mantém a config antiga.
     const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'garden_alarm_channel', 
-      'Lembretes do Jardim', 
-      channelDescription: 'Notificações de rega e cuidados',
-      importance: Importance.max,
-      priority: Priority.high,
-      icon: '@mipmap/ic_launcher',
+      'garden_alarm_v3_popup', 
+      'Alarmes GardenMe Urgente', 
+      channelDescription: 'Notificações de alta prioridade para cuidados',
+      importance: Importance.max, // Garante o Pop-up na tela
+      priority: Priority.high,    // Garante topo da lista
+      ticker: 'Hora de cuidar da planta!',
+      playSound: true,
+      enableVibration: true,
+      fullScreenIntent: true,     // Permite acordar a tela em alguns casos
     );
-    
+
     const NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidDetails);
 
     for (int dia in diasDaSemana) {
+      // Cria um ID único combinando ID do alarme + Dia da semana
       int notificationId = int.parse("$id$dia");
 
       try {
@@ -90,14 +87,14 @@ class NotificationService {
           corpo,
           _nextInstanceOfDayAndTime(dia, hora, minuto),
           platformChannelSpecifics,
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, // Funciona no modo Doze
           uiLocalNotificationDateInterpretation:
               UILocalNotificationDateInterpretation.absoluteTime,
           matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
         );
+        print("Alarme agendado ($notificationId): Dia $dia às $hora:$minuto");
       } catch (e) {
-        print("Erro ao agendar notificação ID $notificationId: $e");
-        rethrow; // Repassa o erro para ser tratado no Service
+        print("Erro ao agendar notificação: $e");
       }
     }
   }
