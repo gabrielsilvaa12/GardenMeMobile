@@ -11,44 +11,97 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  /// Inicialização geral
   Future<void> init() async {
+    // Timezone
     tz.initializeTimeZones();
     try {
-      // Define fuso horário padrão (São Paulo)
       tz.setLocalLocation(tz.getLocation('America/Sao_Paulo'));
     } catch (e) {
-      print("Erro fuso horário: $e");
+      print('Erro ao definir fuso horário: $e');
     }
 
-    const AndroidInitializationSettings initializationSettingsAndroid =
+    const AndroidInitializationSettings androidInit =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    final DarwinInitializationSettings initializationSettingsDarwin =
+    const DarwinInitializationSettings iosInit =
         DarwinInitializationSettings(
-      requestSoundPermission: true,
-      requestBadgePermission: true,
       requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
     );
 
-    final InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsDarwin,
+    const InitializationSettings settings = InitializationSettings(
+      android: androidInit,
+      iOS: iosInit,
     );
 
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+    await flutterLocalNotificationsPlugin.initialize(settings);
+
+    // 🔥 Canal Android (OBRIGATÓRIO)
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'garden_alarm_v3_popup',
+      'Alarmes GardenMe Urgente',
+      description: 'Notificações de alta prioridade',
+      importance: Importance.max,
+      playSound: true,
+    );
+
+    final androidPlugin =
+        flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+
+    await androidPlugin?.createNotificationChannel(channel);
   }
 
-  // Permissão explícita para Android 13+
+  /// Permissões Android 13+
   Future<void> requestPermissions() async {
     if (Platform.isAndroid) {
-      final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+      final android =
           flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>();
 
-      await androidImplementation?.requestNotificationsPermission();
+      await android?.requestNotificationsPermission();
+      await android?.requestExactAlarmsPermission();
     }
   }
 
+  /// 🔔 NOTIFICAÇÃO DE TESTE (8 SEGUNDOS)
+  Future<void> notificarTesteEm8Segundos() async {
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+      'garden_alarm_v3_popup',
+      'Alarmes GardenMe Urgente',
+      channelDescription: 'Notificação de teste',
+      importance: Importance.max,
+      priority: Priority.high,
+      category: AndroidNotificationCategory.alarm,
+      fullScreenIntent: true,
+      playSound: true,
+      enableVibration: true,
+    );
+
+    const NotificationDetails details =
+        NotificationDetails(android: androidDetails);
+
+    final tz.TZDateTime scheduledDate =
+        tz.TZDateTime.now(tz.local).add(const Duration(seconds: 8));
+
+    await flutterLocalNotificationsPlugin.zonedSchedule(
+      999999,
+      '🔔 TESTE DE NOTIFICAÇÃO',
+      'Se você viu isso, o popup está funcionando 🚀',
+      scheduledDate,
+      details,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+    );
+
+    print('🧪 Notificação de teste agendada para 8 segundos');
+  }
+
+  /// Alarmes semanais reais
   Future<void> agendarNotificacaoSemanal({
     required int id,
     required String titulo,
@@ -57,70 +110,68 @@ class NotificationService {
     required int minuto,
     required List<int> diasDaSemana,
   }) async {
-    
-    // --- CORREÇÃO CRÍTICA AQUI ---
-    // Usamos um ID NOVO ('garden_alarm_v3_popup') para garantir que o Android
-    // recrie o canal com IMPORTANCE_MAX. Se usar o ID antigo, ele mantém a config antiga.
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'garden_alarm_v3_popup', 
-      'Alarmes GardenMe Urgente', 
-      channelDescription: 'Notificações de alta prioridade para cuidados',
-      importance: Importance.max, // Garante o Pop-up na tela
-      priority: Priority.high,    // Garante topo da lista
-      ticker: 'Hora de cuidar da planta!',
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+      'garden_alarm_v3_popup',
+      'Alarmes GardenMe Urgente',
+      channelDescription: 'Notificações de alta prioridade',
+      importance: Importance.max,
+      priority: Priority.high,
+      category: AndroidNotificationCategory.alarm,
+      fullScreenIntent: true,
       playSound: true,
       enableVibration: true,
-      fullScreenIntent: true,     // Permite acordar a tela em alguns casos
     );
 
-    const NotificationDetails platformChannelSpecifics =
+    const NotificationDetails details =
         NotificationDetails(android: androidDetails);
 
-    for (int dia in diasDaSemana) {
-      // Cria um ID único combinando ID do alarme + Dia da semana
-      int notificationId = int.parse("$id$dia");
+    for (final dia in diasDaSemana) {
+      final int notificationId = int.parse('$id$dia');
 
-      try {
-        await flutterLocalNotificationsPlugin.zonedSchedule(
-          notificationId,
-          titulo,
-          corpo,
-          _nextInstanceOfDayAndTime(dia, hora, minuto),
-          platformChannelSpecifics,
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, // Funciona no modo Doze
-          uiLocalNotificationDateInterpretation:
-              UILocalNotificationDateInterpretation.absoluteTime,
-          matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
-        );
-        print("Alarme agendado ($notificationId): Dia $dia às $hora:$minuto");
-      } catch (e) {
-        print("Erro ao agendar notificação: $e");
-      }
+      await flutterLocalNotificationsPlugin.zonedSchedule(
+        notificationId,
+        titulo,
+        corpo,
+        _nextInstanceOfDayAndTime(dia, hora, minuto),
+        details,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+      );
     }
   }
 
-  Future<void> cancelarNotificacao(int idAlarme, List<int> diasDaSemana) async {
-    for (int dia in diasDaSemana) {
-      try {
-        int notificationId = int.parse("$idAlarme$dia");
-        await flutterLocalNotificationsPlugin.cancel(notificationId);
-      } catch (_) {}
+  Future<void> cancelarNotificacao(
+      int idAlarme, List<int> diasDaSemana) async {
+    for (final dia in diasDaSemana) {
+      final int notificationId = int.parse('$idAlarme$dia');
+      await flutterLocalNotificationsPlugin.cancel(notificationId);
     }
   }
 
-  tz.TZDateTime _nextInstanceOfDayAndTime(int dayOfWeek, int hour, int minute) {
-    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+  tz.TZDateTime _nextInstanceOfDayAndTime(
+      int weekday, int hour, int minute) {
+    tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+
     tz.TZDateTime scheduledDate = tz.TZDateTime(
-      tz.local, now.year, now.month, now.day, hour, minute,
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      hour,
+      minute,
     );
 
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
 
-    while (scheduledDate.weekday != dayOfWeek) {
+    while (scheduledDate.weekday != weekday) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
+
     return scheduledDate;
   }
 }
