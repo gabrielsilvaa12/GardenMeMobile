@@ -8,8 +8,6 @@ import 'package:gardenme/pages/edit_profile_page.dart';
 class ProfileCard extends StatelessWidget {
   const ProfileCard({super.key});
 
-  // Função para verificar se o usuário esqueceu de regar ontem e resetar o streak
-  // Esta função deve ser chamada antes de exibir o card para garantir dados reais
   Future<void> verificarStreak(String uid, int streakAtual) async {
     final userDoc = FirebaseFirestore.instance.collection('usuarios').doc(uid);
     final snap = await userDoc.get();
@@ -50,9 +48,16 @@ class ProfileCard extends StatelessWidget {
           .doc(uid)
           .snapshots(),
       builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
         if (!snapshot.hasData || !snapshot.data!.exists) {
           return const Center(
-            child: CircularProgressIndicator(color: Colors.white),
+            child: Text(
+              "Perfil não encontrado",
+              style: TextStyle(color: Colors.white),
+            ),
           );
         }
 
@@ -150,9 +155,8 @@ class ProfileCard extends StatelessWidget {
                       children: [
                         Icon(
                           Icons.local_fire_department_rounded,
-                          color: diasSeguidos > 0
-                              ? Colors.orange
-                              : Colors.white24,
+                          color:
+                              diasSeguidos > 0 ? Colors.orange : Colors.white24,
                           size: 35,
                         ),
                         Text(
@@ -180,7 +184,6 @@ class ProfileCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
@@ -205,9 +208,7 @@ class ProfileCard extends StatelessWidget {
                             fontSize: 18,
                           ),
                         ),
-
                         const SizedBox(height: 6),
-
                         ClipRRect(
                           borderRadius: BorderRadius.circular(10),
                           child: LinearProgressIndicator(
@@ -219,9 +220,7 @@ class ProfileCard extends StatelessWidget {
                             minHeight: 10,
                           ),
                         ),
-
                         const SizedBox(height: 8),
-
                         Text(
                           '$pontosFaltantes Pontos para o próximo nível!',
                           style: const TextStyle(
@@ -256,7 +255,6 @@ class ProfileCard extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: 25),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,

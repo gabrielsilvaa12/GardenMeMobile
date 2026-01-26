@@ -12,7 +12,20 @@
           "package_name": "com.example.gardenme"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "56110415944-63dsu2k15hm838if7qoiek7hp2ehdql4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.gardenme",
+            "certificate_hash": "cef7f843a941b345fcdedeed95d39fa7715ba4c4"
+          }
+        },
+        {
+          "client_id": "56110415944-suk9tnv12colqv238lkrecs7rrk69d7p.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBDYVOxXSl0cOhkw3iiDFeU4i7x3FDbDms"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "56110415944-suk9tnv12colqv238lkrecs7rrk69d7p.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
