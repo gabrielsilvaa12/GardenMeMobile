@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:gardenme/models/alarme.dart';
 import 'package:gardenme/services/alarme_service.dart';
-import 'package:gardenme/services/notification_service.dart'; // Importe para pedir permissão
+import 'package:gardenme/services/notification_service.dart';
 
 class AddAlarmModal extends StatefulWidget {
   final String plantaId;
   final String nomePlanta;
+  final Alarme? alarmeParaEditar;
 
   const AddAlarmModal({
     super.key,
     required this.plantaId,
     required this.nomePlanta,
+    this.alarmeParaEditar,
   });
 
   @override
@@ -19,13 +22,12 @@ class AddAlarmModal extends StatefulWidget {
 class _AddAlarmModalState extends State<AddAlarmModal> {
   final AlarmeService _alarmeService = AlarmeService();
   
-  TimeOfDay _selectedTime = TimeOfDay.now();
-  String _tipoSelecionado = 'Rega';
-  
-  // Começa com TODOS os dias selecionados por padrão (UX melhor)
-  final List<int> _diasSelecionados = [1, 2, 3, 4, 5, 6, 7];
+  late TimeOfDay _selectedTime;
+  late String _tipoSelecionado;
+  late List<int> _diasSelecionados;
 
-  final List<String> _tipos = ['Rega', 'Fertilização', 'Poda'];
+  // REMOVIDO "Poda" da lista
+  final List<String> _tipos = ['Rega', 'Fertilização'];
   
   final Map<int, String> _diasMap = {
     1: 'S', 2: 'T', 3: 'Q', 4: 'Q', 5: 'S', 6: 'S', 7: 'D'
@@ -34,8 +36,23 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
   @override
   void initState() {
     super.initState();
-    // Ao abrir o modal, garante que temos permissão
     _pedirPermissao();
+
+    if (widget.alarmeParaEditar != null) {
+      final a = widget.alarmeParaEditar!;
+      _selectedTime = TimeOfDay(hour: a.hora, minute: a.minuto);
+      
+      // Se estiver editando um alarme antigo que por acaso seja "Poda", 
+      // ele manterá o tipo original até o usuário mudar, ou mudará para Rega se preferir forçar.
+      // Aqui mantemos o original para evitar erros visuais, mas a opção de selecionar "Poda" sumiu.
+      _tipoSelecionado = a.tipo; 
+      
+      _diasSelecionados = List.from(a.diasSemana);
+    } else {
+      _selectedTime = TimeOfDay.now();
+      _tipoSelecionado = 'Rega';
+      _diasSelecionados = [1, 2, 3, 4, 5, 6, 7];
+    }
   }
 
   Future<void> _pedirPermissao() async {
@@ -74,7 +91,7 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
     });
   }
 
-  Future<void> _salvarAlarme() async {
+  Future<void> _salvar() async {
     if (_diasSelecionados.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Selecione pelo menos um dia da semana!")),
@@ -83,34 +100,44 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
     }
 
     try {
-      // Chama o serviço
-      await _alarmeService.criarAlarme(
-        plantaId: widget.plantaId,
-        nomePlanta: widget.nomePlanta,
-        tipo: _tipoSelecionado,
-        hora: _selectedTime.hour,
-        minuto: _selectedTime.minute,
-        diasSemana: _diasSelecionados,
-      );
+      if (widget.alarmeParaEditar != null) {
+        await _alarmeService.editarAlarme(
+          alarmeAntigo: widget.alarmeParaEditar!,
+          nomePlanta: widget.nomePlanta,
+          novoTipo: _tipoSelecionado,
+          novaHora: _selectedTime.hour,
+          novoMinuto: _selectedTime.minute,
+          novosDias: _diasSelecionados,
+        );
+      } else {
+        await _alarmeService.criarAlarme(
+          plantaId: widget.plantaId,
+          nomePlanta: widget.nomePlanta,
+          tipo: _tipoSelecionado,
+          hora: _selectedTime.hour,
+          minuto: _selectedTime.minute,
+          diasSemana: _diasSelecionados,
+        );
+      }
 
-      // Se chegou aqui, deu certo (ou erro de notificação foi tratado no service)
       if (mounted) {
-        Navigator.pop(context); // FECHA O MODAL
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Alarme salvo com sucesso! ⏰"), 
-            backgroundColor: Color(0xFF386641)
+          SnackBar(
+            content: Text(widget.alarmeParaEditar != null 
+              ? "Alarme atualizado! 🔄" 
+              : "Alarme salvo! ⏰"), 
+            backgroundColor: const Color(0xFF386641)
           ),
         );
       }
     } catch (e) {
-      // Se der erro CRÍTICO (ex: usuário deslogado, erro de rede no Firestore)
       if (mounted) {
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
             title: const Text("Erro"),
-            content: Text("Não foi possível salvar o alarme:\n$e"),
+            content: Text("Não foi possível salvar:\n$e"),
             actions: [
               TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("OK"))
             ],
@@ -120,8 +147,32 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
     }
   }
 
+  Future<void> _excluir() async {
+    try {
+      if (widget.alarmeParaEditar != null) {
+        await _alarmeService.deletarAlarme(widget.alarmeParaEditar!);
+      }
+      
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Alarme excluído! 🗑️"), 
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+         SnackBar(content: Text("Erro ao excluir: $e")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.alarmeParaEditar != null;
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: const BoxDecoration(
@@ -140,13 +191,49 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
           ),
           const SizedBox(height: 20),
           
-          const Text(
-            "Novo Alarme",
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF386641)),
+          // CABEÇALHO
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                isEditing ? "Editar Alarme" : "Novo Alarme",
+                style: const TextStyle(
+                  fontSize: 22, 
+                  fontWeight: FontWeight.bold, 
+                  color: Color(0xFF386641)
+                ),
+              ),
+              
+              if (isEditing)
+                InkWell(
+                  onTap: _excluir,
+                  borderRadius: BorderRadius.circular(50),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.redAccent.withOpacity(0.9),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                         BoxShadow(
+                           color: Colors.black.withOpacity(0.2),
+                           blurRadius: 4,
+                           offset: const Offset(0, 2),
+                         )
+                      ]
+                    ),
+                    child: const Icon(
+                      Icons.delete_outline, 
+                      color: Colors.white, 
+                      size: 24
+                    ),
+                  ),
+                ),
+            ],
           ),
           
           const SizedBox(height: 20),
           
+          // Chips de Tipo (Agora sem Poda)
           Row(
             children: _tipos.map((tipo) {
               final isSelected = _tipoSelecionado == tipo;
@@ -170,6 +257,7 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
 
           const SizedBox(height: 20),
 
+          // Seletor de Hora
           InkWell(
             onTap: _pickTime,
             child: Container(
@@ -194,6 +282,7 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
 
           const SizedBox(height: 20),
 
+          // Seletor de Dias
           const Text("Repetir nos dias:", style: TextStyle(fontSize: 16, color: Colors.black87)),
           const SizedBox(height: 10),
           Row(
@@ -227,18 +316,19 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
 
           const SizedBox(height: 30),
 
+          // Botão Salvar
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: _salvarAlarme,
+              onPressed: _salvar,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF386641),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
               ),
-              child: const Text(
-                "DEFINIR ALARME",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+              child: Text(
+                isEditing ? "SALVAR ALTERAÇÕES" : "DEFINIR ALARME",
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
               ),
             ),
           ),

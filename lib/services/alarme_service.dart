@@ -40,7 +40,6 @@ class AlarmeService {
       ativo: true,
     );
 
-    // 1. Tenta Agendar
     try {
       await _notificationService.agendarNotificacaoSemanal(
         id: notifId,
@@ -54,20 +53,56 @@ class AlarmeService {
       print("Aviso notificação: $e");
     }
 
-    // 2. Salva no Banco
     await docRef.set(novoAlarme.toMap());
   }
 
-  // --- NOVO MÉTODO PARA O TOGGLE ---
+  // --- NOVO MÉTODO: EDITAR ALARME ---
+  Future<void> editarAlarme({
+    required Alarme alarmeAntigo,
+    required String nomePlanta,
+    required String novoTipo,
+    required int novaHora,
+    required int novoMinuto,
+    required List<int> novosDias,
+  }) async {
+    if (_userId == null) return;
+
+    // Cria o objeto atualizado mantendo o ID e NotificationID originais
+    final alarmeAtualizado = Alarme(
+      id: alarmeAntigo.id,
+      notificationId: alarmeAntigo.notificationId,
+      plantaId: alarmeAntigo.plantaId,
+      tipo: novoTipo,
+      hora: novaHora,
+      minuto: novoMinuto,
+      diasSemana: novosDias,
+      ativo: true, // Ao editar, reativamos o alarme por padrão
+    );
+
+    // 1. Atualiza no Firestore
+    await _alarmesRef.doc(alarmeAntigo.id).update(alarmeAtualizado.toMap());
+
+    // 2. Atualiza a Notificação (Reescreve a antiga pois usa o mesmo ID)
+    try {
+      await _notificationService.agendarNotificacaoSemanal(
+        id: alarmeAntigo.notificationId,
+        titulo: "Hora de cuidar da $nomePlanta! 🌱",
+        corpo: "Seu lembrete de $novoTipo",
+        hora: novaHora,
+        minuto: novoMinuto,
+        diasDaSemana: novosDias,
+      );
+    } catch (e) {
+      print("Erro ao reagendar notificação: $e");
+    }
+  }
+
   Future<void> alternarStatus(Alarme alarme, bool novoStatus, String nomePlanta) async {
     if (_userId == null) return;
 
-    // 1. Atualiza no Firestore
     await _alarmesRef.doc(alarme.id).update({'ativo': novoStatus});
 
-    // 2. Gerencia a Notificação Local
     if (novoStatus) {
-      // Reativa a notificação
       await _notificationService.agendarNotificacaoSemanal(
         id: alarme.notificationId,
         titulo: "Hora de cuidar da $nomePlanta! 🌱",
@@ -77,7 +112,6 @@ class AlarmeService {
         diasDaSemana: alarme.diasSemana,
       );
     } else {
-      // Cancela a notificação
       await _notificationService.cancelarNotificacao(alarme.notificationId, alarme.diasSemana);
     }
   }

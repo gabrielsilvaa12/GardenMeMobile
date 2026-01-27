@@ -21,7 +21,6 @@ class AlarmsPage extends StatefulWidget {
 class _AlarmsPageState extends State<AlarmsPage> {
   final AlarmeService _alarmeService = AlarmeService();
 
-  // Helper para formatar os dias da semana
   String _formatarDias(List<int> dias) {
     if (dias.length == 7) return "Todos os dias";
     if (dias.isEmpty) return "Sem repetição";
@@ -35,7 +34,6 @@ class _AlarmsPageState extends State<AlarmsPage> {
     return dias.map((d) => mapaDias[d]).join(', ');
   }
 
-  // Lógica para agrupar alarmes pelo Tipo
   Map<String, List<Alarme>> _agruparAlarmesPorTipo(List<Alarme> alarmes) {
     final map = <String, List<Alarme>>{};
     for (var alarme in alarmes) {
@@ -47,7 +45,6 @@ class _AlarmsPageState extends State<AlarmsPage> {
     return map;
   }
 
-  // Define a prioridade de exibição: Rega (0) > Fertilização (1) > Outros (2)
   int _getPrioridadeTipo(String tipo) {
     switch (tipo) {
       case 'Rega': return 0;
@@ -56,7 +53,8 @@ class _AlarmsPageState extends State<AlarmsPage> {
     }
   }
 
-  void _openAddAlarmModal(BuildContext context) {
+  // Modificado para aceitar um Alarme opcional (para edição)
+  void _openAddAlarmModal(BuildContext context, {Alarme? alarme}) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -64,72 +62,76 @@ class _AlarmsPageState extends State<AlarmsPage> {
       builder: (_) => AddAlarmModal(
         plantaId: widget.plantaId,
         nomePlanta: widget.plantName,
+        alarmeParaEditar: alarme, // Passa o alarme se existir
       ),
     );
   }
 
-  // Constrói o CARD com Switch e Correção de Estilo
   Widget _buildAlarmCard(Alarme alarme) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF344e41),
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 3,
-            spreadRadius: 1,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Horário com correção do erro de cor
-              Text(
-                alarme.horarioFormatado,
-                style: TextStyle(
-                  // CORREÇÃO: Aplica opacidade diretamente na cor
-                  color: alarme.ativo 
-                      ? const Color(0xfff2f2f2) 
-                      : const Color(0xfff2f2f2).withOpacity(0.5),
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+    // InkWell adicionado para tornar o card clicável
+    return InkWell(
+      onTap: () => _openAddAlarmModal(context, alarme: alarme),
+      borderRadius: BorderRadius.circular(15),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF344e41),
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 3,
+              spreadRadius: 1,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  alarme.horarioFormatado,
+                  style: TextStyle(
+                    color: alarme.ativo 
+                        ? const Color(0xfff2f2f2) 
+                        : const Color(0xfff2f2f2).withOpacity(0.5),
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              // Dias da semana
-              Text(
-                _formatarDias(alarme.diasSemana),
-                style: TextStyle(
-                  color: alarme.ativo 
-                      ? const Color(0xFFa7c957) 
-                      : const Color(0xFFa7c957).withOpacity(0.5),
-                  fontSize: 16
+                const SizedBox(height: 4),
+                Text(
+                  _formatarDias(alarme.diasSemana),
+                  style: TextStyle(
+                    color: alarme.ativo 
+                        ? const Color(0xFFa7c957) 
+                        : const Color(0xFFa7c957).withOpacity(0.5),
+                    fontSize: 16
+                  ),
                 ),
+              ],
+            ),
+            
+            // Switch envolto em GestureDetector vazio para evitar que o clique no switch abra o modal
+            GestureDetector(
+              onTap: () {}, 
+              child: Switch(
+                value: alarme.ativo,
+                onChanged: (bool valor) {
+                  _alarmeService.alternarStatus(alarme, valor, widget.plantName);
+                },
+                activeColor: const Color(0xffD9D9D9),
+                activeTrackColor: const Color(0xFFa7c957).withOpacity(0.6),
+                inactiveThumbColor: const Color(0xffD9D9D9),
+                inactiveTrackColor: Colors.black26,
               ),
-            ],
-          ),
-          
-          // TOGGLE (Switch)
-          Switch(
-            value: alarme.ativo,
-            onChanged: (bool valor) {
-              _alarmeService.alternarStatus(alarme, valor, widget.plantName);
-            },
-            // Estilização igual ao design system
-            activeColor: const Color(0xffD9D9D9),
-            activeTrackColor: const Color(0xFFa7c957).withOpacity(0.6),
-            inactiveThumbColor: const Color(0xffD9D9D9),
-            inactiveTrackColor: Colors.black26,
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -146,7 +148,6 @@ class _AlarmsPageState extends State<AlarmsPage> {
             final alarmes = snapshot.data ?? [];
             final alarmesAgrupados = _agruparAlarmesPorTipo(alarmes);
 
-            // Ordena as chaves (tipos)
             final tiposOrdenados = alarmesAgrupados.keys.toList()
               ..sort((a, b) => _getPrioridadeTipo(a).compareTo(_getPrioridadeTipo(b)));
 
@@ -168,7 +169,6 @@ class _AlarmsPageState extends State<AlarmsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Cabeçalho Interno
                     Row(
                       children: [
                         const Text(
@@ -188,8 +188,6 @@ class _AlarmsPageState extends State<AlarmsPage> {
                         ),
                       ],
                     ),
-                    
-                    // Divisória
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Divider(
@@ -200,7 +198,6 @@ class _AlarmsPageState extends State<AlarmsPage> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Conteúdo
                     if (snapshot.connectionState == ConnectionState.waiting)
                       const Center(child: CircularProgressIndicator(color: Color(0xFFf2f2f2)))
                     else if (alarmes.isEmpty)
