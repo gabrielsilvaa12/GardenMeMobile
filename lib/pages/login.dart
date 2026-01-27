@@ -139,7 +139,7 @@ class _MyLoginState extends State<MyLogin> {
         child: Center(
           child: SingleChildScrollView(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Image.asset(
                   'assets/images/logoLogin.png',
@@ -150,26 +150,44 @@ class _MyLoginState extends State<MyLogin> {
                   width: 320,
                   child: TextField(
                     controller: _emailController,
+                    style: const TextStyle(color: Color(0xFF386641)),
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: const Color(0xFFf2f2f2),
                       labelText: "E-mail",
+                      labelStyle: const TextStyle(color: Color(0xFF386641)),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF386641),
+                          width: 1.0,
+                        ),
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 15),
+                const SizedBox(height: 20),
                 SizedBox(
                   width: 320,
                   child: TextField(
                     controller: _senhaController,
+                    style: const TextStyle(color: Color(0xFF386641)),
                     obscureText: !_senhaVisivel,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: const Color(0xFFf2f2f2),
                       labelText: "Senha",
+                      labelStyle: const TextStyle(color: Color(0xFF386641)),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF386641),
+                          width: 1.0,
+                        ),
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
@@ -178,6 +196,7 @@ class _MyLoginState extends State<MyLogin> {
                           _senhaVisivel
                               ? Icons.visibility
                               : Icons.visibility_off,
+                          color: const Color(0xFF386641),
                         ),
                         onPressed: () {
                           setState(() {
@@ -208,15 +227,36 @@ class _MyLoginState extends State<MyLogin> {
                 ),
                 const SizedBox(height: 20),
                 SizedBox(
-                  width: 200,
+                  width: 220,
                   child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xfff2f2f2),
+                    ),
                     onPressed: _fazerLogin,
                     child: const Text("Entrar"),
                   ),
                 ),
-                const SizedBox(height: 15),
+                const SizedBox(height: 10),
                 SizedBox(
-                  width: 200,
+                  width: 220,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xfff2f2f2),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => RegisterAccount(),
+                        ),
+                      );
+                    },
+                    child: const Text("Cadastre-se"),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: 220,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xfff2f2f2),
@@ -225,36 +265,36 @@ class _MyLoginState extends State<MyLogin> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
-                          "Entrar com ",
-                          style: TextStyle(color: Color(0xff3A5A40)),
-                        ),
                         Image.asset(
-                          'assets/images/google.png',
-                          width: 28,
+                          'assets/images/gugol.png',
+                          width: 35,
+                        ),
+                        const Text(
+                          "Entrar com o Google",
+                          style: TextStyle(color: Color(0xFF386641)),
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 15),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => RegisterAccount(),
-                      ),
-                    );
-                  },
-                  child: const Text(
-                    "Cadastre-se",
-                    style: TextStyle(
-                      decoration: TextDecoration.underline,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
+                const SizedBox(height: 10),
+                // GestureDetector(
+                //   onTap: () {
+                //     Navigator.push(
+                //       context,
+                //       MaterialPageRoute(
+                //         builder: (_) => RegisterAccount(),
+                //       ),
+                //     );
+                //   },
+                //   child: const Text(
+                //     "Cadastre-se",
+                //     style: TextStyle(
+                //       decoration: TextDecoration.underline,
+                //       color: Color(0xFF386641),
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ),
