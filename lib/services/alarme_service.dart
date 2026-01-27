@@ -11,7 +11,6 @@ class AlarmeService {
 
   String? get _userId => _auth.currentUser?.uid;
 
-  // CORREÇÃO IMPORTANTE: 'usuarios' em vez de 'users'
   CollectionReference get _alarmesRef {
     if (_userId == null) throw Exception("Usuário não logado");
     return _firestore.collection('usuarios').doc(_userId).collection('alarmes');
@@ -55,8 +54,32 @@ class AlarmeService {
       print("Aviso notificação: $e");
     }
 
-    // 2. Salva no Banco (usando a coleção corrigida 'usuarios')
+    // 2. Salva no Banco
     await docRef.set(novoAlarme.toMap());
+  }
+
+  // --- NOVO MÉTODO PARA O TOGGLE ---
+  Future<void> alternarStatus(Alarme alarme, bool novoStatus, String nomePlanta) async {
+    if (_userId == null) return;
+
+    // 1. Atualiza no Firestore
+    await _alarmesRef.doc(alarme.id).update({'ativo': novoStatus});
+
+    // 2. Gerencia a Notificação Local
+    if (novoStatus) {
+      // Reativa a notificação
+      await _notificationService.agendarNotificacaoSemanal(
+        id: alarme.notificationId,
+        titulo: "Hora de cuidar da $nomePlanta! 🌱",
+        corpo: "Seu lembrete de ${alarme.tipo}",
+        hora: alarme.hora,
+        minuto: alarme.minuto,
+        diasDaSemana: alarme.diasSemana,
+      );
+    } else {
+      // Cancela a notificação
+      await _notificationService.cancelarNotificacao(alarme.notificationId, alarme.diasSemana);
+    }
   }
 
   Future<void> deletarAlarme(Alarme alarme) async {
