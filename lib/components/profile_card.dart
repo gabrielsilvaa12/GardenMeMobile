@@ -8,8 +8,6 @@ import 'package:gardenme/pages/edit_profile_page.dart';
 class ProfileCard extends StatelessWidget {
   const ProfileCard({super.key});
 
-  // Função para verificar se o usuário esqueceu de regar ontem e resetar o streak
-  // Esta função deve ser chamada antes de exibir o card para garantir dados reais
   Future<void> verificarStreak(String uid, int streakAtual) async {
     final userDoc = FirebaseFirestore.instance.collection('usuarios').doc(uid);
     final snap = await userDoc.get();
@@ -24,7 +22,6 @@ class ProfileCard extends StatelessWidget {
     DateTime ultimaRega = DateTime.parse(ultimaRegaStr);
     DateTime hoje = DateTime.now();
 
-    // Compara apenas as datas (ano, mês, dia)
     DateTime hojeSemHora = DateTime(hoje.year, hoje.month, hoje.day);
     DateTime ultimaRegaSemHora = DateTime(
       ultimaRega.year,
@@ -34,10 +31,31 @@ class ProfileCard extends StatelessWidget {
 
     int diferencaDias = hojeSemHora.difference(ultimaRegaSemHora).inDays;
 
-    // Se passou mais de 1 dia sem regar, o foguinho apaga
     if (diferencaDias > 1 && streakAtual > 0) {
       await userDoc.update({'streak_atual': 0});
     }
+  }
+
+  // Helper corrigido para carregar APENAS arquivo local, sem NetworkImage
+  ImageProvider _getAvatarImage(String? fotoPath) {
+    if (fotoPath != null && fotoPath.isNotEmpty) {
+      try {
+        // Se por algum motivo o path vier com "file://", limpamos
+        if (fotoPath.startsWith("file://")) {
+          return FileImage(File.fromUri(Uri.parse(fotoPath)));
+        }
+        
+        // Verifica se é um arquivo local válido
+        final file = File(fotoPath);
+        if (file.existsSync()) {
+          return FileImage(file);
+        }
+      } catch (e) {
+        // Se der erro ao ler arquivo, usa padrão
+        print("Erro ao ler imagem de perfil: $e");
+      }
+    }
+    return const AssetImage('assets/images/garden.png');
   }
 
   @override
@@ -60,10 +78,8 @@ class ProfileCard extends StatelessWidget {
         int pontos = userData['pontos'] ?? 0;
         int diasSeguidos = userData['streak_atual'] ?? 0;
 
-        // Chama a verificação de streak (sem travar a interface)
         verificarStreak(uid, diasSeguidos);
 
-        // Lógica de Níveis com Emojis
         String nivelNome;
         int minPontos;
         int maxPontos;
@@ -98,7 +114,6 @@ class ProfileCard extends StatelessWidget {
           maxPontos = 1000;
         }
 
-        // Barra de progresso resetável por nível
         double progressoVisivel = pontos >= 1000
             ? 1.0
             : (pontos - minPontos) / (maxPontos - minPontos);
@@ -106,16 +121,7 @@ class ProfileCard extends StatelessWidget {
         progressoVisivel = progressoVisivel.clamp(0.0, 1.0);
         int pontosFaltantes = pontos >= 1000 ? 0 : maxPontos - pontos;
 
-        // Lógica da Foto
-        String? fotoPath = userData['foto_url'];
-        ImageProvider avatarImage;
-        if (fotoPath != null &&
-            fotoPath.isNotEmpty &&
-            fotoPath.startsWith('/')) {
-          avatarImage = FileImage(File(fotoPath));
-        } else {
-          avatarImage = const AssetImage('assets/images/garden.png');
-        }
+        final avatarImage = _getAvatarImage(userData['foto_url']);
 
         return Container(
           padding: const EdgeInsets.all(24),
@@ -233,7 +239,6 @@ class ProfileCard extends StatelessWidget {
                       ],
                     ),
 
-                    // ÍCONE INFO (i) NO CANTO SUPERIOR DIREITO
                     Positioned(
                       top: -18,
                       right: -18,

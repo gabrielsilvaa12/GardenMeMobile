@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gardenme/components/curved_background.dart';
+import 'package:gardenme/pages/login.dart'; // ADICIONE ESTE IMPORT
 
 enum ThemeOption { claro, escuro, folha }
 
@@ -247,6 +248,13 @@ class _SettingsState extends State<Settings> {
                       "Sair da Conta",
                       () async {
                         await FirebaseAuth.instance.signOut();
+                        // Força a volta para a tela de login ao sair
+                        if (context.mounted) {
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(builder: (context) => const MyLogin()),
+                            (route) => false,
+                          );
+                        }
                       },
                       color: Colors.redAccent,
                       icone: Icons.logout,

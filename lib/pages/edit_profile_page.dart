@@ -1,13 +1,11 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:gardenme/components/curved_background.dart';
 
 class EditProfilePage extends StatefulWidget {
-  // CORREÇÃO: Tornado opcional (?) para aceitar usuários novos
   final Map<String, dynamic>? userData;
 
   const EditProfilePage({super.key, this.userData});
@@ -19,30 +17,29 @@ class EditProfilePage extends StatefulWidget {
 class _EditProfilePageState extends State<EditProfilePage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   late TextEditingController _nomeController;
   late TextEditingController _sobrenomeController;
   late TextEditingController _telefoneController;
   
-  // Senhas (opcional, mantendo estrutura se quiser usar depois)
   final _senhaAtualController = TextEditingController();
   final _novaSenhaController = TextEditingController();
   final _confirmarSenhaController = TextEditingController();
 
   File? _imagemLocal;
-  String? _fotoUrlAtual;
+  String? _caminhoFotoAtual; // Agora armazenamos o caminho local, não URL
   bool _estaCarregando = false;
   bool _mostrarSenha = false;
 
   @override
   void initState() {
     super.initState();
-    // Inicializa com dados ou vazio (Correção para tela branca)
-    _nomeController = TextEditingController(text: widget.userData?['nome'] ?? '');
-    _sobrenomeController = TextEditingController(text: widget.userData?['sobrenome'] ?? '');
-    _telefoneController = TextEditingController(text: widget.userData?['telefone'] ?? '');
-    _fotoUrlAtual = widget.userData?['foto_url'];
+    _nomeController = TextEditingController(text: widget.userData?['nome']?.toString() ?? '');
+    _sobrenomeController = TextEditingController(text: widget.userData?['sobrenome']?.toString() ?? '');
+    _telefoneController = TextEditingController(text: widget.userData?['telefone']?.toString() ?? '');
+    
+    // Pega o caminho salvo no banco
+    _caminhoFotoAtual = widget.userData?['foto_url']?.toString();
   }
 
   @override
@@ -105,6 +102,29 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
+  // Lógica simplificada: Só aceita FileImage
+  ImageProvider? _getImagemProvider() {
+    // 1. Se acabou de selecionar uma nova
+    if (_imagemLocal != null) {
+      return FileImage(_imagemLocal!);
+    }
+    
+    // 2. Se já tinha um caminho salvo no banco
+    if (_caminhoFotoAtual != null && _caminhoFotoAtual!.isNotEmpty) {
+      try {
+        // Remove prefixo file:// se existir por acidente, para evitar erros
+        String cleanPath = _caminhoFotoAtual!;
+        if (cleanPath.startsWith("file://")) {
+          return FileImage(File.fromUri(Uri.parse(cleanPath)));
+        }
+        return FileImage(File(cleanPath));
+      } catch (e) {
+        return null; // Se o arquivo não existir mais, retorna nulo (mostra ícone)
+      }
+    }
+    return null;
+  }
+
   Future<void> _salvar() async {
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
@@ -117,29 +137,26 @@ class _EditProfilePageState extends State<EditProfilePage> {
     setState(() => _estaCarregando = true);
 
     try {
-      String? urlFinal = _fotoUrlAtual;
+      // Lógica Simples: Salva o caminho do arquivo, não faz upload
+      String? caminhoFinal = _caminhoFotoAtual;
 
-      // 1. Upload da Imagem (se trocou)
       if (_imagemLocal != null) {
-        final ref = _storage.ref().child('profile_images/$uid.jpg');
-        await ref.putFile(_imagemLocal!);
-        urlFinal = await ref.getDownloadURL();
+        caminhoFinal = _imagemLocal!.path;
       }
 
       Map<String, dynamic> dadosParaAtualizar = {
         'nome': _nomeController.text.trim(),
         'sobrenome': _sobrenomeController.text.trim(),
         'telefone': _telefoneController.text.trim(),
-        'foto_url': urlFinal,
+        'foto_url': caminhoFinal, // Salva o PATH local
       };
 
-      // CORREÇÃO CRÍTICA: set com merge cria o documento se não existir
       await _firestore.collection('usuarios').doc(uid).set(
         dadosParaAtualizar, 
         SetOptions(merge: true)
       );
 
-      // Atualização de senha (Opcional)
+      // Senha
       if (_novaSenhaController.text.isNotEmpty) {
         if (_novaSenhaController.text == _confirmarSenhaController.text) {
           if (_novaSenhaController.text.length < 6) throw "A senha deve ter pelo menos 6 caracteres.";
@@ -155,9 +172,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       }
     } catch (e) {
       if (mounted) {
-        String msg = e.toString();
-        if (msg.contains("requires-recent-login")) msg = "Faça login novamente para trocar a senha.";
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erro: $msg")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erro ao salvar: $e")));
       }
     } finally {
       if (mounted) setState(() => _estaCarregando = false);
@@ -167,13 +182,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     double tecladoAltura = MediaQuery.of(context).viewInsets.bottom;
-    
-    ImageProvider? imageProvider;
-    if (_imagemLocal != null) {
-      imageProvider = FileImage(_imagemLocal!);
-    } else if (_fotoUrlAtual != null && _fotoUrlAtual!.isNotEmpty) {
-      imageProvider = NetworkImage(_fotoUrlAtual!);
-    }
+    final imageProvider = _getImagemProvider();
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
