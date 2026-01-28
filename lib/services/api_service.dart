@@ -2,75 +2,68 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // ⚠️ MANTENHA SUA CHAVE AQUI
   final String _apiKey = 'sk-hUnU696d58d27700514405'; 
   final String _baseUrl = 'https://perenual.com/api';
 
-  // --- CATÁLOGO DE 40 PLANTAS (CURADORIA GARDENME) ---
-  // Mapeamos o nome em PT para o termo de busca exato (Inglês ou Científico)
-  // para garantir que a API encontre a planta correta.
+  // --- CATÁLOGO DE 40 PLANTAS (CURADORIA GARDENME 2.0) ---
   final Map<String, List<Map<String, String>>> _catalogoBrasileiro = {
-    'Frutíferas 🍒': [
-      {'nome': 'Jabuticabeira', 'busca': 'Plinia cauliflora'}, // Científico (Nativa)
-      {'nome': 'Limoeiro', 'busca': 'Lemon'},
-      {'nome': 'Pitangueira', 'busca': 'Eugenia uniflora'}, // Científico (Nativa)
-      {'nome': 'Romãzeira', 'busca': 'Pomegranate'},
-      {'nome': 'Aceroleira', 'busca': 'Malpighia emarginata'},
-      {'nome': 'Morangueiro', 'busca': 'Strawberry'},
-      {'nome': 'Amoreira', 'busca': 'Blackberry'},
-      {'nome': 'Goiabeira', 'busca': 'Guava'},
-      {'nome': 'Laranjinha Kinkan', 'busca': 'Kumquat'},
-      {'nome': 'Maracujazeiro', 'busca': 'Passion Fruit'},
+    'Frutíferas para Vasos 🍓': [
+      {'nome': 'Morango', 'busca': 'Strawberry'},
+      {'nome': 'Amora-anã', 'busca': 'Blackberry'},
+      {'nome': 'Pitanga-anã', 'busca': 'Eugenia uniflora'}, 
+      {'nome': 'Acerola-anã', 'busca': 'Malpighia emarginata'},
+      {'nome': 'Jabuticaba-anã', 'busca': 'Plinia cauliflora'},
+      {'nome': 'Romã-anã', 'busca': 'Pomegranate'},
+      {'nome': 'Limoeiro-anão', 'busca': 'Lemon'},
+      {'nome': 'Tangerineira-anã', 'busca': 'Tangerine'},
+      {'nome': 'Goiaba-anã', 'busca': 'Guava'},
+      {'nome': 'Framboesa', 'busca': 'Raspberry'},
     ],
-    'Horta & Temperos 🥗': [
+    'Vegetais & Hortaliças 🥬': [
       {'nome': 'Alface', 'busca': 'Lettuce'},
-      {'nome': 'Cenoura', 'busca': 'Carrot'},
-      {'nome': 'Tomate Cereja', 'busca': 'Cherry Tomato'},
-      {'nome': 'Cebolinha', 'busca': 'Green Onion'},
-      {'nome': 'Salsinha', 'busca': 'Parsley'},
-      {'nome': 'Hortelã', 'busca': 'Mint'},
-      {'nome': 'Manjericão', 'busca': 'Basil'},
       {'nome': 'Rúcula', 'busca': 'Arugula'},
-      {'nome': 'Couve Manteiga', 'busca': 'Kale'},
+      {'nome': 'Espinafre', 'busca': 'Spinach'},
+      {'nome': 'Cebolinha', 'busca': 'Green Onion'}, 
+      {'nome': 'Salsinha', 'busca': 'Parsley'},
+      {'nome': 'Coentro', 'busca': 'Cilantro'},
+      {'nome': 'Manjericão', 'busca': 'Basil'},
+      {'nome': 'Tomate-cereja', 'busca': 'Cherry Tomato'},
       {'nome': 'Pimentão', 'busca': 'Bell Pepper'},
+      {'nome': 'Pimenta', 'busca': 'Chili Pepper'},
     ],
-    'Flores & Ornamentais 🌺': [
-      {'nome': 'Orquídea', 'busca': 'Phalaenopsis'},
-      {'nome': 'Violeta', 'busca': 'African Violet'},
-      {'nome': 'Rosa', 'busca': 'Rose'},
-      {'nome': 'Girassol', 'busca': 'Sunflower'},
-      {'nome': 'Antúrio', 'busca': 'Anthurium'},
-      {'nome': 'Lírio da Paz', 'busca': 'Peace Lily'},
-      {'nome': 'Kalanchoe', 'busca': 'Kalanchoe'},
+    'Flores & Ornamentais 🌸': [
+      {'nome': 'Petúnia', 'busca': 'Petunia'},
       {'nome': 'Begônia', 'busca': 'Begonia'},
-      {'nome': 'Azaleia', 'busca': 'Azalea'},
-      {'nome': 'Hibisco', 'busca': 'Hibiscus'},
+      {'nome': 'Violeta-africana', 'busca': 'African Violet'},
+      {'nome': 'Gérbera', 'busca': 'Gerbera'},
+      {'nome': 'Impatiens (Beijo)', 'busca': 'Impatiens'},
+      {'nome': 'Cravina', 'busca': 'Dianthus'},
+      {'nome': 'Boca-de-leão', 'busca': 'Snapdragon'},
+      {'nome': 'Kalanchoê', 'busca': 'Kalanchoe'},
+      {'nome': 'Amor-perfeito', 'busca': 'Pansy'},
+      {'nome': 'Samambaia', 'busca': 'Fern'},
     ],
     'Cactos & Suculentas 🌵': [
-      {'nome': 'Espada de São Jorge', 'busca': 'Snake Plant'},
-      {'nome': 'Zamioculca', 'busca': 'ZZ Plant'},
-      {'nome': 'Babosa (Aloe)', 'busca': 'Aloe Vera'},
-      {'nome': 'Echeveria', 'busca': 'Echeveria'},
-      {'nome': 'Mandacaru', 'busca': 'Cereus jamacaru'}, // Científico (Nativa)
-      {'nome': 'Rabo-de-Burro', 'busca': 'Burro\'s Tail'},
-      {'nome': 'Colar-de-Pérolas', 'busca': 'String of Pearls'},
-      {'nome': 'Flor-de-Maio', 'busca': 'Christmas Cactus'},
-      {'nome': 'Orelha-de-Mickey', 'busca': 'Bunny Ear Cactus'},
-      {'nome': 'Dedinho-de-Moça', 'busca': 'Sedum morganianum'},
+      {'nome': 'Mandacaru-mini', 'busca': 'Cereus jamacaru'},
+      {'nome': 'Coroa-de-frade', 'busca': 'Melocactus'},
+      {'nome': 'Orelha-de-mickey', 'busca': 'Opuntia microdasys'},
+      {'nome': 'Cacto-bola', 'busca': 'Echinocactus'},
+      {'nome': 'Rosa-de-pedra', 'busca': 'Echeveria'},
+      {'nome': 'Planta-jade', 'busca': 'Jade Plant'},
+      {'nome': 'Haworthia', 'busca': 'Haworthia'},
+      {'nome': 'Aloe Vera (Babosa)', 'busca': 'Aloe Vera'},
+      {'nome': 'Sedum', 'busca': 'Sedum'},
+      {'nome': 'Colar-de-pérolas', 'busca': 'String of Pearls'},
     ],
   };
 
-  // Retorna o catálogo organizado para a tela de adicionar
   Map<String, List<Map<String, String>>> getCatalogoCompleto() {
     return _catalogoBrasileiro;
   }
 
-  // Busca na API usando o termo mapeado (ex: Clica em "Jabuticaba" -> Busca "Plinia cauliflora")
   Future<List<Map<String, dynamic>>> pesquisarPlantas(String query) async {
-    // 1. Tenta traduzir o termo digitado
-    String termoBusca = _traduzirNomeParaBusca(query);
-    
-    final uri = Uri.parse('$_baseUrl/species-list?key=$_apiKey&q=$termoBusca');
+    // Usa o termo direto para buscar na API
+    final uri = Uri.parse('$_baseUrl/species-list?key=$_apiKey&q=$query');
     
     try {
       final response = await http.get(uri);
@@ -79,12 +72,10 @@ class ApiService {
         final List lista = data['data'];
         
         return lista.map((item) {
-          // Tenta pegar a imagem, se não tiver, manda string vazia
           String thumb = item['default_image']?['thumbnail'] ?? '';
-          
           return {
             'id': item['id'],
-            'nome_comum': item['common_name'], // Nome em inglês da API
+            'nome_comum': item['common_name'], 
             'nome_cientifico': item['scientific_name'] != null ? item['scientific_name'][0] : '',
             'imagem_url': thumb,
           };
@@ -114,35 +105,6 @@ class ApiService {
       };
     }
     return {};
-  }
-
-  // --- TRADUTORES E REGRAS ---
-
-  // Tradutor Reverso: Se o usuário DIGITAR na busca, tentamos adivinhar o termo em inglês
-  String _traduzirNomeParaBusca(String nomePt) {
-    final termo = nomePt.toLowerCase().trim();
-    
-    // Frutíferas
-    if (termo.contains('jabuticaba')) return 'Plinia cauliflora';
-    if (termo.contains('pitanga')) return 'Eugenia uniflora';
-    if (termo.contains('limao') || termo.contains('limão')) return 'Lemon';
-    if (termo.contains('acerola')) return 'Malpighia emarginata';
-    if (termo.contains('goiaba')) return 'Guava';
-    if (termo.contains('maracuja') || termo.contains('maracujá')) return 'Passion Fruit';
-    
-    // Horta
-    if (termo.contains('alface')) return 'Lettuce';
-    if (termo.contains('couve')) return 'Kale';
-    if (termo.contains('manjericao') || termo.contains('manjericão')) return 'Basil';
-    
-    // Ornamentais
-    if (termo.contains('orquidea') || termo.contains('orquídea')) return 'Phalaenopsis';
-    if (termo.contains('espada')) return 'Snake Plant';
-    if (termo.contains('zamioculca')) return 'ZZ Plant';
-    if (termo.contains('mandacaru')) return 'Cereus jamacaru';
-
-    // Se não achar, tenta buscar pelo que a pessoa digitou mesmo
-    return nomePt;
   }
 
   String _traduzirEstacao(dynamic season) {
@@ -176,13 +138,13 @@ class ApiService {
   String _gerarDicaRega(String? watering) {
     switch (watering) {
       case 'Frequent': 
-        return "A terra deve ficar BEM ÚMIDA (quase encharcada).";
+        return "Mantenha a terra úmida.";
       case 'Average': 
-        return "A terra deve ficar LEVEMENTE ÚMIDA (fresca).";
+        return "Regue quando o topo da terra secar.";
       case 'Minimum': 
-        return "A terra deve ficar SECA antes de regar.";
+        return "Deixe a terra secar bem antes de regar.";
       case 'None':
-        return "A terra deve ficar MUITO SECA (esturricada).";
+        return "Regue raramente (Cactos/Suculentas).";
       default: 
         return "Terra úmida, sem encharcar.";
     }
@@ -193,11 +155,11 @@ class ApiService {
     String type = (details['type'] ?? '').toString().toLowerCase();
 
     if (flowers) {
-      return "Farinha de Ossos (Rico em Fósforo)";
+      return "Rico em Fósforo (ex: NPK 4-14-8)";
     } else if (type.contains('succulent') || type.contains('cactus')) {
-       return "Casca de Ovo ou Cálcio";
+       return "Específico para Cactos ou Casca de Ovo";
     } else {
-      return "Húmus de Minhoca (Nitrogênio)";
+      return "Rico em Nitrogênio ou Húmus de Minhoca";
     }
   }
 }
