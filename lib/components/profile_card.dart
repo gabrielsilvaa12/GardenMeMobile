@@ -51,7 +51,7 @@ class ProfileCard extends StatelessWidget {
           return FileImage(file);
         }
       } catch (e) {
-        // Se der erro ao ler arquivo, usa padrão
+        // Se der erro ao ler imagem de perfil, usa padrão
         print("Erro ao ler imagem de perfil: $e");
       }
     }

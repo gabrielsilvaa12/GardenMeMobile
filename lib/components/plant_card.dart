@@ -19,12 +19,27 @@ class _PlantCardState extends State<PlantCard> {
 
   // Função para regar (Conectada ao Serviço que conta pontos)
   Future<void> _toggleRega() async {
-    bool novoStatus = !widget.planta.rega;
+    // --- MODO TESTE ATIVADO ---
+    // Comentamos a verificação abaixo para permitir cliques ilimitados e testar o XP.
+    // Para voltar ao normal, basta descomentar esse bloco.
     
-    // Chama o serviço que já tem a lógica de +10 pontos e streak
+    /*
+    if (widget.planta.rega) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Você já cuidou desta planta hoje! 🌱'),
+          duration: Duration(seconds: 2),
+          backgroundColor: Color(0xFF3A5A40),
+        ),
+      );
+      return;
+    }
+    */
+
+    // Envia o comando de regar (Soma +10 XP no serviço)
     await _plantaService.atualizarStatus(
       widget.planta.id, 
-      rega: novoStatus,
+      rega: true,
     );
     
     // O StreamBuilder na Home vai atualizar a tela automaticamente

@@ -33,7 +33,15 @@ class PlantaService {
       dicaFertilizante: dadosExtras?['dica_fertilizante'],
     );
 
+    // 1. Salva a planta
     await docRef.set(planta.toMap());
+
+    // 2. Atualiza a contagem de plantas no perfil do usuário (+1)
+    if (_userId != null) {
+      await _firestore.collection('usuarios').doc(_userId).update({
+        'plantas_count': FieldValue.increment(1),
+      });
+    }
   }
 
   Future<void> atualizarStatus(String plantaId, {required bool rega}) async {
@@ -83,7 +91,7 @@ class PlantaService {
     }
   }
 
-  // --- NOVO: Verifica se o horário do alarme já passou para resetar a planta ---
+  // --- Verifica se o horário do alarme já passou para resetar a planta ---
   // Isso garante que a borda fique LARANJA quando chegar a hora
   Future<void> verificarAlarmesVencidos() async {
     if (_userId == null) return;
@@ -92,9 +100,6 @@ class PlantaService {
       // Pega todos os alarmes
       final alarmesSnap = await _alarmesRef.get();
       final agora = DateTime.now();
-      
-      // Mapeia plantaID -> Lista de Alarmes
-      Map<String, List<Map<String, dynamic>>> alarmesPorPlanta = {};
       
       for (var doc in alarmesSnap.docs) {
         var data = doc.data() as Map<String, dynamic>;
@@ -106,10 +111,9 @@ class PlantaService {
         // Verifica se é hoje e se já passou da hora
         if (dias.contains(agora.weekday)) {
           final horaAlarme = DateTime(agora.year, agora.month, agora.day, hora, minuto);
-          // Se já passou da hora do alarme E foi menos de 24h atrás
+          // Se já passou da hora do alarme E foi menos de 12h atrás
           if (agora.isAfter(horaAlarme) && agora.difference(horaAlarme).inHours < 12) {
              // Marca que esta planta deveria estar "desregada" (laranja) hoje
-             // Você pode refinar essa lógica para ser mais complexa se quiser
              await _plantasRef.doc(plantaId).update({'rega': false});
           }
         }
@@ -121,7 +125,14 @@ class PlantaService {
 
   Future<void> removerPlanta(Planta planta) async {
     if (_userId == null) return;
+    
+    // 1. Remove a planta
     await _plantasRef.doc(planta.id).delete();
+
+    // 2. Atualiza a contagem de plantas no perfil do usuário (-1)
+    await _firestore.collection('usuarios').doc(_userId).update({
+      'plantas_count': FieldValue.increment(-1),
+    });
   }
 
   Future<void> atualizarPlanta(String plantaId, String novoNome, String? novaImagemPath) async {
