@@ -5,8 +5,25 @@ import 'package:gardenme/components/plant_card.dart';
 import 'package:gardenme/models/planta.dart';
 import 'package:gardenme/services/planta_service.dart';
 
-class MyHomePage extends StatelessWidget {
+// ALTERAÇÃO 1: Mudamos para StatefulWidget para poder iniciar a verificação de alarmes
+class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  // Instância do serviço
+  final PlantaService _plantaService = PlantaService();
+
+  @override
+  void initState() {
+    super.initState();
+    // LÓGICA VITAL: Verifica se algum alarme venceu ao abrir a Home.
+    // Se venceu, a planta fica com status 'false' (Laranja) e permite regar novamente para ganhar pontos.
+    _plantaService.verificarAlarmesVencidos();
+  }
 
   Widget _buildAddPlantButton(BuildContext context) {
     void _abrirModal() {
@@ -70,7 +87,7 @@ class MyHomePage extends StatelessWidget {
                     // Listagem Dinâmica com StreamBuilder
                     Expanded(
                       child: StreamBuilder<List<Planta>>(
-                        stream: PlantaService().getMinhasPlantas(),
+                        stream: _plantaService.getMinhasPlantas(),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState == ConnectionState.waiting) {
                             return const Center(
@@ -114,6 +131,7 @@ class MyHomePage extends StatelessWidget {
                               }
 
                               final planta = plantas[index];
+                              // Este Card já contém a lógica de clique -> Atualizar Pontos
                               return PlantCard(planta: planta);
                             },
                           );

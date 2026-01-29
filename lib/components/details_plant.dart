@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:gardenme/models/planta.dart';
 import 'package:gardenme/pages/alarms_page.dart';
+import 'package:gardenme/pages/edit_plant_page.dart';
 import 'package:gardenme/services/planta_service.dart';
 
 class DetailedPlant extends StatefulWidget {
@@ -15,29 +16,40 @@ class DetailedPlant extends StatefulWidget {
 
 class _DetailedPlantState extends State<DetailedPlant> {
   final PlantaService _plantaService = PlantaService();
+  
+  late String _nomeExibido;
+  late String? _imagemExibida;
+
+  @override
+  void initState() {
+    super.initState();
+    _nomeExibido = widget.planta.nome;
+    _imagemExibida = widget.planta.imagemUrl;
+  }
 
   Widget _buildPlantImage() {
-    final imagePath = widget.planta.imagemUrl ?? '';
-    
+    final imagePath = _imagemExibida ?? '';
+    ImageProvider imgProvider;
+
     if (imagePath.startsWith('http')) {
-      return Image.network(
-        imagePath,
-        height: 250,
-        width: double.infinity,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _buildPlaceholder(),
-      );
+      imgProvider = NetworkImage(imagePath);
     } else if (imagePath.isNotEmpty) {
-      return Image.file(
-        File(imagePath),
-        height: 250,
-        width: double.infinity,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _buildPlaceholder(),
-      );
+      try {
+        imgProvider = FileImage(File(imagePath));
+      } catch (e) {
+        imgProvider = const AssetImage('assets/images/garden.png');
+      }
     } else {
-      return _buildPlaceholder();
+      imgProvider = const AssetImage('assets/images/garden.png');
     }
+
+    return Image(
+      image: imgProvider,
+      height: 250,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => _buildPlaceholder(),
+    );
   }
 
   Widget _buildPlaceholder() {
@@ -78,12 +90,40 @@ class _DetailedPlantState extends State<DetailedPlant> {
     );
   }
 
+  Future<void> _abrirTelaEdicao() async {
+    // CORRIGIDO: Passando os campos individuais corretamente
+    final plantaAtual = Planta(
+      id: widget.planta.id,
+      nome: _nomeExibido,
+      imagemUrl: _imagemExibida,
+      rega: widget.planta.rega,
+      estacaoIdeal: widget.planta.estacaoIdeal,
+      regaDica: widget.planta.regaDica,
+      tipoTerra: widget.planta.tipoTerra,
+      dicaFertilizante: widget.planta.dicaFertilizante,
+    );
+
+    final resultado = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditPlantPage(planta: plantaAtual),
+      ),
+    );
+
+    if (resultado != null && resultado is Map) {
+      setState(() {
+        _nomeExibido = resultado['novoNome'];
+        _imagemExibida = resultado['novaImagem'];
+      });
+    }
+  }
+
   void _irParaAlarmes() {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => AlarmsPage(
-          plantName: widget.planta.nome,
+          plantName: _nomeExibido,
           plantaId: widget.planta.id,
         ),
       ),
@@ -134,20 +174,17 @@ class _DetailedPlantState extends State<DetailedPlant> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // --- STACK: FOTO + BOTÃO ALARME (Topo Direito) ---
               Stack(
                 children: [
                   _buildPlantImage(),
-                  
-                  // Botão Redondo de Alarmes (Overlay - Canto Superior Direito)
                   Positioned(
-                    top: 16, // Movido para o topo
+                    top: 16,
                     right: 16,
                     child: InkWell(
                       onTap: _irParaAlarmes,
                       borderRadius: BorderRadius.circular(50),
                       child: Container(
-                        width: 50, // Levemente reduzido (era 56)
+                        width: 50,
                         height: 50,
                         decoration: BoxDecoration(
                           color: const Color(0xfff2f2f2),
@@ -160,11 +197,7 @@ class _DetailedPlantState extends State<DetailedPlant> {
                             ),
                           ],
                         ),
-                        child: const Icon(
-                          Icons.alarm, 
-                          color: Color(0xFF588157),
-                          size: 24, // Levemente reduzido (era 28)
-                        ),
+                        child: const Icon(Icons.alarm, color: Color(0xFF588157), size: 24),
                       ),
                     ),
                   ),
@@ -176,22 +209,33 @@ class _DetailedPlantState extends State<DetailedPlant> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // TÍTULO CENTRALIZADO
-                    Center(
-                      child: Text(
-                        widget.planta.nome,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Color(0xfff2f2f2),
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const SizedBox(width: 32), 
+                        Expanded(
+                          child: Text(
+                            _nomeExibido,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Color(0xfff2f2f2),
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      ),
+                        IconButton(
+                          onPressed: _abrirTelaEdicao,
+                          icon: const Icon(Icons.edit, color: Colors.white54, size: 22),
+                          tooltip: "Editar planta",
+                          splashRadius: 24,
+                        ),
+                      ],
                     ),
 
                     const SizedBox(height: 24),
 
-                    // Card da Estação
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                       decoration: BoxDecoration(
@@ -207,17 +251,10 @@ class _DetailedPlantState extends State<DetailedPlant> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  "Melhor época para plantar:",
-                                  style: TextStyle(color: Colors.white70, fontSize: 12),
-                                ),
+                                const Text("Melhor época para plantar:", style: TextStyle(color: Colors.white70, fontSize: 12)),
                                 Text(
                                   estacao,
-                                  style: const TextStyle(
-                                    color: Color(0xfff2f2f2),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
+                                  style: const TextStyle(color: Color(0xfff2f2f2), fontWeight: FontWeight.bold, fontSize: 16),
                                 ),
                               ],
                             ),
@@ -227,28 +264,21 @@ class _DetailedPlantState extends State<DetailedPlant> {
                     ),
 
                     const SizedBox(height: 24),
-
-                    // Informações
                     _buildInfoSection("Umidade da terra:", umidade),
                     _buildInfoSection("Qual terra usar:", terra),
                     _buildInfoSection("Fertilizante ideal:", fertilizante),
-
                     const SizedBox(height: 30),
 
-                    // BOTÃO EXCLUIR (Cor e Tamanho ajustados)
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: _excluirPlanta,
                         icon: const Icon(Icons.delete_outline, size: 26),
-                        label: const Text(
-                          "Excluir Planta",
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
+                        label: const Text("Excluir Planta", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFbc4749), // Nova cor solicitada
+                          backgroundColor: const Color(0xFFbc4749),
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12), // Padding reduzido de 16 para 12
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                           elevation: 4,
                           shadowColor: const Color(0xFFbc4749).withOpacity(0.5),

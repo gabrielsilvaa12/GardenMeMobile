@@ -27,7 +27,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _confirmarSenhaController = TextEditingController();
 
   File? _imagemLocal;
-  String? _caminhoFotoAtual; // Agora armazenamos o caminho local, não URL
+  String? _caminhoFotoAtual; 
   bool _estaCarregando = false;
   bool _mostrarSenha = false;
 
@@ -38,7 +38,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _sobrenomeController = TextEditingController(text: widget.userData?['sobrenome']?.toString() ?? '');
     _telefoneController = TextEditingController(text: widget.userData?['telefone']?.toString() ?? '');
     
-    // Pega o caminho salvo no banco
     _caminhoFotoAtual = widget.userData?['foto_url']?.toString();
   }
 
@@ -102,32 +101,28 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  // Lógica simplificada: Só aceita FileImage
   ImageProvider? _getImagemProvider() {
-    // 1. Se acabou de selecionar uma nova
     if (_imagemLocal != null) {
       return FileImage(_imagemLocal!);
     }
     
-    // 2. Se já tinha um caminho salvo no banco
     if (_caminhoFotoAtual != null && _caminhoFotoAtual!.isNotEmpty) {
       try {
-        // Remove prefixo file:// se existir por acidente, para evitar erros
         String cleanPath = _caminhoFotoAtual!;
         if (cleanPath.startsWith("file://")) {
           return FileImage(File.fromUri(Uri.parse(cleanPath)));
         }
         return FileImage(File(cleanPath));
       } catch (e) {
-        return null; // Se o arquivo não existir mais, retorna nulo (mostra ícone)
+        return null; 
       }
     }
     return null;
   }
 
   Future<void> _salvar() async {
-    final uid = _auth.currentUser?.uid;
-    if (uid == null) return;
+    final user = _auth.currentUser;
+    if (user == null) return;
     
     if (_nomeController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("O nome é obrigatório.")));
@@ -137,7 +132,32 @@ class _EditProfilePageState extends State<EditProfilePage> {
     setState(() => _estaCarregando = true);
 
     try {
-      // Lógica Simples: Salva o caminho do arquivo, não faz upload
+      // 1. Atualizar Senha (com Reautenticação Obrigatória)
+      if (_novaSenhaController.text.isNotEmpty) {
+        if (_senhaAtualController.text.isEmpty) {
+          throw "Digite sua senha atual para autorizar a mudança.";
+        }
+        
+        if (_novaSenhaController.text != _confirmarSenhaController.text) {
+          throw "As novas senhas não coincidem.";
+        }
+
+        if (_novaSenhaController.text.length < 6) {
+          throw "A nova senha deve ter pelo menos 6 caracteres.";
+        }
+
+        // Tenta reautenticar o usuário com a senha atual fornecida
+        // Isso resolve o erro de "requires-recent-login"
+        AuthCredential credential = EmailAuthProvider.credential(
+          email: user.email!,
+          password: _senhaAtualController.text.trim(),
+        );
+
+        await user.reauthenticateWithCredential(credential);
+        await user.updatePassword(_novaSenhaController.text.trim());
+      }
+
+      // 2. Salvar Dados do Perfil
       String? caminhoFinal = _caminhoFotoAtual;
 
       if (_imagemLocal != null) {
@@ -148,31 +168,34 @@ class _EditProfilePageState extends State<EditProfilePage> {
         'nome': _nomeController.text.trim(),
         'sobrenome': _sobrenomeController.text.trim(),
         'telefone': _telefoneController.text.trim(),
-        'foto_url': caminhoFinal, // Salva o PATH local
+        'foto_url': caminhoFinal,
       };
 
-      await _firestore.collection('usuarios').doc(uid).set(
+      await _firestore.collection('usuarios').doc(user.uid).set(
         dadosParaAtualizar, 
         SetOptions(merge: true)
       );
 
-      // Senha
-      if (_novaSenhaController.text.isNotEmpty) {
-        if (_novaSenhaController.text == _confirmarSenhaController.text) {
-          if (_novaSenhaController.text.length < 6) throw "A senha deve ter pelo menos 6 caracteres.";
-          await _auth.currentUser?.updatePassword(_novaSenhaController.text.trim());
-        } else {
-          throw "As novas senhas não coincidem.";
-        }
-      }
-
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Perfil salvo com sucesso!")));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Perfil atualizado com sucesso!")));
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erro ao salvar: $e")));
+        String msg = e.toString();
+        // Tratamento de erros comuns do Firebase Auth
+        if (msg.contains("wrong-password")) {
+          msg = "A senha atual está incorreta.";
+        } else if (msg.contains("weak-password")) {
+          msg = "A nova senha é muito fraca.";
+        } else if (msg.contains("requires-recent-login")) {
+          msg = "Por segurança, faça logout e login novamente para trocar a senha.";
+        }
+        
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("Erro: $msg"),
+          backgroundColor: Colors.redAccent,
+        ));
       }
     } finally {
       if (mounted) setState(() => _estaCarregando = false);
