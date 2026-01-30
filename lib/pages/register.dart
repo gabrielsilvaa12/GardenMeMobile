@@ -52,11 +52,11 @@ class _MyLoginState extends State<RegisterAccount> {
 
     try {
       // 2. Criar usuário no Firebase Authentication (RF01)
-      UserCredential userCredential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
-            email: _emailController.text.trim(),
-            password: _senhaController.text.trim(),
-          );
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _senhaController.text.trim(),
+      );
 
       // 3. Salvar dados adicionais no Firestore (Bloco 1 - Usuário)
       String userId = userCredential.user!.uid;
@@ -147,7 +147,7 @@ class _MyLoginState extends State<RegisterAccount> {
                           "Cadastro de usuário",
                           style: TextStyle(
                             fontSize: 20,
-                            color: Color(0xFF2d2f2d),
+                            color: Color(0xFF386641),
                           ),
                         ),
                       ],
@@ -200,7 +200,6 @@ class _MyLoginState extends State<RegisterAccount> {
                         borderRadius: BorderRadius.circular(20.0),
                         borderSide: BorderSide(color: Colors.black),
                       ),
-
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
                         borderSide: BorderSide(color: Color(0xFF386641)),
@@ -226,7 +225,6 @@ class _MyLoginState extends State<RegisterAccount> {
                         borderRadius: BorderRadius.circular(20.0),
                         borderSide: BorderSide(color: Colors.black),
                       ),
-
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
                         borderSide: BorderSide(color: Color(0xFF386641)),
@@ -252,7 +250,6 @@ class _MyLoginState extends State<RegisterAccount> {
                         borderRadius: BorderRadius.circular(20.0),
                         borderSide: BorderSide(color: Colors.black),
                       ),
-
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
                         borderSide: BorderSide(color: Color(0xFF386641)),
@@ -278,7 +275,6 @@ class _MyLoginState extends State<RegisterAccount> {
                         borderRadius: BorderRadius.circular(20.0),
                         borderSide: BorderSide(color: Colors.black),
                       ),
-
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
                         borderSide: BorderSide(color: Color(0xFF386641)),
@@ -304,7 +300,6 @@ class _MyLoginState extends State<RegisterAccount> {
                         borderRadius: BorderRadius.circular(20.0),
                         borderSide: BorderSide(color: Colors.black),
                       ),
-
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
                         borderSide: BorderSide(color: Color(0xFF386641)),
@@ -376,12 +371,10 @@ class _MyLoginState extends State<RegisterAccount> {
                         borderRadius: BorderRadius.circular(20.0),
                         borderSide: BorderSide(color: Colors.black),
                       ),
-
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
                         borderSide: const BorderSide(color: Color(0xFF386641)),
                       ),
-
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
                         borderSide: BorderSide(color: Color(0xFF386641)),
@@ -417,7 +410,7 @@ class _MyLoginState extends State<RegisterAccount> {
                           child: const Text(
                             "Cadastrar",
                             style: TextStyle(
-                              color: Color(0xFF2d2f2d),
+                              color: Color(0xFF386641),
                               fontSize: 16,
                             ),
                           ),

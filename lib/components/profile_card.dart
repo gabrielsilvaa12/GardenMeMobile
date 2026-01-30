@@ -73,9 +73,16 @@ class ProfileCard extends StatelessWidget {
           .doc(uid)
           .snapshots(),
       builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
         if (!snapshot.hasData || !snapshot.data!.exists) {
           return const Center(
-            child: CircularProgressIndicator(color: Colors.white),
+            child: Text(
+              "Perfil não encontrado",
+              style: TextStyle(color: Colors.white),
+            ),
           );
         }
 
@@ -162,25 +169,11 @@ class ProfileCard extends StatelessWidget {
                     top: -15,    
                     child: Column(
                       children: [
-                        // Ícone com sombra para destaque
-                        Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.orangeAccent.withOpacity(0.2),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              )
-                            ]
-                          ),
-                          child: Icon(
-                            Icons.local_fire_department_rounded,
-                            color: diasSeguidos > 0
-                                ? Colors.orangeAccent[700] 
-                                : Colors.white24,
-                            size: 42, 
-                          ),
+                        Icon(
+                          Icons.local_fire_department_rounded,
+                          color:
+                              diasSeguidos > 0 ? Colors.orange : Colors.white24,
+                          size: 35,
                         ),
                         // Texto do contador
                         Text(
@@ -215,7 +208,6 @@ class ProfileCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
@@ -243,23 +235,7 @@ class ProfileCard extends StatelessWidget {
                             letterSpacing: 0.3,
                           ),
                         ),
-
-                        // --- SUBTÍTULO DE STREAK ---
-                        if (subtituloStreak != null) ...[
-                          const SizedBox(height: 5),
-                          Text(
-                            subtituloStreak,
-                            style: const TextStyle(
-                              fontSize: 18, 
-                              fontWeight: FontWeight.bold,
-                              fontStyle: FontStyle.italic,
-                              color: Color(0xFFFF6D00),
-                            ),
-                          ),
-                        ],
-
-                        const SizedBox(height: 12),
-
+                        const SizedBox(height: 6),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(10),
                           child: LinearProgressIndicator(
@@ -271,9 +247,7 @@ class ProfileCard extends StatelessWidget {
                             minHeight: 12, 
                           ),
                         ),
-
                         const SizedBox(height: 8),
-
                         Text(
                           pontos >= 800 
                             ? 'Nível Máximo Alcançado!'
@@ -309,7 +283,6 @@ class ProfileCard extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: 25),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,

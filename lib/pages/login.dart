@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gardenme/components/curved_background.dart';
 import 'package:gardenme/pages/main_page.dart';
 import 'package:gardenme/pages/password_recover.dart';
 import 'package:gardenme/pages/register.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class MyLogin extends StatefulWidget {
   const MyLogin({super.key});
@@ -18,49 +20,106 @@ class _MyLoginState extends State<MyLogin> {
 
   bool _senhaVisivel = false;
 
+  Future<void> _fazerLoginGoogle() async {
+    try {
+      final googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return;
+
+      final googleAuth = await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final userCredential =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+
+      final user = userCredential.user;
+
+      if (user == null) {
+        debugPrint("USER NULL APÓS LOGIN");
+        return;
+      }
+
+      debugPrint("UID LOGADO: ${user.uid}");
+
+      final userDoc =
+          FirebaseFirestore.instance.collection('usuarios').doc(user.uid);
+
+      final snap = await userDoc.get();
+
+      if (!snap.exists) {
+        debugPrint("CRIANDO PERFIL NO FIRESTORE");
+
+        await userDoc.set({
+          'nome': user.displayName?.split(" ").first ?? 'Usuário',
+          'sobrenome': user.displayName?.split(" ").skip(1).join(" "),
+          'email': user.email,
+          'pontos': 0,
+          'streak_atual': 0,
+          'melhor_streak': 0,
+          'plantas_count': 0,
+          'regas_count': 0,
+          'foto_url': '',
+          'ultima_rega_data': null,
+          'criado_em': FieldValue.serverTimestamp(),
+        });
+
+        debugPrint("PERFIL CRIADO COM SUCESSO");
+      } else {
+        debugPrint("PERFIL JÁ EXISTE");
+      }
+
+      if (!mounted) return;
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const MainPage()),
+        (_) => false,
+      );
+    } catch (erro) {
+      debugPrint("ERRO GOOGLE LOGIN: $erro");
+    }
+  }
+
   Future<void> _fazerLogin() async {
-    // Validação simples
     if (_emailController.text.isEmpty || _senhaController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, preencha e-mail e senha.')),
+        const SnackBar(content: Text('Preencha e-mail e senha')),
       );
       return;
     }
 
     try {
-      // Tenta fazer o login no Firebase
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _senhaController.text.trim(),
       );
 
-      // Se der certo, vai para a tela principal
-      if (mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const MainPage()),
-          (route) => false, // Remove as telas de login/cadastro da pilha
-        );
-      }
+      if (!mounted) return;
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const MainPage()),
+        (_) => false,
+      );
     } on FirebaseAuthException catch (e) {
-      String erro = 'Erro ao fazer login.';
+      String erro = 'Erro ao fazer login';
 
-      // Tratamento de erros comuns
       if (e.code == 'user-not-found') {
-        erro = 'Usuário não encontrado. Verifique o e-mail.';
+        erro = 'Usuário não encontrado';
       } else if (e.code == 'wrong-password') {
-        erro = 'Senha incorreta.';
+        erro = 'Senha incorreta';
       } else if (e.code == 'invalid-email') {
-        erro = 'E-mail inválido.';
-      } else if (e.code == 'user-disabled') {
-        erro = 'Este usuário foi desativado.';
+        erro = 'E-mail inválido';
       }
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(erro), backgroundColor: Colors.redAccent),
-        );
-      }
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(erro), backgroundColor: Colors.redAccent),
+      );
     }
   }
 
@@ -76,61 +135,61 @@ class _MyLoginState extends State<MyLogin> {
     return curvedBackground(
       showHeader: false,
       child: Container(
-        padding: EdgeInsetsGeometry.all(20),
+        padding: const EdgeInsets.all(20),
         child: Center(
           child: SingleChildScrollView(
             child: Column(
-              spacing: 20,
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Image.asset(
                   'assets/images/logoLogin.png',
                   width: 200,
-                  height: 200,
                 ),
+                const SizedBox(height: 20),
                 SizedBox(
                   width: 320,
                   child: TextField(
                     controller: _emailController,
+                    style: const TextStyle(color: Color(0xFF386641)),
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: Color(0xFFf2f2f2),
-                      label: Text("E-mail de usuário"),
-                      labelStyle: TextStyle(color: Color(0xFF386641)),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Colors.black),
-                      ),
-
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Color(0xFF386641)),
-                      ),
+                      fillColor: const Color(0xFFf2f2f2),
+                      labelText: "E-mail",
+                      labelStyle: const TextStyle(color: Color(0xFF386641)),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Color(0xFF386641)),
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF386641),
+                          width: 1.0,
+                        ),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
                       ),
                     ),
                   ),
                 ),
-
+                const SizedBox(height: 20),
                 SizedBox(
                   width: 320,
                   child: TextField(
                     controller: _senhaController,
+                    style: const TextStyle(color: Color(0xFF386641)),
                     obscureText: !_senhaVisivel,
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: Color(0xFFf2f2f2),
-                      label: Text("Senha"),
-                      labelStyle: TextStyle(color: Color(0xFF386641)),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Colors.black),
+                      fillColor: const Color(0xFFf2f2f2),
+                      labelText: "Senha",
+                      labelStyle: const TextStyle(color: Color(0xFF386641)),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF386641),
+                          width: 1.0,
+                        ),
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Color(0xFF386641)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
                       ),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -148,123 +207,94 @@ class _MyLoginState extends State<MyLogin> {
                     ),
                   ),
                 ),
-
+                const SizedBox(height: 20),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PasswordRecover(),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    "Esqueceu sua senha?",
+                    style: TextStyle(
+                      decoration: TextDecoration.underline,
+                      color: Color(0xFF386641),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
                 SizedBox(
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 30),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            RichText(
-                              text: TextSpan(
-                                text: "Esqueceu sua ",
-                                style: TextStyle(fontSize: 16),
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => PasswordRecover(),
-                                  ),
-                                );
-                              },
-                              child: RichText(
-                                text: TextSpan(
-                                  text: "senha?",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    decoration: TextDecoration.underline,
-                                    fontSize: 16,
-                                    color: Color(0xFF386641),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                  width: 220,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xfff2f2f2),
+                    ),
+                    onPressed: _fazerLogin,
+                    child: const Text("Entrar"),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: 220,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xfff2f2f2),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => RegisterAccount(),
                         ),
-
-                        Row(
-                          spacing: 0,
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => RegisterAccount(),
-                                  ),
-                                );
-                              },
-                              child: RichText(
-                                text: TextSpan(
-                                  text: "Cadastre-se.",
-                                  style: TextStyle(
-                                    decoration: TextDecoration.underline,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: Color(0xfff2f2f2),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                      );
+                    },
+                    child: const Text("Cadastre-se"),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: 220,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xfff2f2f2),
+                    ),
+                    onPressed: _fazerLoginGoogle,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/images/gugol.png',
+                          width: 35,
+                        ),
+                        const Text(
+                          "Entrar com o Google",
+                          style: TextStyle(color: Color(0xFF386641)),
                         ),
                       ],
                     ),
                   ),
                 ),
-
-                Padding(
-                  padding: EdgeInsetsGeometry.all(20),
-                  child: Column(
-                    spacing: 20,
-                    children: [
-                      SizedBox(
-                        width: 200,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xff3A5A40),
-                          ),
-                          onPressed: _fazerLogin,
-                          child: Text(
-                            "Entrar",
-                            style: TextStyle(
-                              color: Color(0xFFf2f2f2),
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      SizedBox(
-                        width: 200,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xfff2f2f2),
-                          ),
-                          onPressed: () {},
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                "Entrar com ",
-                                style: TextStyle(color: Color(0xff3A5A40)),
-                              ),
-                              Image.asset(
-                                'assets/images/google.png',
-                                width: 30,
-                                height: 30,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                const SizedBox(height: 10),
+                // GestureDetector(
+                //   onTap: () {
+                //     Navigator.push(
+                //       context,
+                //       MaterialPageRoute(
+                //         builder: (_) => RegisterAccount(),
+                //       ),
+                //     );
+                //   },
+                //   child: const Text(
+                //     "Cadastre-se",
+                //     style: TextStyle(
+                //       decoration: TextDecoration.underline,
+                //       color: Color(0xFF386641),
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ),

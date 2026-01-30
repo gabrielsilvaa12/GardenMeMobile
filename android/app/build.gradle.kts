@@ -55,10 +55,12 @@ flutter {
 }
 
 dependencies {
-    // Adicione esta linha para corrigir o erro:
+    // Correção para desugar
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
-    // Suas outras dependências (como o Firebase) continuam aqui...
-    implementation(platform("com.google.firebase:firebase-bom:33.7.0")) 
-    // ...
+    // Import the Firebase BoM (Usando a versão mais recente que você tinha)
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    
+    // Adicione explicitamente o Auth para garantir que o nativo reconheça
+    implementation("com.google.firebase:firebase-auth") 
 }
