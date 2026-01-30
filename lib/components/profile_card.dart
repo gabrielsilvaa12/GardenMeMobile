@@ -22,7 +22,6 @@ class ProfileCard extends StatelessWidget {
     DateTime ultimaRega = DateTime.parse(ultimaRegaStr);
     DateTime hoje = DateTime.now();
 
-    // Compara apenas as datas (ano, mês, dia)
     DateTime hojeSemHora = DateTime(hoje.year, hoje.month, hoje.day);
     DateTime ultimaRegaSemHora = DateTime(
       ultimaRega.year,
@@ -32,10 +31,36 @@ class ProfileCard extends StatelessWidget {
 
     int diferencaDias = hojeSemHora.difference(ultimaRegaSemHora).inDays;
 
-    // Se passou mais de 1 dia sem regar, o foguinho apaga
     if (diferencaDias > 1 && streakAtual > 0) {
       await userDoc.update({'streak_atual': 0});
     }
+  }
+
+  // --- Lógica dos Subtítulos de Streak ---
+  String? _getStreakSubtitle(int streak) {
+    if (streak >= 45) return "Que Não Falha";   
+    if (streak >= 35) return "Raízes Profundas"; 
+    if (streak >= 25) return "Implacável";       
+    if (streak >= 15) return "Sempre Verde";     
+    if (streak >= 5)  return "Incansável";       
+    return null;
+  }
+
+  ImageProvider _getAvatarImage(String? fotoPath) {
+    if (fotoPath != null && fotoPath.isNotEmpty) {
+      try {
+        if (fotoPath.startsWith("file://")) {
+          return FileImage(File.fromUri(Uri.parse(fotoPath)));
+        }
+        final file = File(fotoPath);
+        if (file.existsSync()) {
+          return FileImage(file);
+        }
+      } catch (e) {
+        print("Erro ao ler imagem de perfil: $e");
+      }
+    }
+    return const AssetImage('assets/images/garden.png');
   }
 
   @override
@@ -65,62 +90,49 @@ class ProfileCard extends StatelessWidget {
         int pontos = userData['pontos'] ?? 0;
         int diasSeguidos = userData['streak_atual'] ?? 0;
 
-        // Chama a verificação de streak (sem travar a interface)
         verificarStreak(uid, diasSeguidos);
 
-        // Lógica de Níveis com Emojis
+        // --- Lógica dos Níveis ---
         String nivelNome;
         int minPontos;
         int maxPontos;
 
         if (pontos < 100) {
-          nivelNome = "Iniciante da Jardinagem";
+          nivelNome = "Regador Iniciante";
           minPontos = 0;
           maxPontos = 100;
         } else if (pontos < 200) {
-          nivelNome = "Aprendiz de Jardinagem";
+          nivelNome = "Dedo Verde em Treinamento";
           minPontos = 100;
           maxPontos = 200;
         } else if (pontos < 400) {
-          nivelNome = "Cultivador Iniciante";
+          nivelNome = "Encantador(a) de Plantas";
           minPontos = 200;
           maxPontos = 400;
         } else if (pontos < 600) {
-          nivelNome = "Jardineiro Experiente";
+          nivelNome = "Mago Verde Certificado";
           minPontos = 400;
           maxPontos = 600;
         } else if (pontos < 800) {
-          nivelNome = "Especialista em Jardinagem";
+          nivelNome = "Guardião Supremo do Jardim";
           minPontos = 600;
           maxPontos = 800;
-        } else if (pontos < 1000) {
-          nivelNome = "Mestre Aprendiz";
-          minPontos = 800;
-          maxPontos = 1000;
         } else {
-          nivelNome = "Mestre do Jardim";
-          minPontos = 1000;
-          maxPontos = 1000;
+          nivelNome = "Lenda do Dedo Verde";
+          minPontos = 800;
+          maxPontos = 800; 
         }
 
-        // Barra de progresso resetável por nível
-        double progressoVisivel = pontos >= 1000
+        double progressoVisivel = pontos >= 800
             ? 1.0
             : (pontos - minPontos) / (maxPontos - minPontos);
 
         progressoVisivel = progressoVisivel.clamp(0.0, 1.0);
-        int pontosFaltantes = pontos >= 1000 ? 0 : maxPontos - pontos;
+        int pontosFaltantes = pontos >= 800 ? 0 : maxPontos - pontos;
 
-        // Lógica da Foto
-        String? fotoPath = userData['foto_url'];
-        ImageProvider avatarImage;
-        if (fotoPath != null &&
-            fotoPath.isNotEmpty &&
-            fotoPath.startsWith('/')) {
-          avatarImage = FileImage(File(fotoPath));
-        } else {
-          avatarImage = const AssetImage('assets/images/garden.png');
-        }
+        final avatarImage = _getAvatarImage(userData['foto_url']);
+        
+        String? subtituloStreak = _getStreakSubtitle(diasSeguidos);
 
         return Container(
           padding: const EdgeInsets.all(24),
@@ -139,7 +151,9 @@ class ProfileCard extends StatelessWidget {
             children: [
               Stack(
                 alignment: Alignment.center,
+                clipBehavior: Clip.none, 
                 children: [
+                  // FOTO DE PERFIL
                   CircleAvatar(
                     radius: 60,
                     backgroundColor: const Color(0xFFa7c957).withOpacity(0.5),
@@ -148,9 +162,11 @@ class ProfileCard extends StatelessWidget {
                       backgroundImage: avatarImage,
                     ),
                   ),
+
+                  // ÍCONE DE STREAK (POSIÇÃO AJUSTADA)
                   Positioned(
-                    right: 0,
-                    top: 0,
+                    right: -110, 
+                    top: -15,    
                     child: Column(
                       children: [
                         Icon(
@@ -159,14 +175,22 @@ class ProfileCard extends StatelessWidget {
                               diasSeguidos > 0 ? Colors.orange : Colors.white24,
                           size: 35,
                         ),
+                        // Texto do contador
                         Text(
                           "$diasSeguidos d",
                           style: TextStyle(
                             color: diasSeguidos > 0
-                                ? Colors.orange
+                                ? const Color(0xFFFF6D00) 
                                 : Colors.white24,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 16, 
+                            shadows: [
+                              BoxShadow(
+                                color: Colors.orangeAccent.withOpacity(0.2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              )
+                            ],
                           ),
                         ),
                       ],
@@ -200,12 +224,15 @@ class ProfileCard extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
+                        // --- TÍTULO DO NÍVEL ---
                         Text(
                           nivelNome,
+                          textAlign: TextAlign.center,
                           style: const TextStyle(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w800, 
                             color: Color(0xff344E41),
-                            fontSize: 18,
+                            fontSize: 21, 
+                            letterSpacing: 0.3,
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -217,22 +244,23 @@ class ProfileCard extends StatelessWidget {
                             valueColor: const AlwaysStoppedAnimation(
                               Color(0xFF588157),
                             ),
-                            minHeight: 10,
+                            minHeight: 12, 
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          '$pontosFaltantes Pontos para o próximo nível!',
+                          pontos >= 800 
+                            ? 'Nível Máximo Alcançado!'
+                            : '$pontosFaltantes Pontos para o próximo nível!',
                           style: const TextStyle(
                             color: Color(0xff344E41),
                             fontSize: 13,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
 
-                    // ÍCONE INFO (i) NO CANTO SUPERIOR DIREITO
                     Positioned(
                       top: -18,
                       right: -18,
@@ -247,7 +275,7 @@ class ProfileCard extends StatelessWidget {
                         },
                         icon: const Icon(
                           Icons.info_outline_rounded,
-                          size: 22,
+                          size: 24,
                           color: Color(0xff344E41),
                         ),
                       ),

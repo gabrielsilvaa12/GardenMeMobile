@@ -1,27 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:gardenme/components/curved_background.dart';
 import 'package:gardenme/components/details_plant.dart';
+import 'package:gardenme/models/planta.dart';
 
 class MinhaPlantaPage extends StatelessWidget {
-  final String nomePlanta;
-  final String imagemPlanta;
+  final Planta planta;
 
   const MinhaPlantaPage({
     super.key,
-    required this.nomePlanta,
-    required this.imagemPlanta,
+    required this.planta,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFa7c957),
-
       body: curvedBackground(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
           children: [
-            DetailedPlant(nomePlanta: nomePlanta, imagemPlanta: imagemPlanta),
+            DetailedPlant(planta: planta),
           ],
         ),
       ),
