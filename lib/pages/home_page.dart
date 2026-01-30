@@ -83,40 +83,43 @@ class _MyHomePageState extends State<MyHomePage> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
-                    
-                    // Listagem Dinâmica com StreamBuilder
                     Expanded(
                       child: StreamBuilder<List<Planta>>(
                         stream: _plantaService.getMinhasPlantas(),
                         builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
                             return const Center(
                               child: CircularProgressIndicator(
                                 color: Color(0xFF3A5A40),
                               ),
                             );
                           }
-                          
+
                           if (snapshot.hasError) {
-                            return const Center(child: Text('Erro ao carregar jardim.'));
+                            return const Center(
+                                child: Text('Erro ao carregar jardim.'));
                           }
 
-                          // Lista de plantas do banco (ou vazia)
                           final plantas = snapshot.data ?? [];
 
                           if (plantas.isEmpty) {
-                             return Column(
-                               mainAxisAlignment: MainAxisAlignment.center,
-                               children: [
-                                 const Text("Seu jardim está vazio 🌱", style: TextStyle(color: Color(0xFF3A5A40), fontSize: 18)),
-                                 const SizedBox(height: 20),
-                                 _buildAddPlantButton(context),
-                               ],
-                             );
+                            return Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text("Seu jardim está vazio",
+                                    style: TextStyle(
+                                        color: Color(0xFF3A5A40),
+                                        fontSize: 18)),
+                                const SizedBox(height: 20),
+                                _buildAddPlantButton(context),
+                              ],
+                            );
                           }
 
                           return ListView.builder(
-                            itemCount: plantas.length + 1, // +1 para o botão adicionar no final
+                            itemCount: plantas.length +
+                                1, // +1 para o botão adicionar no final
                             padding: EdgeInsets.zero,
                             itemBuilder: (context, index) {
                               // Se for o último item, renderiza o botão
@@ -125,7 +128,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                   children: [
                                     const SizedBox(height: 20),
                                     _buildAddPlantButton(context),
-                                    const SizedBox(height: 100), // Espaço extra para o menu inferior
+                                    const SizedBox(
+                                        height:
+                                            100), // Espaço extra para o menu inferior
                                   ],
                                 );
                               }
