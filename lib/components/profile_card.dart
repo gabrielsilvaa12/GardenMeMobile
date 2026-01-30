@@ -38,11 +38,11 @@ class ProfileCard extends StatelessWidget {
 
   // --- Lógica dos Subtítulos de Streak ---
   String? _getStreakSubtitle(int streak) {
-    if (streak >= 45) return "Que Não Falha";   
-    if (streak >= 35) return "Raízes Profundas"; 
-    if (streak >= 25) return "Implacável";       
-    if (streak >= 15) return "Sempre Verde";     
-    if (streak >= 5)  return "Incansável";       
+    if (streak >= 45) return "Que Não Falha";
+    if (streak >= 35) return "Raízes Profundas";
+    if (streak >= 25) return "Implacável";
+    if (streak >= 15) return "Sempre Verde";
+    if (streak >= 5) return "Incansável";
     return null;
   }
 
@@ -120,7 +120,7 @@ class ProfileCard extends StatelessWidget {
         } else {
           nivelNome = "Lenda do Dedo Verde";
           minPontos = 800;
-          maxPontos = 800; 
+          maxPontos = 800;
         }
 
         double progressoVisivel = pontos >= 800
@@ -131,7 +131,7 @@ class ProfileCard extends StatelessWidget {
         int pontosFaltantes = pontos >= 800 ? 0 : maxPontos - pontos;
 
         final avatarImage = _getAvatarImage(userData['foto_url']);
-        
+
         String? subtituloStreak = _getStreakSubtitle(diasSeguidos);
 
         return Container(
@@ -151,7 +151,7 @@ class ProfileCard extends StatelessWidget {
             children: [
               Stack(
                 alignment: Alignment.center,
-                clipBehavior: Clip.none, 
+                clipBehavior: Clip.none,
                 children: [
                   // FOTO DE PERFIL
                   CircleAvatar(
@@ -165,8 +165,8 @@ class ProfileCard extends StatelessWidget {
 
                   // ÍCONE DE STREAK (POSIÇÃO AJUSTADA)
                   Positioned(
-                    right: -110, 
-                    top: -15,    
+                    right: -110,
+                    top: -15,
                     child: Column(
                       children: [
                         Icon(
@@ -180,10 +180,10 @@ class ProfileCard extends StatelessWidget {
                           "$diasSeguidos d",
                           style: TextStyle(
                             color: diasSeguidos > 0
-                                ? const Color(0xFFFF6D00) 
+                                ? const Color(0xFFFF6D00)
                                 : Colors.white24,
                             fontWeight: FontWeight.w900,
-                            fontSize: 16, 
+                            fontSize: 16,
                             shadows: [
                               BoxShadow(
                                 color: Colors.orangeAccent.withOpacity(0.2),
@@ -229,9 +229,9 @@ class ProfileCard extends StatelessWidget {
                           nivelNome,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                            fontWeight: FontWeight.w800, 
+                            fontWeight: FontWeight.w800,
                             color: Color(0xff344E41),
-                            fontSize: 21, 
+                            fontSize: 21,
                             letterSpacing: 0.3,
                           ),
                         ),
@@ -244,14 +244,14 @@ class ProfileCard extends StatelessWidget {
                             valueColor: const AlwaysStoppedAnimation(
                               Color(0xFF588157),
                             ),
-                            minHeight: 12, 
+                            minHeight: 12,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          pontos >= 800 
-                            ? 'Nível Máximo Alcançado!'
-                            : '$pontosFaltantes Pontos para o próximo nível!',
+                          pontos >= 800
+                              ? 'Nível Máximo Alcançado!'
+                              : '$pontosFaltantes Pontos para o próximo nível!',
                           style: const TextStyle(
                             color: Color(0xff344E41),
                             fontSize: 13,
@@ -260,7 +260,6 @@ class ProfileCard extends StatelessWidget {
                         ),
                       ],
                     ),
-
                     Positioned(
                       top: -18,
                       right: -18,

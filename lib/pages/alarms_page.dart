@@ -26,8 +26,13 @@ class _AlarmsPageState extends State<AlarmsPage> {
     if (dias.isEmpty) return "Sem repetição";
 
     const mapaDias = {
-      1: 'Seg', 2: 'Ter', 3: 'Qua', 4: 'Qui',
-      5: 'Sex', 6: 'Sáb', 7: 'Dom'
+      1: 'Seg',
+      2: 'Ter',
+      3: 'Qua',
+      4: 'Qui',
+      5: 'Sex',
+      6: 'Sáb',
+      7: 'Dom'
     };
 
     dias.sort();
@@ -47,9 +52,12 @@ class _AlarmsPageState extends State<AlarmsPage> {
 
   int _getPrioridadeTipo(String tipo) {
     switch (tipo) {
-      case 'Rega': return 0;
-      case 'Fertilização': return 1;
-      default: return 2;
+      case 'Rega':
+        return 0;
+      case 'Fertilização':
+        return 1;
+      default:
+        return 2;
     }
   }
 
@@ -96,8 +104,8 @@ class _AlarmsPageState extends State<AlarmsPage> {
                 Text(
                   alarme.horarioFormatado,
                   style: TextStyle(
-                    color: alarme.ativo 
-                        ? const Color(0xfff2f2f2) 
+                    color: alarme.ativo
+                        ? const Color(0xfff2f2f2)
                         : const Color(0xfff2f2f2).withOpacity(0.5),
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -107,22 +115,22 @@ class _AlarmsPageState extends State<AlarmsPage> {
                 Text(
                   _formatarDias(alarme.diasSemana),
                   style: TextStyle(
-                    color: alarme.ativo 
-                        ? const Color(0xFFa7c957) 
-                        : const Color(0xFFa7c957).withOpacity(0.5),
-                    fontSize: 16
-                  ),
+                      color: alarme.ativo
+                          ? const Color(0xFFa7c957)
+                          : const Color(0xFFa7c957).withOpacity(0.5),
+                      fontSize: 16),
                 ),
               ],
             ),
-            
+
             // Switch envolto em GestureDetector vazio para evitar que o clique no switch abra o modal
             GestureDetector(
-              onTap: () {}, 
+              onTap: () {},
               child: Switch(
                 value: alarme.ativo,
                 onChanged: (bool valor) {
-                  _alarmeService.alternarStatus(alarme, valor, widget.plantName);
+                  _alarmeService.alternarStatus(
+                      alarme, valor, widget.plantName);
                 },
                 activeColor: const Color(0xffD9D9D9),
                 activeTrackColor: const Color(0xFFa7c957).withOpacity(0.6),
@@ -149,10 +157,12 @@ class _AlarmsPageState extends State<AlarmsPage> {
             final alarmesAgrupados = _agruparAlarmesPorTipo(alarmes);
 
             final tiposOrdenados = alarmesAgrupados.keys.toList()
-              ..sort((a, b) => _getPrioridadeTipo(a).compareTo(_getPrioridadeTipo(b)));
+              ..sort((a, b) =>
+                  _getPrioridadeTipo(a).compareTo(_getPrioridadeTipo(b)));
 
             return SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
               child: Container(
                 padding: const EdgeInsets.all(20.0),
                 decoration: BoxDecoration(
@@ -182,7 +192,8 @@ class _AlarmsPageState extends State<AlarmsPage> {
                         Expanded(
                           child: Text(
                             widget.plantName,
-                            style: const TextStyle(color: Color(0xFFa7c957), fontSize: 20),
+                            style: const TextStyle(
+                                color: Color(0xFFa7c957), fontSize: 20),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -197,9 +208,10 @@ class _AlarmsPageState extends State<AlarmsPage> {
                       ),
                     ),
                     const SizedBox(height: 12),
-
                     if (snapshot.connectionState == ConnectionState.waiting)
-                      const Center(child: CircularProgressIndicator(color: Color(0xFFf2f2f2)))
+                      const Center(
+                          child: CircularProgressIndicator(
+                              color: Color(0xFFf2f2f2)))
                     else if (alarmes.isEmpty)
                       const Padding(
                         padding: EdgeInsets.symmetric(vertical: 20),
@@ -207,7 +219,8 @@ class _AlarmsPageState extends State<AlarmsPage> {
                           child: Text(
                             "Nenhum alarme configurado.\nToque em + para adicionar.",
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: Color(0xFFf2f2f2), fontSize: 16),
+                            style: TextStyle(
+                                color: Color(0xFFf2f2f2), fontSize: 16),
                           ),
                         ),
                       )
@@ -219,7 +232,7 @@ class _AlarmsPageState extends State<AlarmsPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              tipo, 
+                              tipo,
                               style: const TextStyle(
                                 color: Color(0xfff2f2f2),
                                 fontSize: 20,
@@ -227,9 +240,8 @@ class _AlarmsPageState extends State<AlarmsPage> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            
-                            ...listaAlarmes.map((alarme) => _buildAlarmCard(alarme)),
-                            
+                            ...listaAlarmes
+                                .map((alarme) => _buildAlarmCard(alarme)),
                             const SizedBox(height: 20),
                           ],
                         );
