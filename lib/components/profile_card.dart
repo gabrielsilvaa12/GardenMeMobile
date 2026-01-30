@@ -36,22 +36,27 @@ class ProfileCard extends StatelessWidget {
     }
   }
 
-  // Helper corrigido para carregar APENAS arquivo local, sem NetworkImage
+  // --- Lógica dos Subtítulos de Streak ---
+  String? _getStreakSubtitle(int streak) {
+    if (streak >= 45) return "Que Não Falha";   
+    if (streak >= 35) return "Raízes Profundas"; 
+    if (streak >= 25) return "Implacável";       
+    if (streak >= 15) return "Sempre Verde";     
+    if (streak >= 5)  return "Incansável";       
+    return null;
+  }
+
   ImageProvider _getAvatarImage(String? fotoPath) {
     if (fotoPath != null && fotoPath.isNotEmpty) {
       try {
-        // Se por algum motivo o path vier com "file://", limpamos
         if (fotoPath.startsWith("file://")) {
           return FileImage(File.fromUri(Uri.parse(fotoPath)));
         }
-        
-        // Verifica se é um arquivo local válido
         final file = File(fotoPath);
         if (file.existsSync()) {
           return FileImage(file);
         }
       } catch (e) {
-        // Se der erro ao ler imagem de perfil, usa padrão
         print("Erro ao ler imagem de perfil: $e");
       }
     }
@@ -80,48 +85,47 @@ class ProfileCard extends StatelessWidget {
 
         verificarStreak(uid, diasSeguidos);
 
+        // --- Lógica dos Níveis ---
         String nivelNome;
         int minPontos;
         int maxPontos;
 
         if (pontos < 100) {
-          nivelNome = "Iniciante da Jardinagem";
+          nivelNome = "Regador Iniciante";
           minPontos = 0;
           maxPontos = 100;
         } else if (pontos < 200) {
-          nivelNome = "Aprendiz de Jardinagem";
+          nivelNome = "Dedo Verde em Treinamento";
           minPontos = 100;
           maxPontos = 200;
         } else if (pontos < 400) {
-          nivelNome = "Cultivador Iniciante";
+          nivelNome = "Encantador(a) de Plantas";
           minPontos = 200;
           maxPontos = 400;
         } else if (pontos < 600) {
-          nivelNome = "Jardineiro Experiente";
+          nivelNome = "Mago Verde Certificado";
           minPontos = 400;
           maxPontos = 600;
         } else if (pontos < 800) {
-          nivelNome = "Especialista em Jardinagem";
+          nivelNome = "Guardião Supremo do Jardim";
           minPontos = 600;
           maxPontos = 800;
-        } else if (pontos < 1000) {
-          nivelNome = "Mestre Aprendiz";
-          minPontos = 800;
-          maxPontos = 1000;
         } else {
-          nivelNome = "Mestre do Jardim";
-          minPontos = 1000;
-          maxPontos = 1000;
+          nivelNome = "Lenda do Dedo Verde";
+          minPontos = 800;
+          maxPontos = 800; 
         }
 
-        double progressoVisivel = pontos >= 1000
+        double progressoVisivel = pontos >= 800
             ? 1.0
             : (pontos - minPontos) / (maxPontos - minPontos);
 
         progressoVisivel = progressoVisivel.clamp(0.0, 1.0);
-        int pontosFaltantes = pontos >= 1000 ? 0 : maxPontos - pontos;
+        int pontosFaltantes = pontos >= 800 ? 0 : maxPontos - pontos;
 
         final avatarImage = _getAvatarImage(userData['foto_url']);
+        
+        String? subtituloStreak = _getStreakSubtitle(diasSeguidos);
 
         return Container(
           padding: const EdgeInsets.all(24),
@@ -140,7 +144,9 @@ class ProfileCard extends StatelessWidget {
             children: [
               Stack(
                 alignment: Alignment.center,
+                clipBehavior: Clip.none, 
                 children: [
+                  // FOTO DE PERFIL
                   CircleAvatar(
                     radius: 60,
                     backgroundColor: const Color(0xFFa7c957).withOpacity(0.5),
@@ -149,26 +155,49 @@ class ProfileCard extends StatelessWidget {
                       backgroundImage: avatarImage,
                     ),
                   ),
+
+                  // ÍCONE DE STREAK (POSIÇÃO AJUSTADA)
                   Positioned(
-                    right: 0,
-                    top: 0,
+                    right: -110, 
+                    top: -15,    
                     child: Column(
                       children: [
-                        Icon(
-                          Icons.local_fire_department_rounded,
-                          color: diasSeguidos > 0
-                              ? Colors.orange
-                              : Colors.white24,
-                          size: 35,
+                        // Ícone com sombra para destaque
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.orangeAccent.withOpacity(0.2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              )
+                            ]
+                          ),
+                          child: Icon(
+                            Icons.local_fire_department_rounded,
+                            color: diasSeguidos > 0
+                                ? Colors.orangeAccent[700] 
+                                : Colors.white24,
+                            size: 42, 
+                          ),
                         ),
+                        // Texto do contador
                         Text(
                           "$diasSeguidos d",
                           style: TextStyle(
                             color: diasSeguidos > 0
-                                ? Colors.orange
+                                ? const Color(0xFFFF6D00) 
                                 : Colors.white24,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 16, 
+                            shadows: [
+                              BoxShadow(
+                                color: Colors.orangeAccent.withOpacity(0.2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              )
+                            ],
                           ),
                         ),
                       ],
@@ -203,16 +232,33 @@ class ProfileCard extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
+                        // --- TÍTULO DO NÍVEL ---
                         Text(
                           nivelNome,
+                          textAlign: TextAlign.center,
                           style: const TextStyle(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w800, 
                             color: Color(0xff344E41),
-                            fontSize: 18,
+                            fontSize: 21, 
+                            letterSpacing: 0.3,
                           ),
                         ),
 
-                        const SizedBox(height: 6),
+                        // --- SUBTÍTULO DE STREAK ---
+                        if (subtituloStreak != null) ...[
+                          const SizedBox(height: 5),
+                          Text(
+                            subtituloStreak,
+                            style: const TextStyle(
+                              fontSize: 18, 
+                              fontWeight: FontWeight.bold,
+                              fontStyle: FontStyle.italic,
+                              color: Color(0xFFFF6D00),
+                            ),
+                          ),
+                        ],
+
+                        const SizedBox(height: 12),
 
                         ClipRRect(
                           borderRadius: BorderRadius.circular(10),
@@ -222,18 +268,20 @@ class ProfileCard extends StatelessWidget {
                             valueColor: const AlwaysStoppedAnimation(
                               Color(0xFF588157),
                             ),
-                            minHeight: 10,
+                            minHeight: 12, 
                           ),
                         ),
 
                         const SizedBox(height: 8),
 
                         Text(
-                          '$pontosFaltantes Pontos para o próximo nível!',
+                          pontos >= 800 
+                            ? 'Nível Máximo Alcançado!'
+                            : '$pontosFaltantes Pontos para o próximo nível!',
                           style: const TextStyle(
                             color: Color(0xff344E41),
                             fontSize: 13,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -253,7 +301,7 @@ class ProfileCard extends StatelessWidget {
                         },
                         icon: const Icon(
                           Icons.info_outline_rounded,
-                          size: 22,
+                          size: 24,
                           color: Color(0xff344E41),
                         ),
                       ),

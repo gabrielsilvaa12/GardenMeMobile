@@ -44,6 +44,16 @@ class PlantaService {
     }
   }
 
+  // --- ATUALIZADO: NOVOS NÍVEIS DE GAMEFICAÇÃO (6 NÍVEIS) ---
+  String _calcularNivelNome(int pontos) {
+    if (pontos < 100) return "Regador Iniciante";
+    if (pontos < 200) return "Dedo Verde em Treinamento";
+    if (pontos < 400) return "Encantador(a) de Plantas";
+    if (pontos < 600) return "Mago Verde Certificado";
+    if (pontos < 800) return "Guardião Supremo do Jardim";
+    return "Lenda do Dedo Verde"; // 800+ pontos
+  }
+
   Future<void> atualizarStatus(String plantaId, {required bool rega}) async {
     if (_userId == null) return;
 
@@ -54,50 +64,62 @@ class PlantaService {
     final userDoc = _firestore.collection('usuarios').doc(_userId);
     String hoje = DateTime.now().toString().split(' ')[0];
 
+    // Se for REGA (True), processa pontos e níveis
     if (rega) {
-      // --- REGOU (Ganhar Pontos) ---
       final snapshot = await userDoc.get();
       if (!snapshot.exists) return;
 
       final data = snapshot.data() as Map<String, dynamic>;
+      
+      // Recupera dados atuais
       String? ultimaRega = data['ultima_rega_data'];
       int currentStreak = data['streak_atual'] ?? 0;
       int bestStreak = data['melhor_streak'] ?? 0;
+      int pontosAtuais = data['pontos'] ?? 0;
+
+      // Calcula novos valores
+      int novosPontos = pontosAtuais + 10;
+      String novoNivel = _calcularNivelNome(novosPontos);
+
+      // Lógica de Streak (Contagem de dias seguidos)
+      int newStreak = 1; 
+      if (ultimaRega != null) {
+         DateTime agora = DateTime.now();
+         DateTime ultimaData = DateTime.parse(ultimaRega);
+         DateTime dataHojeSemHora = DateTime(agora.year, agora.month, agora.day);
+         DateTime ultimaDataSemHora = DateTime(ultimaData.year, ultimaData.month, ultimaData.day);
+         int diffDias = dataHojeSemHora.difference(ultimaDataSemHora).inDays;
+
+         if (diffDias == 0) {
+           newStreak = currentStreak; // Já regou hoje, mantém
+         } else if (diffDias == 1) {
+           newStreak = currentStreak + 1; // Sequência
+         } else {
+           newStreak = 1; // Quebrou sequência
+         }
+      }
 
       Map<String, dynamic> updates = {
-        'pontos': FieldValue.increment(10),
+        'pontos': novosPontos, 
+        'nivel': novoNivel,    
         'regas_count': FieldValue.increment(1),
+        'ultima_rega_data': hoje,
+        'streak_atual': newStreak,
       };
 
-      // Streak só conta 1 vez por dia
-      if (ultimaRega != hoje) {
-        int newStreak = currentStreak + 1;
-        updates['streak_atual'] = newStreak;
-        updates['ultima_rega_data'] = hoje;
-
-        if (newStreak > bestStreak) {
-          updates['melhor_streak'] = newStreak;
-        }
+      if (newStreak > bestStreak) {
+        updates['melhor_streak'] = newStreak;
       }
       
       await userDoc.set(updates, SetOptions(merge: true));
-
-    } else {
-      // --- DESFEZ A REGA (Perder Pontos) ---
-      await userDoc.update({
-        'pontos': FieldValue.increment(-10),
-        'regas_count': FieldValue.increment(-1),
-      });
-    }
+    } 
   }
 
   // --- Verifica se o horário do alarme já passou para resetar a planta ---
-  // Isso garante que a borda fique LARANJA quando chegar a hora
   Future<void> verificarAlarmesVencidos() async {
     if (_userId == null) return;
 
     try {
-      // Pega todos os alarmes
       final alarmesSnap = await _alarmesRef.get();
       final agora = DateTime.now();
       
@@ -108,12 +130,9 @@ class PlantaService {
         int minuto = data['minuto'];
         List<dynamic> dias = data['diasSemana'] ?? [];
 
-        // Verifica se é hoje e se já passou da hora
         if (dias.contains(agora.weekday)) {
           final horaAlarme = DateTime(agora.year, agora.month, agora.day, hora, minuto);
-          // Se já passou da hora do alarme E foi menos de 12h atrás
           if (agora.isAfter(horaAlarme) && agora.difference(horaAlarme).inHours < 12) {
-             // Marca que esta planta deveria estar "desregada" (laranja) hoje
              await _plantasRef.doc(plantaId).update({'rega': false});
           }
         }
