@@ -35,8 +35,11 @@ class _AlarmsPageState extends State<AlarmsPage> {
       7: 'Dom'
     };
 
-    dias.sort();
-    return dias.map((d) => mapaDias[d]).join(', ');
+    // CORREÇÃO: Cria uma cópia da lista antes de ordenar para evitar erro de "UnmodifiableList"
+    // e garante que usamos a cópia ordenada localmente sem alterar o objeto original.
+    final diasOrdenados = List<int>.from(dias)..sort();
+    
+    return diasOrdenados.map((d) => mapaDias[d] ?? '').join(', ');
   }
 
   Map<String, List<Alarme>> _agruparAlarmesPorTipo(List<Alarme> alarmes) {
@@ -61,7 +64,6 @@ class _AlarmsPageState extends State<AlarmsPage> {
     }
   }
 
-  // Modificado para aceitar um Alarme opcional (para edição)
   void _openAddAlarmModal(BuildContext context, {Alarme? alarme}) {
     showModalBottomSheet(
       context: context,
@@ -70,13 +72,12 @@ class _AlarmsPageState extends State<AlarmsPage> {
       builder: (_) => AddAlarmModal(
         plantaId: widget.plantaId,
         nomePlanta: widget.plantName,
-        alarmeParaEditar: alarme, // Passa o alarme se existir
+        alarmeParaEditar: alarme, 
       ),
     );
   }
 
   Widget _buildAlarmCard(Alarme alarme) {
-    // InkWell adicionado para tornar o card clicável
     return InkWell(
       onTap: () => _openAddAlarmModal(context, alarme: alarme),
       borderRadius: BorderRadius.circular(15),
@@ -123,7 +124,10 @@ class _AlarmsPageState extends State<AlarmsPage> {
               ],
             ),
 
+<<<<<<< HEAD
+=======
             // Switch envolto em GestureDetector vazio para evitar que o clique no switch abra o modal
+>>>>>>> 4bfa6bec39fc571466eb05f07e627f03dce1231c
             GestureDetector(
               onTap: () {},
               child: Switch(

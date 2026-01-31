@@ -40,6 +40,10 @@ class AlarmeService {
       ativo: true,
     );
 
+    // Salva no banco primeiro
+    await docRef.set(novoAlarme.toMap());
+
+    // Tenta agendar notificação
     try {
       await _notificationService.agendarNotificacaoSemanal(
         id: notifId,
@@ -50,13 +54,10 @@ class AlarmeService {
         diasDaSemana: diasSemana,
       );
     } catch (e) {
-      print("Aviso notificação: $e");
+      print("Aviso notificação (criar): $e");
     }
-
-    await docRef.set(novoAlarme.toMap());
   }
 
-  // --- NOVO MÉTODO: EDITAR ALARME ---
   Future<void> editarAlarme({
     required Alarme alarmeAntigo,
     required String nomePlanta,
@@ -67,7 +68,6 @@ class AlarmeService {
   }) async {
     if (_userId == null) return;
 
-    // Cria o objeto atualizado mantendo o ID e NotificationID originais
     final alarmeAtualizado = Alarme(
       id: alarmeAntigo.id,
       notificationId: alarmeAntigo.notificationId,
@@ -76,13 +76,11 @@ class AlarmeService {
       hora: novaHora,
       minuto: novoMinuto,
       diasSemana: novosDias,
-      ativo: true, // Ao editar, reativamos o alarme por padrão
+      ativo: true,
     );
 
-    // 1. Atualiza no Firestore
     await _alarmesRef.doc(alarmeAntigo.id).update(alarmeAtualizado.toMap());
 
-    // 2. Atualiza a Notificação (Reescreve a antiga pois usa o mesmo ID)
     try {
       await _notificationService.agendarNotificacaoSemanal(
         id: alarmeAntigo.notificationId,
@@ -102,24 +100,37 @@ class AlarmeService {
 
     await _alarmesRef.doc(alarme.id).update({'ativo': novoStatus});
 
-    if (novoStatus) {
-      await _notificationService.agendarNotificacaoSemanal(
-        id: alarme.notificationId,
-        titulo: "Hora de cuidar da $nomePlanta! 🌱",
-        corpo: "Seu lembrete de ${alarme.tipo}",
-        hora: alarme.hora,
-        minuto: alarme.minuto,
-        diasDaSemana: alarme.diasSemana,
-      );
-    } else {
-      await _notificationService.cancelarNotificacao(alarme.notificationId, alarme.diasSemana);
+    try {
+      if (novoStatus) {
+        await _notificationService.agendarNotificacaoSemanal(
+          id: alarme.notificationId,
+          titulo: "Hora de cuidar da $nomePlanta! 🌱",
+          corpo: "Seu lembrete de ${alarme.tipo}",
+          hora: alarme.hora,
+          minuto: alarme.minuto,
+          diasDaSemana: alarme.diasSemana,
+        );
+      } else {
+        await _notificationService.cancelarNotificacao(alarme.notificationId, alarme.diasSemana);
+      }
+    } catch (e) {
+      print("Erro ao alterar status notificação: $e");
     }
   }
 
   Future<void> deletarAlarme(Alarme alarme) async {
     if (_userId == null) return;
+    
+    // CORREÇÃO: Ordem e tratamento de erro.
+    // Primeiro remove do banco para a UI atualizar imediatamente.
     await _alarmesRef.doc(alarme.id).delete();
-    await _notificationService.cancelarNotificacao(alarme.notificationId, alarme.diasSemana);
+    
+    // Depois tenta cancelar a notificação, se falhar, não trava o app.
+    try {
+      await _notificationService.cancelarNotificacao(alarme.notificationId, alarme.diasSemana);
+    } catch (e) {
+      print("Erro ao cancelar notificação (mas alarme foi deletado): $e");
+    }
   }
 
   Stream<List<Alarme>> getAlarmesDaPlanta(String plantaId) {
