@@ -124,6 +124,10 @@ class _AlarmsPageState extends State<AlarmsPage> {
               ],
             ),
 
+<<<<<<< HEAD
+=======
+            // Switch envolto em GestureDetector vazio para evitar que o clique no switch abra o modal
+>>>>>>> 4bfa6bec39fc571466eb05f07e627f03dce1231c
             GestureDetector(
               onTap: () {},
               child: Switch(
