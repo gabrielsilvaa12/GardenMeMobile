@@ -30,6 +30,14 @@
           }
         },
         {
+          "client_id": "56110415944-od13lno8q9giloe6m84lncq7vbneci0b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.gardenme",
+            "certificate_hash": "ef99f9222009c5ecddd271747339088b26bf3285"
+          }
+        },
+        {
           "client_id": "56110415944-suk9tnv12colqv238lkrecs7rrk69d7p.apps.googleusercontent.com",
           "client_type": 3
         }
