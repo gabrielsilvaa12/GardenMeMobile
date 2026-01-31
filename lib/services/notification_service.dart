@@ -24,8 +24,7 @@ class NotificationService {
     const AndroidInitializationSettings androidInit =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const DarwinInitializationSettings iosInit =
-        DarwinInitializationSettings(
+    const DarwinInitializationSettings iosInit = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
@@ -127,7 +126,7 @@ class NotificationService {
         NotificationDetails(android: androidDetails);
 
     for (final dia in diasDaSemana) {
-      final int notificationId = int.parse('$id$dia');
+      final int notificationId = (id * 10) + dia;
 
       await flutterLocalNotificationsPlugin.zonedSchedule(
         notificationId,
@@ -143,16 +142,15 @@ class NotificationService {
     }
   }
 
-  Future<void> cancelarNotificacao(
-      int idAlarme, List<int> diasDaSemana) async {
+  Future<void> cancelarNotificacao(int idAlarme, List<int> diasDaSemana) async {
     for (final dia in diasDaSemana) {
-      final int notificationId = int.parse('$idAlarme$dia');
+      // Use a mesma lógica matemática do agendamento
+      final int notificationId = (idAlarme * 10) + dia;
       await flutterLocalNotificationsPlugin.cancel(notificationId);
     }
   }
 
-  tz.TZDateTime _nextInstanceOfDayAndTime(
-      int weekday, int hour, int minute) {
+  tz.TZDateTime _nextInstanceOfDayAndTime(int weekday, int hour, int minute) {
     tz.TZDateTime now = tz.TZDateTime.now(tz.local);
 
     tz.TZDateTime scheduledDate = tz.TZDateTime(
