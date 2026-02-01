@@ -133,6 +133,48 @@ class AlarmeService {
     }
   }
 
+  /// Reagenda todos os alarmes ativos (Chamado ao reativar notificações no Settings)
+  Future<void> reagendarTodosAlarmes() async {
+    if (_userId == null) return;
+
+    try {
+      // 1. Buscar todos os alarmes ativos
+      final alarmesSnap = await _alarmesRef.where('ativo', isEqualTo: true).get();
+      if (alarmesSnap.docs.isEmpty) return;
+
+      // 2. Buscar nomes das plantas para o título da notificação
+      final plantasSnap = await _firestore
+          .collection('usuarios')
+          .doc(_userId)
+          .collection('plantas')
+          .get();
+      
+      final Map<String, String> nomesPlantas = {};
+      for (var doc in plantasSnap.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        nomesPlantas[doc.id] = data['nome']?.toString() ?? 'Sua Planta';
+      }
+
+      // 3. Reagendar cada alarme
+      for (var doc in alarmesSnap.docs) {
+        final alarme = Alarme.fromMap(doc.data() as Map<String, dynamic>);
+        final nomePlanta = nomesPlantas[alarme.plantaId] ?? 'Sua Planta';
+
+        await _notificationService.agendarNotificacaoSemanal(
+          id: alarme.notificationId,
+          titulo: "Hora de cuidar da $nomePlanta! 🌱",
+          corpo: "Seu lembrete de ${alarme.tipo}",
+          hora: alarme.hora,
+          minuto: alarme.minuto,
+          diasDaSemana: alarme.diasSemana,
+        );
+      }
+      print("Todos os alarmes foram reagendados.");
+    } catch (e) {
+      print("Erro ao reagendar todos os alarmes: $e");
+    }
+  }
+
   Stream<List<Alarme>> getAlarmesDaPlanta(String plantaId) {
     if (_userId == null) return const Stream.empty();
     

@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gardenme/components/curved_background.dart';
-import 'package:gardenme/pages/login.dart'; // ADICIONE ESTE IMPORT
+import 'package:gardenme/pages/login.dart'; 
+import 'package:gardenme/services/notification_service.dart'; // Import necessário
+import 'package:gardenme/services/alarme_service.dart'; // Import necessário
 
 enum ThemeOption { claro, escuro, folha }
 
@@ -16,6 +18,23 @@ class _SettingsState extends State<Settings> {
   ThemeOption _selectedTheme = ThemeOption.folha;
   bool _notificacoesAtivas = true;
   bool _alertasClimaticos = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _sincronizarStatusNotificacoes();
+  }
+
+  /// Verifica se as permissões do sistema estão negadas. Se sim, desativa o toggle.
+  Future<void> _sincronizarStatusNotificacoes() async {
+    bool permitido = await NotificationService().verificarPermissoes();
+    if (!permitido) {
+      setState(() {
+        _notificacoesAtivas = false;
+      });
+    }
+    // Se permitido, mantemos o valor padrão (true) ou o que estivesse salvo
+  }
 
   // --- Widgets Auxiliares ---
 
@@ -75,7 +94,8 @@ class _SettingsState extends State<Settings> {
       ),
       value: value,
       onChanged: (bool newValue) {
-        setState(() => onChanged(newValue));
+        // Passa o controle para o callback customizado
+        onChanged(newValue);
       },
       activeTrackColor: const Color(0xFFA7C957),
       activeColor: const Color(0xfff2f2f2),
@@ -216,7 +236,33 @@ class _SettingsState extends State<Settings> {
                   _buildNotificationOption(
                     "Ativar notificações",
                     _notificacoesAtivas,
-                    (v) => setState(() => _notificacoesAtivas = v),
+                    (bool newValue) async {
+                      if (newValue) {
+                        // --- LÓGICA AO LIGAR O BOTÃO ---
+                        // 1. Verifica permissão no sistema
+                        bool permitido = await NotificationService().verificarPermissoes();
+                        
+                        // 2. Se não tem, solicita
+                        if (!permitido) {
+                          permitido = await NotificationService().solicitarPermissoes();
+                        }
+
+                        // 3. Se agora tem permissão, ativa o botão E reagenda os alarmes
+                        if (permitido) {
+                          setState(() => _notificacoesAtivas = true);
+                          // Reagenda todos os alarmes que estão ativos no banco
+                          await AlarmeService().reagendarTodosAlarmes();
+                        } else {
+                          // Se o usuário negou a permissão, o botão volta a desligar
+                          setState(() => _notificacoesAtivas = false);
+                        }
+                      } else {
+                        // --- LÓGICA AO DESLIGAR O BOTÃO ---
+                        // Apenas desativa visualmente e cancela os alarmes
+                        setState(() => _notificacoesAtivas = false);
+                        await NotificationService().cancelarTodasNotificacoes();
+                      }
+                    },
                   ),
                   _buildNotificationOption(
                     "Alertas climáticos",

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:permission_handler/permission_handler.dart'; // Import necessário
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -53,6 +54,17 @@ class NotificationService {
     await androidPlugin?.createNotificationChannel(channel);
   }
 
+  /// Verifica se a permissão de notificação está concedida
+  Future<bool> verificarPermissoes() async {
+    return await Permission.notification.isGranted;
+  }
+
+  /// Solicita permissão de notificação usando permission_handler
+  Future<bool> solicitarPermissoes() async {
+    final status = await Permission.notification.request();
+    return status.isGranted;
+  }
+
   /// Permissões Android 13+
   Future<void> requestPermissions() async {
     if (Platform.isAndroid) {
@@ -63,6 +75,12 @@ class NotificationService {
       await android?.requestNotificationsPermission();
       await android?.requestExactAlarmsPermission();
     }
+  }
+
+  /// Cancela TODAS as notificações agendadas (Usado quando o usuário desativa o toggle)
+  Future<void> cancelarTodasNotificacoes() async {
+    await flutterLocalNotificationsPlugin.cancelAll();
+    print("Todas as notificações foram canceladas.");
   }
 
   /// 🔔 NOTIFICAÇÃO DE TESTE (8 SEGUNDOS)
