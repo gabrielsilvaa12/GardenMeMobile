@@ -49,8 +49,7 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
       _selectedTime = TimeOfDay(hour: a.hora, minute: a.minuto);
 
       // Se estiver editando um alarme antigo que por acaso seja "Poda",
-      // ele manterá o tipo original até o usuário mudar, ou mudará para Rega se preferir forçar.
-      // Aqui mantemos o original para evitar erros visuais, mas a opção de selecionar "Poda" sumiu.
+      // ele manterá o tipo original até o usuário mudar.
       _tipoSelecionado = a.tipo;
 
       _diasSelecionados = List.from(a.diasSemana);
@@ -62,7 +61,8 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
   }
 
   Future<void> _pedirPermissao() async {
-    await NotificationService().requestPermissions();
+    // CORREÇÃO: Atualizado para o novo método do NotificationService
+    await NotificationService().solicitarPermissoes();
   }
 
   Future<void> _pickTime() async {
@@ -282,9 +282,8 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
               decoration: BoxDecoration(
-                color: Color(0xFF344e41),
+                color: const Color(0xFF344e41),
                 borderRadius: BorderRadius.circular(15),
-                // border: Border.all(color: const Color(0xFFA7C957)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -331,12 +330,12 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
                     border: Border.all(
                         color: isSelected
                             ? const Color(0xFFA7C957)
-                            : Color(0xFF344e41)),
+                            : const Color(0xFF344e41)),
                   ),
                   child: Text(
                     letra,
                     style: TextStyle(
-                      color: isSelected ? Color(0xFF344e41) : Colors.black54,
+                      color: isSelected ? const Color(0xFF344e41) : Colors.black54,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

@@ -11,17 +11,15 @@ void main() async {
   // Inicializa o Firebase
   await Firebase.initializeApp();
 
-  await Firebase.initializeApp();
-
+  // Inicializa o serviço de notificações
   final notificationService = NotificationService();
   await notificationService.init();
 
-  // É recomendável pedir permissões aqui ou na tela inicial.
-  // Mantendo aqui conforme seu código original:
-  await notificationService.requestPermissions();
+  // UX BÁSICA: Pede permissão logo ao abrir o app.
+  // Se o usuário aceitar, 'permitidoSistema' vira TRUE.
+  // Como 'ativoNoApp' começa TRUE por padrão, o botão nas configurações já aparecerá LIGADO.
+  await notificationService.solicitarPermissoes();
 
-  // A CORREÇÃO PRINCIPAL ESTÁ AQUI:
-  // Você precisa chamar runApp para iniciar a interface do aplicativo
   runApp(const MyApp());
 }
 
