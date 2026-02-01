@@ -19,12 +19,48 @@ class _DetailedPlantState extends State<DetailedPlant> {
   
   late String _nomeExibido;
   late String? _imagemExibida;
+  late bool _regaAtual; 
 
   @override
   void initState() {
     super.initState();
     _nomeExibido = widget.planta.nome;
     _imagemExibida = widget.planta.imagemUrl;
+    _regaAtual = widget.planta.rega; 
+  }
+
+  Future<void> _toggleRega() async {
+    if (_regaAtual) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Você já cuidou desta planta hoje! 🌱'),
+          duration: Duration(seconds: 2),
+          backgroundColor: Color(0xFF3A5A40),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return; 
+    }
+
+    await _plantaService.atualizarStatus(
+      widget.planta.id, 
+      rega: true,
+    );
+    
+    setState(() {
+      _regaAtual = true;
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Planta regada com amor! 💧 +10 XP'),
+          duration: Duration(seconds: 2),
+          backgroundColor: Color(0xFF588157),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Widget _buildPlantImage() {
@@ -91,12 +127,11 @@ class _DetailedPlantState extends State<DetailedPlant> {
   }
 
   Future<void> _abrirTelaEdicao() async {
-    // CORRIGIDO: Passando os campos individuais corretamente
     final plantaAtual = Planta(
       id: widget.planta.id,
       nome: _nomeExibido,
       imagemUrl: _imagemExibida,
-      rega: widget.planta.rega,
+      rega: _regaAtual,
       estacaoIdeal: widget.planta.estacaoIdeal,
       regaDica: widget.planta.regaDica,
       tipoTerra: widget.planta.tipoTerra,
@@ -180,58 +215,81 @@ class _DetailedPlantState extends State<DetailedPlant> {
                   Positioned(
                     top: 16,
                     right: 16,
-                    child: InkWell(
-                      onTap: _irParaAlarmes,
-                      borderRadius: BorderRadius.circular(50),
-                      child: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: const Color(0xfff2f2f2),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
+                    child: Column(
+                      children: [
+                        // Botão Alarmes
+                        InkWell(
+                          onTap: _irParaAlarmes,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: const Color(0xfff2f2f2),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
-                          ],
+                            child: const Icon(
+                              Icons.notifications_none_outlined,
+                              color: Color(0xFF588157), 
+                              size: 24
+                            ),
+                          ),
                         ),
-                        child: const Icon(Icons.alarm, color: Color(0xFF588157), size: 24),
-                      ),
+                        
+                        const SizedBox(height: 12),
+                        
+                        // Botão Rega
+                        InkWell(
+                          onTap: _toggleRega,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            width: 50,
+                            height: 50, 
+                            decoration: BoxDecoration(
+                              color: _regaAtual
+                                  ? const Color(0xFF81D4FA) 
+                                  : const Color(0xFF81D4FA).withOpacity(0.5), 
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(Icons.water_drop_outlined, size: 24, color: Color(0xfff2f2f2)),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-
+              
               Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const SizedBox(width: 32), 
-                        Expanded(
-                          child: Text(
-                            _nomeExibido,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Color(0xfff2f2f2),
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                    // --- NOME DA PLANTA ---
+                    Center(
+                      child: Text(
+                        _nomeExibido,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Color(0xfff2f2f2),
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
                         ),
-                        IconButton(
-                          onPressed: _abrirTelaEdicao,
-                          icon: const Icon(Icons.edit, color: Colors.white54, size: 22),
-                          tooltip: "Editar planta",
-                          splashRadius: 24,
-                        ),
-                      ],
+                      ),
                     ),
 
                     const SizedBox(height: 24),
@@ -269,19 +327,47 @@ class _DetailedPlantState extends State<DetailedPlant> {
                     _buildInfoSection("Fertilizante ideal:", fertilizante),
                     const SizedBox(height: 30),
 
+                    // --- BOTÃO: EDITAR PLANTA (Estilo Padronizado) ---
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _abrirTelaEdicao,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFA7C957), // Verde Perfil
+                          foregroundColor: const Color(0xFF3A5A40), // Texto Escuro
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          elevation: 4, // Sombra Padrão
+                        ),
+                        child: const Text(
+                          "Editar Planta",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 15),
+
+                    // --- BOTÃO EXCLUIR (Padronizado com Sombra) ---
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: _excluirPlanta,
                         icon: const Icon(Icons.delete_outline, size: 26),
-                        label: const Text("Excluir Planta", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        label: const Text(
+                          "Excluir Planta", 
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFbc4749),
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                          elevation: 4,
-                          shadowColor: const Color(0xFFbc4749).withOpacity(0.5),
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          elevation: 4, // Agora tem a sombra idêntica ao de cima
                         ),
                       ),
                     ),
