@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:gardenme/models/alarme.dart'; // Import necessário
 import 'package:gardenme/models/planta.dart';
+import 'package:gardenme/services/alarme_service.dart'; // Import necessário
 
 class PlantaService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -13,7 +15,7 @@ class PlantaService {
     return _firestore.collection('usuarios').doc(_userId).collection('plantas');
   }
 
-  // Busca alarmes para verificar vencimento
+  // Busca alarmes para verificar vencimento e exclusão
   CollectionReference get _alarmesRef {
     if (_userId == null) throw Exception("Usuário não logado");
     return _firestore.collection('usuarios').doc(_userId).collection('alarmes');
@@ -142,13 +144,33 @@ class PlantaService {
     }
   }
 
+  /// CORRIGIDO: Agora deleta os alarmes e cancela notificações ANTES de apagar a planta
   Future<void> removerPlanta(Planta planta) async {
     if (_userId == null) return;
     
-    // 1. Remove a planta
+    // 1. Instancia o serviço de alarmes
+    final AlarmeService alarmeService = AlarmeService();
+
+    try {
+      // 2. Busca todos os alarmes vinculados a esta planta
+      final alarmesSnapshot = await _alarmesRef
+          .where('planta_id', isEqualTo: planta.id)
+          .get();
+
+      // 3. Deleta cada alarme um por um
+      // (O método deletarAlarme do AlarmeService já cuida de cancelar a notificação local)
+      for (var doc in alarmesSnapshot.docs) {
+        final alarme = Alarme.fromMap(doc.data() as Map<String, dynamic>);
+        await alarmeService.deletarAlarme(alarme);
+      }
+    } catch (e) {
+      print("Erro ao limpar alarmes da planta: $e");
+    }
+
+    // 4. Remove a planta do banco
     await _plantasRef.doc(planta.id).delete();
 
-    // 2. Atualiza a contagem de plantas no perfil do usuário (-1)
+    // 5. Atualiza a contagem de plantas no perfil do usuário (-1)
     await _firestore.collection('usuarios').doc(_userId).update({
       'plantas_count': FieldValue.increment(-1),
     });
