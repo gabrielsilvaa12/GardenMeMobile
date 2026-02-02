@@ -70,7 +70,16 @@ class _AddPlantModalState extends State<AddPlantModal> {
     if (!mounted) return;
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: const Color(0xff386641)),
+      SnackBar(
+        content: Text(
+          msg,
+          style: const TextStyle(
+            color: Color(0xff386641), // Texto Verde Escuro
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: const Color(0xffa7c957), // Fundo Verde Claro
+      ),
     );
   }
 
