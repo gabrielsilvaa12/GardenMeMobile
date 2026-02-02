@@ -4,7 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:gardenme/pages/login.dart';
 import 'package:gardenme/pages/main_page.dart';
 import 'package:gardenme/services/notification_service.dart';
-import 'package:gardenme/services/theme_service.dart'; // Importação do serviço
+import 'package:gardenme/services/theme_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +16,7 @@ void main() async {
   final notificationService = NotificationService();
   await notificationService.init();
 
-  // Pede permissão logo ao abrir (opcional, conforme sua lógica original)
+  // Pede permissão logo ao abrir
   await notificationService.solicitarPermissoes();
 
   // Carrega o tema salvo ANTES de rodar a UI
@@ -25,12 +25,26 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+// Transformado em StatefulWidget para manter o estado do stream de autenticação
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  // Cache do stream para evitar recarregamento (flicker) ao mudar o tema
+  late final Stream<User?> _authStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _authStream = FirebaseAuth.instance.authStateChanges();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // ListenableBuilder ouve as mudanças no ThemeService e reconstrói o MaterialApp
     return ListenableBuilder(
       listenable: ThemeService.instance,
       builder: (context, child) {
@@ -38,11 +52,11 @@ class MyApp extends StatelessWidget {
           title: 'GardenMe',
           debugShowCheckedModeBanner: false,
           
-          // O tema agora vem dinamicamente do serviço
           theme: ThemeService.instance.getThemeData(),
 
           home: StreamBuilder<User?>(
-            stream: FirebaseAuth.instance.authStateChanges(),
+            // Usa o stream armazenado no estado
+            stream: _authStream,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Scaffold(

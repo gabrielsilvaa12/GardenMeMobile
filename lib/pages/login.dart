@@ -20,8 +20,6 @@ class _MyLoginState extends State<MyLogin> {
 
   bool _senhaVisivel = false;
 
-  // Cor de destaque (Verde Claro)
-  final Color highlightColor = const Color(0xFFA7C957);
   // Cor padrão (Verde Escuro)
   final Color darkGreen = const Color(0xFF386641);
 
@@ -212,12 +210,12 @@ class _MyLoginState extends State<MyLogin> {
                       ),
                     );
                   },
-                  child: Text(
+                  child: const Text(
                     "Esqueceu sua senha?",
                     style: TextStyle(
                       decoration: TextDecoration.underline,
-                      // ALTERADO: Verde Claro
-                      color: highlightColor,
+                      // AQUI: Texto alterado para branco fixo
+                      color: Colors.white,
                     ),
                   ),
                 ),

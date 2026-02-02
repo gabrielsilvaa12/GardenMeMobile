@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:gardenme/components/curved_background.dart';
 import 'package:gardenme/models/planta.dart';
 import 'package:gardenme/services/planta_service.dart';
+import 'package:gardenme/services/theme_service.dart'; //
 
 class EditPlantPage extends StatefulWidget {
   final Planta planta;
@@ -35,7 +36,7 @@ class _EditPlantPageState extends State<EditPlantPage> {
     super.dispose();
   }
 
-  // ... (métodos _selecionarImagem, _mostrarOpcoesFoto, _getImagemProvider iguais) ...
+  // ... (métodos _selecionarImagem, _mostrarOpcoesFoto, _getImagemProvider, _salvar iguais) ...
   Future<void> _selecionarImagem(ImageSource source) async {
     final ImagePicker picker = ImagePicker();
     try {
@@ -151,6 +152,9 @@ class _EditPlantPageState extends State<EditPlantPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Verifica tema escuro
+    final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
+
     return Scaffold(
       backgroundColor: const Color(0xFFa7c957),
       body: curvedBackground(
@@ -221,8 +225,13 @@ class _EditPlantPageState extends State<EditPlantPage> {
 
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF344e41),
-                    foregroundColor: const Color(0xFFA7C957),
+                    // AQUI: Lógica de cores condicional
+                    backgroundColor: isDark 
+                        ? const Color(0xFF344e41) 
+                        : const Color(0xFFA7C957),
+                    foregroundColor: isDark 
+                        ? const Color(0xFFA7C957) 
+                        : const Color(0xFF344e41),
                     minimumSize: const Size(double.infinity, 55),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                   ),

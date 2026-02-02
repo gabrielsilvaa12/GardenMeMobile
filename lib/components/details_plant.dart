@@ -4,6 +4,7 @@ import 'package:gardenme/models/planta.dart';
 import 'package:gardenme/pages/alarms_page.dart';
 import 'package:gardenme/pages/edit_plant_page.dart';
 import 'package:gardenme/services/planta_service.dart';
+import 'package:gardenme/services/theme_service.dart'; //
 
 class DetailedPlant extends StatefulWidget {
   final Planta planta;
@@ -29,6 +30,7 @@ class _DetailedPlantState extends State<DetailedPlant> {
     _regaAtual = widget.planta.rega; 
   }
 
+  // ... (métodos _toggleRega, _buildPlantImage, _buildPlaceholder, _buildInfoSection, _abrirTelaEdicao, _irParaAlarmes, _excluirPlanta iguais) ...
   Future<void> _toggleRega() async {
     if (_regaAtual) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -69,7 +71,6 @@ class _DetailedPlantState extends State<DetailedPlant> {
     }
   }
 
-  // ... (restante dos métodos auxiliares _buildPlantImage, _buildInfoSection igual) ...
   Widget _buildPlantImage() {
     final imagePath = _imagemExibida ?? '';
     ImageProvider imgProvider;
@@ -173,21 +174,64 @@ class _DetailedPlantState extends State<DetailedPlant> {
   }
 
   Future<void> _excluirPlanta() async {
+    // Verifica se o tema é escuro
+    final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
+
     bool confirm = await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text("Excluir planta?"),
-        content: const Text("Isso apagará a planta e seus alarmes permanentemente."),
+        backgroundColor: isDark ? const Color(0xFF344e41) : const Color(0xfff2f2f2),
+        title: Text(
+          "Excluir planta?",
+          style: TextStyle(
+            color: isDark ? const Color(0xfff2f2f2) : const Color(0xFF344e41),
+            fontWeight: FontWeight.bold
+          ),
+        ),
+        content: Text(
+          "Isso apagará a planta e seus alarmes permanentemente.",
+          style: TextStyle(
+            color: isDark ? Colors.white : Colors.black87
+          ),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("Cancelar")),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text("Excluir", style: TextStyle(color: Colors.red))),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              "Cancelar",
+              style: TextStyle(
+                color: isDark ? const Color(0xFFA7C957) : const Color(0xFF344e41)
+              ),
+            )
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text(
+              "Excluir", 
+              style: TextStyle(color: Color(0xFFbc4749), fontWeight: FontWeight.bold)
+            )
+          ),
         ],
       ),
     ) ?? false;
 
     if (confirm) {
       await _plantaService.removerPlanta(widget.planta);
-      if (mounted) Navigator.pop(context); 
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Planta excluída com sucesso!',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: Color(0xFFbc4749), // Vermelho padrão do app
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        Navigator.pop(context); 
+      }
     }
   }
 
@@ -197,6 +241,9 @@ class _DetailedPlantState extends State<DetailedPlant> {
     final umidade = widget.planta.regaDica ?? 'Verifique a umidade do solo regularmente.';
     final terra = widget.planta.tipoTerra ?? 'Terra vegetal preta rica em matéria orgânica.';
     final fertilizante = widget.planta.dicaFertilizante ?? 'Adubo orgânico ou NPK 10-10-10.';
+    
+    // Verifica tema escuro
+    final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
 
     return Column(
       children: [
@@ -338,8 +385,13 @@ class _DetailedPlantState extends State<DetailedPlant> {
                       child: ElevatedButton(
                         onPressed: _abrirTelaEdicao,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF344e41),
-                          foregroundColor: const Color(0xFFA7C957),
+                          // AQUI: Lógica de cores condicional
+                          backgroundColor: isDark 
+                              ? const Color(0xFF344e41) 
+                              : const Color(0xFFA7C957),
+                          foregroundColor: isDark 
+                              ? const Color(0xFFA7C957) 
+                              : const Color(0xFF344e41),
                           padding: const EdgeInsets.symmetric(vertical: 15),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),

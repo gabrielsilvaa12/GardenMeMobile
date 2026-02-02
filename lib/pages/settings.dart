@@ -15,7 +15,7 @@ class Settings extends StatefulWidget {
 
 class _SettingsState extends State<Settings> {
   bool _notificacoesAtivas = false;
-  bool _alertasClimaticos = true;
+  // REMOVIDO: bool _alertasClimaticos = true;
   bool _carregando = true;
 
   @override
@@ -230,11 +230,8 @@ class _SettingsState extends State<Settings> {
                           _notificacoesAtivas,
                           _handleNotificationToggle,
                         ),
-                        _buildNotificationOption(
-                          "Alertas climáticos",
-                          _alertasClimaticos,
-                          (v) => setState(() => _alertasClimaticos = v),
-                        ),
+                        // REMOVIDO: Botão de Alertas Climáticos
+                        
                         _buildDivider(),
 
                         _buildSectionTitle("Sobre o GardenMe"),

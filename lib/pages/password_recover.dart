@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gardenme/components/curved_background.dart';
 import 'package:gardenme/pages/login.dart';
+import 'package:gardenme/services/theme_service.dart'; //
 
 class PasswordRecover extends StatefulWidget {
   const PasswordRecover({super.key});
@@ -94,6 +95,9 @@ class _PasswordRecoverState extends State<PasswordRecover> {
 
   @override
   Widget build(BuildContext context) {
+    // Verifica o tema atual
+    final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
+
     return curvedBackground(
       showHeader: false,
       child: Container(
@@ -147,8 +151,8 @@ class _PasswordRecoverState extends State<PasswordRecover> {
                             decoration: TextDecoration.underline,
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
-                            // ALTERADO: Verde Claro
-                            color: highlightColor,
+                            // AQUI: Texto branco, mas mantendo o destaque (negrito/sublinhado)
+                            color: Colors.white,
                           ),
                         ),
                       ),
@@ -164,10 +168,9 @@ class _PasswordRecoverState extends State<PasswordRecover> {
                   width: 200,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      // ALTERADO: Fundo Verde Claro (padrão claro)
-                      backgroundColor: highlightColor,
-                      // ALTERADO: Texto Verde Escuro
-                      foregroundColor: darkGreen,
+                      // Lógica de cor condicional para o botão (MANTIDA)
+                      backgroundColor: isDark ? highlightColor : darkGreen,
+                      foregroundColor: isDark ? darkGreen : highlightColor,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                     onPressed: _estaCarregando

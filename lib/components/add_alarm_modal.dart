@@ -136,13 +136,14 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(
-                widget.alarmeParaEditar != null
+            content: Text(
+              widget.alarmeParaEditar != null
                   ? "Alarme atualizado! 🔄"
                   : "Alarme salvo! ⏰",
-                style: const TextStyle(color: Color(0xFF344e41), fontWeight: FontWeight.bold),
-              ),
-              backgroundColor: const Color(0xFFA7C957), // Verde Claro
+              style: const TextStyle(
+                  color: Color(0xFF344e41), fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: const Color(0xFFA7C957), // Verde Claro
           ),
         );
       }
@@ -173,7 +174,12 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("Alarme excluído! 🗑️"),
+            // AQUI: Texto alterado para branco, mantendo o emoji
+            content: Text(
+              "Alarme excluído! 🗑️",
+              style:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -256,11 +262,11 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
                   selected: isSelected,
                   selectedColor: const Color(0xFFA7C957),
                   backgroundColor: Colors.white,
-                  side: BorderSide.none, 
+                  side: BorderSide.none,
                   labelStyle: TextStyle(
-                      color: isSelected 
-                          ? const Color(0xFF344e41) 
-                          : Colors.grey,            
+                      color: isSelected
+                          ? const Color(0xFF344e41)
+                          : Colors.grey,
                       fontWeight: FontWeight.bold),
                   onSelected: (bool selected) {
                     if (selected) setState(() => _tipoSelecionado = tipo);
@@ -331,7 +337,8 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
                   child: Text(
                     letra,
                     style: TextStyle(
-                      color: isSelected ? const Color(0xFF344e41) : Colors.black54,
+                      color:
+                          isSelected ? const Color(0xFF344e41) : Colors.black54,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

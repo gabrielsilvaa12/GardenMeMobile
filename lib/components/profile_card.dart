@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gardenme/components/gamification_modal.dart';
 import 'package:gardenme/pages/edit_profile_page.dart';
+import 'package:gardenme/services/theme_service.dart'; //
 
 class ProfileCard extends StatelessWidget {
   const ProfileCard({super.key});
@@ -66,6 +67,9 @@ class ProfileCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+    
+    // Verifica se o tema atual é escuro
+    final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
 
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
@@ -350,7 +354,7 @@ class ProfileCard extends StatelessWidget {
               ),
               const SizedBox(height: 30),
               
-              // --- BOTÃO EDITAR PERFIL (ATUALIZADO PARA #344E41) ---
+              // --- BOTÃO EDITAR PERFIL ---
               ElevatedButton(
                 onPressed: () => Navigator.push(
                   context,
@@ -359,9 +363,13 @@ class ProfileCard extends StatelessWidget {
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  // ALTERADO: Fundo agora é #344e41 conforme solicitado
-                  backgroundColor: const Color(0xFF344e41),
-                  foregroundColor: const Color(0xFFA7C957),
+                  // AQUI: Aplicação das cores condicionais para o tema escuro/claro
+                  backgroundColor: isDark 
+                      ? const Color(0xFF344e41) // Fundo Escuro no tema Escuro
+                      : const Color(0xFFA7C957), // Fundo Claro no tema Claro
+                  foregroundColor: isDark 
+                      ? const Color(0xFFA7C957) // Texto Claro no tema Escuro
+                      : const Color(0xFF344e41), // Texto Escuro no tema Claro
                   minimumSize: const Size(double.infinity, 55),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),

@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:gardenme/components/curved_background.dart';
+import 'package:gardenme/services/theme_service.dart'; //
 
 class EditProfilePage extends StatefulWidget {
   final Map<String, dynamic>? userData;
@@ -218,6 +219,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget build(BuildContext context) {
     double tecladoAltura = MediaQuery.of(context).viewInsets.bottom;
     final imageProvider = _getImagemProvider();
+    
+    // Verifica tema escuro
+    final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -335,8 +339,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 const SizedBox(height: 40),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF344e41),
-                    foregroundColor: const Color(0xFFA7C957),
+                    // Lógica de cores condicional (Tema Claro/Escuro)
+                    backgroundColor: isDark 
+                        ? const Color(0xFF344e41) 
+                        : const Color(0xFFA7C957),
+                    foregroundColor: isDark 
+                        ? const Color(0xFFA7C957) 
+                        : const Color(0xFF344e41),
                     minimumSize: const Size(double.infinity, 55),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30)),
@@ -348,6 +357,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       : const Text("Salvar Alterações",
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold)),
+                ),
+                
+                // NOVO: Botão Cancelar
+                const SizedBox(height: 15),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    "Cancelar", 
+                    style: TextStyle(color: Color(0xfff2f2f2))
+                  ),
                 ),
               ],
             ),

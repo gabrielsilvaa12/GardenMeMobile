@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gardenme/components/curved_background.dart';
 import 'package:gardenme/pages/login.dart';
+import 'package:gardenme/services/theme_service.dart'; //
 
 class RegisterAccount extends StatefulWidget {
   const RegisterAccount({super.key});
@@ -119,6 +120,9 @@ class _MyLoginState extends State<RegisterAccount> {
 
   @override
   Widget build(BuildContext context) {
+    // Verifica o tema atual
+    final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
+
     return curvedBackground(
       showHeader: false,
       child: Container(
@@ -144,8 +148,8 @@ class _MyLoginState extends State<RegisterAccount> {
                           "Cadastro de usuário",
                           style: TextStyle(
                             fontSize: 20,
-                            // Destaque Verde Claro
-                            color: highlightColor,
+                            // AQUI: Cor condicional baseada no tema (Mantida)
+                            color: isDark ? highlightColor : darkGreen,
                           ),
                         ),
                       ],
@@ -175,7 +179,8 @@ class _MyLoginState extends State<RegisterAccount> {
                                 fontWeight: FontWeight.bold,
                                 decoration: TextDecoration.underline,
                                 fontSize: 16,
-                                color: highlightColor,
+                                // AQUI: Texto alterado para branco fixo
+                                color: Colors.white,
                               ),
                             ),
                           ),
