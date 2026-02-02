@@ -21,7 +21,7 @@ class _EditPlantPageState extends State<EditPlantPage> {
   File? _novaImagemLocal;
   String? _caminhoImagemAtual;
   bool _estaCarregando = false;
-
+  
   @override
   void initState() {
     super.initState();
@@ -35,6 +35,7 @@ class _EditPlantPageState extends State<EditPlantPage> {
     super.dispose();
   }
 
+  // ... (métodos _selecionarImagem, _mostrarOpcoesFoto, _getImagemProvider iguais) ...
   Future<void> _selecionarImagem(ImageSource source) async {
     final ImagePicker picker = ImagePicker();
     try {
@@ -113,7 +114,6 @@ class _EditPlantPageState extends State<EditPlantPage> {
     try {
       String? caminhoFinal = _caminhoImagemAtual;
 
-      // Se selecionou nova imagem, usamos o novo caminho local
       if (_novaImagemLocal != null) {
         caminhoFinal = _novaImagemLocal!.path;
       }
@@ -125,8 +125,16 @@ class _EditPlantPageState extends State<EditPlantPage> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Planta atualizada! 🌱")));
-        // Retorna os novos dados para a tela anterior atualizar imediatamente
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Planta atualizada! 🌱",
+              style: TextStyle(color: Color(0xFF344e41), fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: Color(0xFFA7C957), // Verde Claro
+          )
+        );
+        
         Navigator.pop(context, {
           'novoNome': _nomeController.text.trim(),
           'novaImagem': caminhoFinal
@@ -213,14 +221,14 @@ class _EditPlantPageState extends State<EditPlantPage> {
 
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFA7C957),
-                    foregroundColor: const Color(0xFF3A5A40),
+                    backgroundColor: const Color(0xFF344e41),
+                    foregroundColor: const Color(0xFFA7C957),
                     minimumSize: const Size(double.infinity, 55),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                   ),
                   onPressed: _estaCarregando ? null : _salvar,
                   child: _estaCarregando
-                      ? const CircularProgressIndicator(color: Color(0xFF3A5A40))
+                      ? const CircularProgressIndicator(color: Color(0xFFA7C957))
                       : const Text("Salvar Alterações", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
                 

@@ -105,9 +105,6 @@ class _SettingsState extends State<Settings> {
   Widget _buildNotificationOption(
       String title, bool value, ValueChanged<bool> onChanged) {
     
-    // Mantendo a lógica de teste visual para você verificar o tema Escuro
-    final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
-
     return SwitchListTile(
       title: Text(
         title,
@@ -115,8 +112,8 @@ class _SettingsState extends State<Settings> {
       ),
       value: value,
       onChanged: onChanged,
-      // Se escuro = Vermelho, Se claro = Verde (padrão)
-      activeTrackColor: isDark ? Colors.red : const Color(0xFFA7C957),
+      // TOGGLES AGORA SEMPRE VERDE CLARO QUANDO ATIVOS
+      activeTrackColor: const Color(0xFFA7C957),
       activeColor: const Color(0xfff2f2f2),
       inactiveThumbColor: const Color(0xfff2f2f2),
       inactiveTrackColor: Colors.grey.shade500,
@@ -207,9 +204,6 @@ class _SettingsState extends State<Settings> {
                 child: Container(
                   width: 364,
                   decoration: BoxDecoration(
-                    // Nota: Este container interno da Settings tem uma cor fixa verde escura.
-                    // Se você quiser que ele mude com o tema também, precisaremos alterar aqui.
-                    // Por enquanto mantive fixo como no original.
                     color: const Color(0xff588157),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
@@ -226,7 +220,6 @@ class _SettingsState extends State<Settings> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildSectionTitle("Tema"),
-                        // Apenas duas opções agora
                         _buildThemeOption(ThemeOption.claro, "Claro"),
                         _buildThemeOption(ThemeOption.escuro, "Escuro"),
                         _buildDivider(),

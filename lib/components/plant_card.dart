@@ -22,9 +22,12 @@ class _PlantCardState extends State<PlantCard> {
     if (widget.planta.rega) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Você já cuidou desta planta hoje! 🌱'),
+          content: Text(
+            'Você já cuidou desta planta hoje! 🌱',
+            style: TextStyle(color: Color(0xFF344e41), fontWeight: FontWeight.bold),
+          ),
           duration: Duration(seconds: 2),
-          backgroundColor: Color(0xFF3A5A40),
+          backgroundColor: Color(0xFFA7C957), // Verde Claro
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -39,9 +42,12 @@ class _PlantCardState extends State<PlantCard> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Planta regada com amor! 💧 +10 XP'),
+          content: Text(
+            'Planta regada com amor! 💧 +10 XP',
+            style: TextStyle(color: Color(0xFF344e41), fontWeight: FontWeight.bold),
+          ),
           duration: Duration(seconds: 2),
-          backgroundColor: Color(0xFF588157),
+          backgroundColor: Color(0xFFA7C957), // Verde Claro
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -92,9 +98,6 @@ class _PlantCardState extends State<PlantCard> {
     bool statusRega = widget.planta.rega;
 
     final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
-    
-    // CORRIGIDO: Agora usa #588157 para ambos os temas (ou apenas #588157 fixo)
-    // Mantive a estrutura ternária caso você queira mudar novamente no futuro.
     final cardColor = isDark ? const Color(0xFF588157) : const Color(0xFF588157);
 
     return Container(
@@ -103,7 +106,6 @@ class _PlantCardState extends State<PlantCard> {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(24),
-        // Sombra removida conforme solicitado anteriormente
       ),
       child: Row(
         children: [

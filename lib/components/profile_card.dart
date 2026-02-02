@@ -132,8 +132,6 @@ class ProfileCard extends StatelessWidget {
 
         final avatarImage = _getAvatarImage(userData['foto_url']);
 
-        String? subtituloStreak = _getStreakSubtitle(diasSeguidos);
-
         return Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
@@ -163,7 +161,7 @@ class ProfileCard extends StatelessWidget {
                     ),
                   ),
 
-                  // ÍCONE DE STREAK (POSIÇÃO AJUSTADA)
+                  // ÍCONE DE STREAK
                   Positioned(
                     right: -110,
                     top: -15,
@@ -208,6 +206,8 @@ class ProfileCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
+              
+              // --- CARD DE NÍVEL (CORES INVERTIDAS) ---
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
@@ -215,7 +215,8 @@ class ProfileCard extends StatelessWidget {
                   vertical: 20,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFa7c957),
+                  // Fundo Verde Escuro
+                  color: const Color(0xff344E41),
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Stack(
@@ -224,13 +225,13 @@ class ProfileCard extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // --- TÍTULO DO NÍVEL ---
                         Text(
                           nivelNome,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontWeight: FontWeight.w800,
-                            color: Color(0xff344E41),
+                            // Texto Verde Claro
+                            color: Color(0xFFa7c957),
                             fontSize: 21,
                             letterSpacing: 0.3,
                           ),
@@ -240,9 +241,9 @@ class ProfileCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(10),
                           child: LinearProgressIndicator(
                             value: progressoVisivel,
-                            backgroundColor: const Color(0xff344E41),
+                            backgroundColor: const Color(0xFFa7c957).withOpacity(0.3),
                             valueColor: const AlwaysStoppedAnimation(
-                              Color(0xFF588157),
+                              Color(0xFFa7c957),
                             ),
                             minHeight: 12,
                           ),
@@ -253,7 +254,7 @@ class ProfileCard extends StatelessWidget {
                               ? 'Nível Máximo Alcançado!'
                               : '$pontosFaltantes Pontos para o próximo nível!',
                           style: const TextStyle(
-                            color: Color(0xff344E41),
+                            color: Color(0xFFa7c957),
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                           ),
@@ -275,13 +276,14 @@ class ProfileCard extends StatelessWidget {
                         icon: const Icon(
                           Icons.info_outline_rounded,
                           size: 24,
-                          color: Color(0xff344E41),
+                          color: Color(0xFFa7c957),
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
+              
               const SizedBox(height: 25),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -347,6 +349,8 @@ class ProfileCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 30),
+              
+              // --- BOTÃO EDITAR PERFIL (ATUALIZADO PARA #344E41) ---
               ElevatedButton(
                 onPressed: () => Navigator.push(
                   context,
@@ -355,8 +359,9 @@ class ProfileCard extends StatelessWidget {
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFA7C957),
-                  foregroundColor: const Color(0xFF3A5A40),
+                  // ALTERADO: Fundo agora é #344e41 conforme solicitado
+                  backgroundColor: const Color(0xFF344e41),
+                  foregroundColor: const Color(0xFFA7C957),
                   minimumSize: const Size(double.infinity, 55),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),

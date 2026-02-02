@@ -4,9 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:gardenme/components/curved_background.dart';
 import 'package:gardenme/pages/login.dart';
 
-// Importe o seu model aqui (ajuste o caminho se necessário)
-// import 'package:gardenme/models/user_model.dart';
-
 class RegisterAccount extends StatefulWidget {
   const RegisterAccount({super.key});
 
@@ -26,8 +23,12 @@ class _MyLoginState extends State<RegisterAccount> {
   bool _senhaVisivel = false;
   bool _confirmaSenhaVisivel = false;
 
+  // Cor de destaque (Verde Claro)
+  final Color highlightColor = const Color(0xFFA7C957);
+  // Cor padrão dos labels e textos escuros (Verde Escuro - Ajustado para #344e41)
+  final Color darkGreen = const Color(0xFF344e41);
+
   Future<void> _cadastrarUsuario() async {
-    // 1. Validações Básicas (RN02: Senha mínima 6 caracteres)
     if (_nomeController.text.isEmpty ||
         _emailController.text.isEmpty ||
         _senhaController.text.isEmpty) {
@@ -51,27 +52,24 @@ class _MyLoginState extends State<RegisterAccount> {
     }
 
     try {
-      // 2. Criar usuário no Firebase Authentication (RF01)
       UserCredential userCredential =
           await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _senhaController.text.trim(),
       );
 
-      // 3. Salvar dados adicionais no Firestore (Bloco 1 - Usuário)
       String userId = userCredential.user!.uid;
 
-      // Usando a estrutura de campos definida para o Bloco 1 e 3
       await FirebaseFirestore.instance.collection('usuarios').doc(userId).set({
         'id': userId,
         'nome': _nomeController.text.trim(),
         'sobrenome': _sobrenomeController.text.trim(),
         'email': _emailController.text.trim(),
         'telefone': _celularController.text.trim(),
-        'foto_url': null, // Inicialmente nulo (Bloco 3 cuidará do upload)
-        'nivel': 'Iniciante', // Gamificação Inicial (RF11)
-        'pontos': 0, // Gamificação Inicial (RF11)
-        'criadoEm': FieldValue.serverTimestamp(), // Para auditoria (RNF09)
+        'foto_url': null,
+        'nivel': 'Iniciante',
+        'pontos': 0,
+        'criadoEm': FieldValue.serverTimestamp(),
       });
 
       if (mounted) {
@@ -109,7 +107,6 @@ class _MyLoginState extends State<RegisterAccount> {
 
   @override
   void dispose() {
-    // Limpar controladores da memória
     _nomeController.dispose();
     _sobrenomeController.dispose();
     _emailController.dispose();
@@ -120,15 +117,15 @@ class _MyLoginState extends State<RegisterAccount> {
     super.dispose();
   }
 
+  @override
   Widget build(BuildContext context) {
     return curvedBackground(
       showHeader: false,
       child: Container(
-        padding: EdgeInsetsGeometry.all(20),
+        padding: const EdgeInsets.all(20),
         child: Center(
           child: SingleChildScrollView(
             child: Column(
-              spacing: 20,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset(
@@ -136,9 +133,9 @@ class _MyLoginState extends State<RegisterAccount> {
                   width: 200,
                   height: 200,
                 ),
+                const SizedBox(height: 20),
 
                 Column(
-                  spacing: 0,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -147,7 +144,8 @@ class _MyLoginState extends State<RegisterAccount> {
                           "Cadastro de usuário",
                           style: TextStyle(
                             fontSize: 20,
-                            color: Color(0xFF386641),
+                            // Destaque Verde Claro
+                            color: highlightColor,
                           ),
                         ),
                       ],
@@ -158,7 +156,7 @@ class _MyLoginState extends State<RegisterAccount> {
                         RichText(
                           text: TextSpan(
                             text: "Já possui uma conta? Faça o ",
-                            style: TextStyle(fontSize: 16),
+                            style: TextStyle(fontSize: 16, color: Colors.black),
                           ),
                         ),
                         GestureDetector(
@@ -166,7 +164,7 @@ class _MyLoginState extends State<RegisterAccount> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => MyLogin(),
+                                builder: (context) => const MyLogin(),
                               ),
                             );
                           },
@@ -177,7 +175,7 @@ class _MyLoginState extends State<RegisterAccount> {
                                 fontWeight: FontWeight.bold,
                                 decoration: TextDecoration.underline,
                                 fontSize: 16,
-                                color: Color(0xFF386641),
+                                color: highlightColor,
                               ),
                             ),
                           ),
@@ -187,30 +185,34 @@ class _MyLoginState extends State<RegisterAccount> {
                   ],
                 ),
 
+                const SizedBox(height: 20),
+
                 SizedBox(
                   width: 320,
                   child: TextField(
                     controller: _nomeController,
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: Color(0xFFf2f2f2),
-                      label: Text("Nome"),
-                      labelStyle: TextStyle(color: Color(0xFF386641)),
+                      fillColor: const Color(0xFFf2f2f2),
+                      label: const Text("Nome"),
+                      labelStyle: TextStyle(color: darkGreen),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Colors.black),
+                        borderSide: const BorderSide(color: Colors.black),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Color(0xFF386641)),
+                        borderSide: BorderSide(color: darkGreen),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Color(0xFF386641)),
+                        borderSide: BorderSide(color: darkGreen),
                       ),
                     ),
                   ),
                 ),
+
+                const SizedBox(height: 20),
 
                 SizedBox(
                   width: 320,
@@ -218,24 +220,26 @@ class _MyLoginState extends State<RegisterAccount> {
                     controller: _sobrenomeController,
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: Color(0xFFf2f2f2),
-                      label: Text("Sobrenome (Opcional)"),
-                      labelStyle: TextStyle(color: Color(0xFF386641)),
+                      fillColor: const Color(0xFFf2f2f2),
+                      label: const Text("Sobrenome (Opcional)"),
+                      labelStyle: TextStyle(color: darkGreen),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Colors.black),
+                        borderSide: const BorderSide(color: Colors.black),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Color(0xFF386641)),
+                        borderSide: BorderSide(color: darkGreen),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Color(0xFF386641)),
+                        borderSide: BorderSide(color: darkGreen),
                       ),
                     ),
                   ),
                 ),
+
+                const SizedBox(height: 20),
 
                 SizedBox(
                   width: 320,
@@ -243,24 +247,26 @@ class _MyLoginState extends State<RegisterAccount> {
                     controller: _emailController,
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: Color(0xFFf2f2f2),
-                      label: Text("E-mail"),
-                      labelStyle: TextStyle(color: Color(0xFF386641)),
+                      fillColor: const Color(0xFFf2f2f2),
+                      label: const Text("E-mail"),
+                      labelStyle: TextStyle(color: darkGreen),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Colors.black),
+                        borderSide: const BorderSide(color: Colors.black),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Color(0xFF386641)),
+                        borderSide: BorderSide(color: darkGreen),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Color(0xFF386641)),
+                        borderSide: BorderSide(color: darkGreen),
                       ),
                     ),
                   ),
                 ),
+
+                const SizedBox(height: 20),
 
                 SizedBox(
                   width: 320,
@@ -268,24 +274,26 @@ class _MyLoginState extends State<RegisterAccount> {
                     controller: _confirmaEmailController,
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: Color(0xFFf2f2f2),
-                      label: Text("Confirme o E-mail"),
-                      labelStyle: TextStyle(color: Color(0xFF386641)),
+                      fillColor: const Color(0xFFf2f2f2),
+                      label: const Text("Confirme o E-mail"),
+                      labelStyle: TextStyle(color: darkGreen),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Colors.black),
+                        borderSide: const BorderSide(color: Colors.black),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Color(0xFF386641)),
+                        borderSide: BorderSide(color: darkGreen),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Color(0xFF386641)),
+                        borderSide: BorderSide(color: darkGreen),
                       ),
                     ),
                   ),
                 ),
+
+                const SizedBox(height: 20),
 
                 SizedBox(
                   width: 320,
@@ -293,26 +301,27 @@ class _MyLoginState extends State<RegisterAccount> {
                     controller: _celularController,
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: Color(0xFFf2f2f2),
-                      label: Text("Celular (Opcional)"),
-                      labelStyle: TextStyle(color: Color(0xFF386641)),
+                      fillColor: const Color(0xFFf2f2f2),
+                      label: const Text("Celular (Opcional)"),
+                      labelStyle: TextStyle(color: darkGreen),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Colors.black),
+                        borderSide: const BorderSide(color: Colors.black),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Color(0xFF386641)),
+                        borderSide: BorderSide(color: darkGreen),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Color(0xFF386641)),
+                        borderSide: BorderSide(color: darkGreen),
                       ),
                     ),
                   ),
                 ),
 
-                // Em register.dart
+                const SizedBox(height: 20),
+
                 SizedBox(
                   width: 320,
                   child: TextField(
@@ -322,30 +331,25 @@ class _MyLoginState extends State<RegisterAccount> {
                       filled: true,
                       fillColor: const Color(0xFFf2f2f2),
                       label: const Text("Senha"),
-                      labelStyle: const TextStyle(color: Color(0xFF386641)),
+                      labelStyle: TextStyle(color: darkGreen),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: const BorderSide(color: Color(0xFF386641)),
+                        borderSide: BorderSide(color: darkGreen),
                       ),
-
-                      // Borda quando o campo é clicado (Foco)
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: const BorderSide(color: Color(0xFF386641)),
+                        borderSide: BorderSide(color: darkGreen),
                       ),
-
-                      // Borda genérica de fallback
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
                         borderSide: const BorderSide(color: Colors.black),
                       ),
-
                       suffixIcon: IconButton(
                         icon: Icon(
                           _senhaVisivel
                               ? Icons.visibility
                               : Icons.visibility_off,
-                          color: const Color(0xFF386641),
+                          color: darkGreen,
                         ),
                         onPressed: () {
                           setState(() {
@@ -357,6 +361,8 @@ class _MyLoginState extends State<RegisterAccount> {
                   ),
                 ),
 
+                const SizedBox(height: 20),
+
                 SizedBox(
                   width: 320,
                   child: TextField(
@@ -364,27 +370,27 @@ class _MyLoginState extends State<RegisterAccount> {
                     obscureText: !_confirmaSenhaVisivel,
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: Color(0xFFf2f2f2),
-                      label: Text("Confirme a senha"),
-                      labelStyle: TextStyle(color: Color(0xFF386641)),
+                      fillColor: const Color(0xFFf2f2f2),
+                      label: const Text("Confirme a senha"),
+                      labelStyle: TextStyle(color: darkGreen),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Colors.black),
+                        borderSide: const BorderSide(color: Colors.black),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: const BorderSide(color: Color(0xFF386641)),
+                        borderSide: BorderSide(color: darkGreen),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide(color: Color(0xFF386641)),
+                        borderSide: BorderSide(color: darkGreen),
                       ),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _confirmaSenhaVisivel
                               ? Icons.visibility
                               : Icons.visibility_off,
-                          color: const Color(0xFF386641),
+                          color: darkGreen,
                         ),
                         onPressed: () {
                           setState(() {
@@ -404,14 +410,17 @@ class _MyLoginState extends State<RegisterAccount> {
                         width: 200,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xffA7C957),
+                            // Fundo Verde Claro
+                            backgroundColor: highlightColor,
+                            // Texto Verde Escuro (#344e41)
+                            foregroundColor: darkGreen,
                           ),
                           onPressed: _cadastrarUsuario,
                           child: const Text(
                             "Cadastrar",
                             style: TextStyle(
-                              color: Color(0xFF386641),
                               fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),

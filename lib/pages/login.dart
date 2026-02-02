@@ -20,6 +20,11 @@ class _MyLoginState extends State<MyLogin> {
 
   bool _senhaVisivel = false;
 
+  // Cor de destaque (Verde Claro)
+  final Color highlightColor = const Color(0xFFA7C957);
+  // Cor padrão (Verde Escuro)
+  final Color darkGreen = const Color(0xFF386641);
+
   Future<void> _fazerLoginGoogle() async {
     try {
       final googleUser = await GoogleSignIn().signIn();
@@ -42,16 +47,12 @@ class _MyLoginState extends State<MyLogin> {
         return;
       }
 
-      debugPrint("UID LOGADO: ${user.uid}");
-
       final userDoc =
           FirebaseFirestore.instance.collection('usuarios').doc(user.uid);
 
       final snap = await userDoc.get();
 
       if (!snap.exists) {
-        debugPrint("CRIANDO PERFIL NO FIRESTORE");
-
         await userDoc.set({
           'nome': user.displayName?.split(" ").first ?? 'Usuário',
           'sobrenome': user.displayName?.split(" ").skip(1).join(" "),
@@ -65,10 +66,6 @@ class _MyLoginState extends State<MyLogin> {
           'ultima_rega_data': null,
           'criado_em': FieldValue.serverTimestamp(),
         });
-
-        debugPrint("PERFIL CRIADO COM SUCESSO");
-      } else {
-        debugPrint("PERFIL JÁ EXISTE");
       }
 
       if (!mounted) return;
@@ -150,16 +147,15 @@ class _MyLoginState extends State<MyLogin> {
                   width: 320,
                   child: TextField(
                     controller: _emailController,
-                    style: const TextStyle(color: Color(0xFF386641)),
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: const Color(0xFFf2f2f2),
                       labelText: "E-mail",
-                      labelStyle: const TextStyle(color: Color(0xFF386641)),
+                      labelStyle: TextStyle(color: darkGreen),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
-                        borderSide: const BorderSide(
-                          color: Color(0xFF386641),
+                        borderSide: BorderSide(
+                          color: darkGreen,
                           width: 1.0,
                         ),
                       ),
@@ -174,17 +170,16 @@ class _MyLoginState extends State<MyLogin> {
                   width: 320,
                   child: TextField(
                     controller: _senhaController,
-                    style: const TextStyle(color: Color(0xFF386641)),
                     obscureText: !_senhaVisivel,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: const Color(0xFFf2f2f2),
                       labelText: "Senha",
-                      labelStyle: const TextStyle(color: Color(0xFF386641)),
+                      labelStyle: TextStyle(color: darkGreen),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
-                        borderSide: const BorderSide(
-                          color: Color(0xFF386641),
+                        borderSide: BorderSide(
+                          color: darkGreen,
                           width: 1.0,
                         ),
                       ),
@@ -196,7 +191,7 @@ class _MyLoginState extends State<MyLogin> {
                           _senhaVisivel
                               ? Icons.visibility
                               : Icons.visibility_off,
-                          color: const Color(0xFF386641),
+                          color: darkGreen,
                         ),
                         onPressed: () {
                           setState(() {
@@ -217,11 +212,12 @@ class _MyLoginState extends State<MyLogin> {
                       ),
                     );
                   },
-                  child: const Text(
+                  child: Text(
                     "Esqueceu sua senha?",
                     style: TextStyle(
                       decoration: TextDecoration.underline,
-                      color: Color(0xFF386641),
+                      // ALTERADO: Verde Claro
+                      color: highlightColor,
                     ),
                   ),
                 ),
@@ -233,7 +229,7 @@ class _MyLoginState extends State<MyLogin> {
                       backgroundColor: const Color(0xfff2f2f2),
                     ),
                     onPressed: _fazerLogin,
-                    child: const Text("Entrar"),
+                    child: Text("Entrar", style: TextStyle(color: darkGreen)),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -251,7 +247,7 @@ class _MyLoginState extends State<MyLogin> {
                         ),
                       );
                     },
-                    child: const Text("Cadastre-se"),
+                    child: Text("Cadastre-se", style: TextStyle(color: darkGreen)),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -269,32 +265,14 @@ class _MyLoginState extends State<MyLogin> {
                           'assets/images/gugol.png',
                           width: 35,
                         ),
-                        const Text(
+                        Text(
                           "Entrar com o Google",
-                          style: TextStyle(color: Color(0xFF386641)),
+                          style: TextStyle(color: darkGreen),
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
-                // GestureDetector(
-                //   onTap: () {
-                //     Navigator.push(
-                //       context,
-                //       MaterialPageRoute(
-                //         builder: (_) => RegisterAccount(),
-                //       ),
-                //     );
-                //   },
-                //   child: const Text(
-                //     "Cadastre-se",
-                //     style: TextStyle(
-                //       decoration: TextDecoration.underline,
-                //       color: Color(0xFF386641),
-                //     ),
-                //   ),
-                // ),
               ],
             ),
           ),

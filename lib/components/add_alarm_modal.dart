@@ -26,7 +26,6 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
   late String _tipoSelecionado;
   late List<int> _diasSelecionados;
 
-  // REMOVIDO "Poda" da lista
   final List<String> _tipos = ['Rega', 'Fertilização'];
 
   final Map<int, String> _diasMap = {
@@ -47,11 +46,7 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
     if (widget.alarmeParaEditar != null) {
       final a = widget.alarmeParaEditar!;
       _selectedTime = TimeOfDay(hour: a.hora, minute: a.minuto);
-
-      // Se estiver editando um alarme antigo que por acaso seja "Poda",
-      // ele manterá o tipo original até o usuário mudar.
       _tipoSelecionado = a.tipo;
-
       _diasSelecionados = List.from(a.diasSemana);
     } else {
       _selectedTime = TimeOfDay.now();
@@ -61,7 +56,6 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
   }
 
   Future<void> _pedirPermissao() async {
-    // CORREÇÃO: Atualizado para o novo método do NotificationService
     await NotificationService().solicitarPermissoes();
   }
 
@@ -74,23 +68,19 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
           data: ThemeData(
             useMaterial3: true,
             colorScheme: const ColorScheme.light(
-              primary:
-                  Color(0xFFa7c957), // 🌱 Cor principal (Ponteiro e Seleção)
-              onPrimary:
-                  Color(0xFFf2f2f2), // Cor do texto sobre o verde principal
-              surface: Color(0xFFf2f2f2), // Fundo do modal
-              onSurface: Color(0xFFf2f2f2), // Texto comum e números do relógio
+              primary: Color(0xFFa7c957),
+              onPrimary: Color(0xFFf2f2f2),
+              surface: Color(0xFFf2f2f2),
+              onSurface: Color(0xFFf2f2f2),
             ),
             timePickerTheme: const TimePickerThemeData(
-              backgroundColor: Color(0xFF588157), // Fundo do modal
-              hourMinuteColor:
-                  Color(0xFF344e41), // Fundo dos retângulos de hora/minuto
-              hourMinuteTextColor: Color(0xFFf2f2f2), // Texto da hora/minuto
-              dialBackgroundColor:
-                  Color(0xFF588157), // Fundo do círculo do relógio
-              dialHandColor: Color(0xFFa7c957), // Cor do ponteiro
-              dialTextColor: Color(0xFFf2f2f2), // Cor dos números no círculo
-              entryModeIconColor: Color(0xFFa7c957), // Ícone de teclado
+              backgroundColor: Color(0xFF588157),
+              hourMinuteColor: Color(0xFF344e41),
+              hourMinuteTextColor: Color(0xFFf2f2f2),
+              dialBackgroundColor: Color(0xFF588157),
+              dialHandColor: Color(0xFFa7c957),
+              dialTextColor: Color(0xFFf2f2f2),
+              entryModeIconColor: Color(0xFFa7c957),
             ),
           ),
           child: child!,
@@ -146,10 +136,14 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(widget.alarmeParaEditar != null
+              content: Text(
+                widget.alarmeParaEditar != null
                   ? "Alarme atualizado! 🔄"
-                  : "Alarme salvo! ⏰"),
-              backgroundColor: const Color(0xFF386641)),
+                  : "Alarme salvo! ⏰",
+                style: const TextStyle(color: Color(0xFF344e41), fontWeight: FontWeight.bold),
+              ),
+              backgroundColor: const Color(0xFFA7C957), // Verde Claro
+          ),
         );
       }
     } catch (e) {
@@ -252,7 +246,6 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
 
           const SizedBox(height: 20),
 
-          // Chips de Tipo (Agora sem Poda)
           Row(
             children: _tipos.map((tipo) {
               final isSelected = _tipoSelecionado == tipo;
@@ -262,9 +255,12 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
                   label: Text(tipo),
                   selected: isSelected,
                   selectedColor: const Color(0xFFA7C957),
+                  backgroundColor: Colors.white,
+                  side: BorderSide.none, 
                   labelStyle: TextStyle(
-                      color:
-                          isSelected ? const Color(0xFF344e41) : Colors.black54,
+                      color: isSelected 
+                          ? const Color(0xFF344e41) 
+                          : Colors.grey,            
                       fontWeight: FontWeight.bold),
                   onSelected: (bool selected) {
                     if (selected) setState(() => _tipoSelecionado = tipo);

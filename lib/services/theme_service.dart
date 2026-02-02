@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Agora só existem duas opções
 enum ThemeOption { claro, escuro }
 
 class ThemeService extends ChangeNotifier {
@@ -13,34 +12,38 @@ class ThemeService extends ChangeNotifier {
 
   ThemeService._internal();
 
-  // O padrão inicial agora é 'claro' (que contém as cores do antigo 'folha')
   ThemeOption _currentTheme = ThemeOption.claro;
 
   ThemeOption get currentTheme => _currentTheme;
 
   ThemeData getThemeData() {
-    // --- TEMA CLARO (O seu padrão Verde) ---
-    // Topo (Fundo): #a7c957
-    // Baixo (Container): #3A5A40
+    // --- TEMA CLARO ---
     final themeClaro = ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      // Define a cor de fundo da tela (usado pelo curvedBackground)
       scaffoldBackgroundColor: const Color(0xFFa7c957),
-      // Define as cores principais (usado pelo Container de baixo e botões)
       colorScheme: ColorScheme.fromSeed(
         seedColor: const Color(0xFF3A5A40),
         primary: const Color(0xFF3A5A40),
       ),
     );
 
-    // --- TEMA ESCURO (Novas cores) ---
-    // Topo (Fundo): #344e41
-    // Baixo (Container): #386641
+    // --- TEMA ESCURO ---
     final themeEscuro = ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
       scaffoldBackgroundColor: const Color(0xFF344e41),
+      
+      // CORREÇÃO DOS INPUTS:
+      // Como seus inputs têm fundo claro (#f2f2f2) fixo no código, 
+      // precisamos forçar o texto padrão a ser escuro, senão o Flutter
+      // usa branco (padrão do modo escuro) e o texto "some".
+      textTheme: const TextTheme(
+        bodyLarge: TextStyle(color: Color(0xFF344e41)), 
+        bodyMedium: TextStyle(color: Color(0xFF344e41)), 
+        titleMedium: TextStyle(color: Color(0xFF344e41)),
+      ),
+      
       colorScheme: ColorScheme.fromSeed(
         brightness: Brightness.dark,
         seedColor: const Color(0xFF386641),
@@ -58,11 +61,8 @@ class ThemeService extends ChangeNotifier {
 
   Future<void> loadTheme() async {
     final prefs = await SharedPreferences.getInstance();
-    // Tenta carregar o índice salvo. Se não existir, usa 0 (claro).
     final themeIndex = prefs.getInt('theme_option') ?? ThemeOption.claro.index;
     
-    // Verifica se o índice salvo ainda é válido (ex: se o usuário tinha 'folha' salvo como índice 2,
-    // agora só temos até o índice 1. Nesse caso, voltamos para o claro).
     if (themeIndex >= 0 && themeIndex < ThemeOption.values.length) {
       _currentTheme = ThemeOption.values[themeIndex];
     } else {

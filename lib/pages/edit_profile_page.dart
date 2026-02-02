@@ -182,13 +182,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Perfil atualizado com sucesso!")));
+            const SnackBar(
+              content: Text(
+                "Perfil atualizado com sucesso!",
+                style: TextStyle(color: Color(0xFF344e41), fontWeight: FontWeight.bold),
+              ),
+              backgroundColor: Color(0xFFA7C957), // Verde Claro
+            ),
+        );
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
         String msg = e.toString();
-        // Tratamento de erros comuns do Firebase Auth
         if (msg.contains("wrong-password")) {
           msg = "A senha atual está incorreta.";
         } else if (msg.contains("weak-password")) {
@@ -329,8 +335,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 const SizedBox(height: 40),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFA7C957),
-                    foregroundColor: const Color(0xFF3A5A40),
+                    backgroundColor: const Color(0xFF344e41),
+                    foregroundColor: const Color(0xFFA7C957),
                     minimumSize: const Size(double.infinity, 55),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30)),
@@ -338,7 +344,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   onPressed: _estaCarregando ? null : _salvar,
                   child: _estaCarregando
                       ? const CircularProgressIndicator(
-                          color: Color(0xFF3A5A40))
+                          color: Color(0xFFA7C957))
                       : const Text("Salvar Alterações",
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold)),

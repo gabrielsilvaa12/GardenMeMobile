@@ -33,9 +33,12 @@ class _DetailedPlantState extends State<DetailedPlant> {
     if (_regaAtual) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Você já cuidou desta planta hoje! 🌱'),
+          content: Text(
+            'Você já cuidou desta planta hoje! 🌱',
+            style: TextStyle(color: Color(0xFF344e41), fontWeight: FontWeight.bold),
+          ),
           duration: Duration(seconds: 2),
-          backgroundColor: Color(0xFF3A5A40),
+          backgroundColor: Color(0xFFA7C957), // Verde Claro
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -54,15 +57,19 @@ class _DetailedPlantState extends State<DetailedPlant> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Planta regada com amor! 💧 +10 XP'),
+          content: Text(
+            'Planta regada com amor! 💧 +10 XP',
+            style: TextStyle(color: Color(0xFF344e41), fontWeight: FontWeight.bold),
+          ),
           duration: Duration(seconds: 2),
-          backgroundColor: Color(0xFF588157),
+          backgroundColor: Color(0xFFA7C957), // Verde Claro
           behavior: SnackBarBehavior.floating,
         ),
       );
     }
   }
 
+  // ... (restante dos métodos auxiliares _buildPlantImage, _buildInfoSection igual) ...
   Widget _buildPlantImage() {
     final imagePath = _imagemExibida ?? '';
     ImageProvider imgProvider;
@@ -279,7 +286,6 @@ class _DetailedPlantState extends State<DetailedPlant> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // --- NOME DA PLANTA ---
                     Center(
                       child: Text(
                         _nomeExibido,
@@ -327,19 +333,18 @@ class _DetailedPlantState extends State<DetailedPlant> {
                     _buildInfoSection("Fertilizante ideal:", fertilizante),
                     const SizedBox(height: 30),
 
-                    // --- BOTÃO: EDITAR PLANTA (Estilo Padronizado) ---
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _abrirTelaEdicao,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFA7C957), // Verde Perfil
-                          foregroundColor: const Color(0xFF3A5A40), // Texto Escuro
+                          backgroundColor: const Color(0xFF344e41),
+                          foregroundColor: const Color(0xFFA7C957),
                           padding: const EdgeInsets.symmetric(vertical: 15),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                           ),
-                          elevation: 4, // Sombra Padrão
+                          elevation: 4, 
                         ),
                         child: const Text(
                           "Editar Planta",
@@ -350,7 +355,6 @@ class _DetailedPlantState extends State<DetailedPlant> {
                     
                     const SizedBox(height: 15),
 
-                    // --- BOTÃO EXCLUIR (Padronizado com Sombra) ---
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
@@ -367,7 +371,7 @@ class _DetailedPlantState extends State<DetailedPlant> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                           ),
-                          elevation: 4, // Agora tem a sombra idêntica ao de cima
+                          elevation: 4,
                         ),
                       ),
                     ),
