@@ -36,7 +36,8 @@ class curvedBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      backgroundColor: const Color(0xFFa7c957),
+      // AQUI: Pega a cor do topo definida no ThemeService (scaffoldBackgroundColor)
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Column(
         children: [
           if (showHeader) const Header(),
@@ -46,7 +47,8 @@ class curvedBackground extends StatelessWidget {
               children: [
                 ClipPath(
                   clipper: BodyClipper(),
-                  child: Container(color: const Color(0xFF3A5A40)),
+                  // AQUI: Pega a cor de baixo definida no ThemeService (primary)
+                  child: Container(color: Theme.of(context).colorScheme.primary),
                 ),
                 child,
               ],

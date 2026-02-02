@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:gardenme/pages/login.dart';
 import 'package:gardenme/pages/main_page.dart';
 import 'package:gardenme/services/notification_service.dart';
+import 'package:gardenme/services/theme_service.dart'; // Importação do serviço
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,10 +16,11 @@ void main() async {
   final notificationService = NotificationService();
   await notificationService.init();
 
-  // UX BÁSICA: Pede permissão logo ao abrir o app.
-  // Se o usuário aceitar, 'permitidoSistema' vira TRUE.
-  // Como 'ativoNoApp' começa TRUE por padrão, o botão nas configurações já aparecerá LIGADO.
+  // Pede permissão logo ao abrir (opcional, conforme sua lógica original)
   await notificationService.solicitarPermissoes();
+
+  // Carrega o tema salvo ANTES de rodar a UI
+  await ThemeService.instance.loadTheme();
 
   runApp(const MyApp());
 }
@@ -28,35 +30,39 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'GardenMe',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF3A5A40),
-        ),
-        useMaterial3: true,
-      ),
-      home: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(
-                  color: Color(0xFF3A5A40),
-                ),
-              ),
-            );
-          }
+    // ListenableBuilder ouve as mudanças no ThemeService e reconstrói o MaterialApp
+    return ListenableBuilder(
+      listenable: ThemeService.instance,
+      builder: (context, child) {
+        return MaterialApp(
+          title: 'GardenMe',
+          debugShowCheckedModeBanner: false,
+          
+          // O tema agora vem dinamicamente do serviço
+          theme: ThemeService.instance.getThemeData(),
 
-          if (snapshot.hasData) {
-            return const MainPage();
-          }
+          home: StreamBuilder<User?>(
+            stream: FirebaseAuth.instance.authStateChanges(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFF3A5A40),
+                    ),
+                  ),
+                );
+              }
 
-          return const MyLogin();
-        },
-      ),
+              if (snapshot.hasData) {
+                return const MainPage();
+              }
+
+              return const MyLogin();
+            },
+          ),
+        );
+      },
     );
   }
 }

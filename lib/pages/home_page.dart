@@ -4,8 +4,8 @@ import 'package:gardenme/components/curved_background.dart';
 import 'package:gardenme/components/plant_card.dart';
 import 'package:gardenme/models/planta.dart';
 import 'package:gardenme/services/planta_service.dart';
+import 'package:gardenme/services/theme_service.dart'; // Importação do ThemeService
 
-// ALTERAÇÃO 1: Mudamos para StatefulWidget para poder iniciar a verificação de alarmes
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
@@ -14,14 +14,11 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // Instância do serviço
   final PlantaService _plantaService = PlantaService();
 
   @override
   void initState() {
     super.initState();
-    // LÓGICA VITAL: Verifica se algum alarme venceu ao abrir a Home.
-    // Se venceu, a planta fica com status 'false' (Laranja) e permite regar novamente para ganhar pontos.
     _plantaService.verificarAlarmesVencidos();
   }
 
@@ -35,6 +32,18 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     }
 
+    // Verifica o tema atual
+    final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
+
+    // Cores
+    const Color lightGreen = Color(0xFFa7c957);
+    const Color whiteColor = Color(0xfff2f2f2);
+
+    // LÓGICA SOLICITADA:
+    // Tema Claro -> Texto Branco (#f2f2f2)
+    // Tema Escuro -> Mantém o Verde Claro (#a7c957)
+    final Color textColor = isDark ? lightGreen : whiteColor;
+
     return InkWell(
       onTap: _abrirModal,
       borderRadius: BorderRadius.circular(50),
@@ -43,13 +52,14 @@ class _MyHomePageState extends State<MyHomePage> {
           CircleAvatar(
             radius: 30,
             backgroundColor: const Color(0xfff2f2f2),
-            child: const Icon(Icons.add, color: Color(0xff386641)),
+            // O ícone permanece verde claro sempre ("apenas o texto" foi alterado)
+            child: const Icon(Icons.add, color: lightGreen),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Adicionar Planta',
             style: TextStyle(
-              color: Color(0xff386641),
+              color: textColor, // Cor dinâmica aplicada aqui
               fontWeight: FontWeight.bold,
               fontSize: 16,
             ),
@@ -61,6 +71,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
+    final titleColor = isDark ? const Color(0xFFa7c957) : const Color(0xFF3A5A40);
+
     return Scaffold(
       extendBody: true,
       backgroundColor: const Color(0xFFa7c957),
@@ -73,10 +86,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: Column(
                   children: [
                     const SizedBox(height: 20),
-                    const Text(
+                    Text(
                       'Meu Jardim',
                       style: TextStyle(
-                        color: Color(0xFF3A5A40),
+                        color: titleColor,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
@@ -118,25 +131,20 @@ class _MyHomePageState extends State<MyHomePage> {
                           }
 
                           return ListView.builder(
-                            itemCount: plantas.length +
-                                1, // +1 para o botão adicionar no final
+                            itemCount: plantas.length + 1,
                             padding: EdgeInsets.zero,
                             itemBuilder: (context, index) {
-                              // Se for o último item, renderiza o botão
                               if (index == plantas.length) {
                                 return Column(
                                   children: [
                                     const SizedBox(height: 20),
                                     _buildAddPlantButton(context),
-                                    const SizedBox(
-                                        height:
-                                            100), // Espaço extra para o menu inferior
+                                    const SizedBox(height: 100),
                                   ],
                                 );
                               }
 
                               final planta = plantas[index];
-                              // Este Card já contém a lógica de clique -> Atualizar Pontos
                               return PlantCard(planta: planta);
                             },
                           );

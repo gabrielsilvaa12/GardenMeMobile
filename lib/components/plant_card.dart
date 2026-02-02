@@ -4,6 +4,7 @@ import 'package:gardenme/models/planta.dart';
 import 'package:gardenme/pages/alarms_page.dart';
 import 'package:gardenme/pages/my_plant.dart';
 import 'package:gardenme/services/planta_service.dart';
+import 'package:gardenme/services/theme_service.dart';
 
 class PlantCard extends StatefulWidget {
   final Planta planta;
@@ -17,9 +18,7 @@ class PlantCard extends StatefulWidget {
 class _PlantCardState extends State<PlantCard> {
   final PlantaService _plantaService = PlantaService();
 
-  // Função para regar (Conectada ao Serviço que conta pontos)
   Future<void> _toggleRega() async {
-    // 1. VERIFICAÇÃO: Se já estiver regada, avisa e bloqueia.
     if (widget.planta.rega) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -29,22 +28,20 @@ class _PlantCardState extends State<PlantCard> {
           behavior: SnackBarBehavior.floating,
         ),
       );
-      return; // Sai da função, não soma pontos nem rega de novo
+      return;
     }
 
-    // 2. Se não estava regada, executa a rega
     await _plantaService.atualizarStatus(
       widget.planta.id, 
       rega: true,
     );
     
-    // 3. AVISA QUE DEU CERTO
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Planta regada com amor! 💧 +10 XP'),
           duration: Duration(seconds: 2),
-          backgroundColor: Color(0xFF588157), // Verde um pouco mais claro
+          backgroundColor: Color(0xFF588157),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -94,20 +91,27 @@ class _PlantCardState extends State<PlantCard> {
   Widget build(BuildContext context) {
     bool statusRega = widget.planta.rega;
 
+    final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
+    
+    // CORRIGIDO: Agora usa #588157 para ambos os temas (ou apenas #588157 fixo)
+    // Mantive a estrutura ternária caso você queira mudar novamente no futuro.
+    final cardColor = isDark ? const Color(0xFF588157) : const Color(0xFF588157);
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       padding: const EdgeInsets.fromLTRB(12, 12, 20, 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF588157),
+        color: cardColor,
         borderRadius: BorderRadius.circular(24),
+        // Sombra removida conforme solicitado anteriormente
       ),
       child: Row(
         children: [
           CircleAvatar(
             radius: 45,
             backgroundColor: statusRega
-                ? const Color(0xFFAFF695) // Verde (Regada)
-                : Colors.orange,      // Laranja (Precisa Regar)
+                ? const Color(0xFFAFF695)
+                : Colors.orange,
             child: CircleAvatar(
               radius: 40,
               backgroundImage: _getImagemProvider(),
@@ -132,7 +136,6 @@ class _PlantCardState extends State<PlantCard> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Botão Rega
                     _buildActionButton(
                       function: _toggleRega,
                       icon: Icons.water_drop_outlined,
@@ -141,7 +144,6 @@ class _PlantCardState extends State<PlantCard> {
                           : const Color.fromARGB(255, 30, 56, 35).withAlpha(102),
                       iconColor: const Color(0xfff2f2f2),
                     ),
-                    // Botão Alarmes
                     _buildActionButton(
                       function: () {
                         Navigator.push(
@@ -158,14 +160,12 @@ class _PlantCardState extends State<PlantCard> {
                       backgroundColor: const Color.fromARGB(255, 30, 56, 35).withOpacity(0.4),
                       iconColor: const Color(0xfff2f2f2),
                     ),
-                    // Botão Compartilhar
                     _buildActionButton(
                       function: () {},
                       icon: Icons.share_outlined,
                       backgroundColor: const Color(0xFFE0E0E0),
                       iconColor: Colors.black87,
                     ),
-                    // Botão Detalhes
                     _buildActionButton(
                       function: () {
                         Navigator.push(
