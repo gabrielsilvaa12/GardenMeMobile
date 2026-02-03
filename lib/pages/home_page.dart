@@ -32,7 +32,7 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     }
 
-    // Verifica o tema atual
+    // Verifica o tema atual diretamente do serviço para reatividade
     final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
 
     // Cores
@@ -52,7 +52,7 @@ class _MyHomePageState extends State<MyHomePage> {
           CircleAvatar(
             radius: 30,
             backgroundColor: const Color(0xfff2f2f2),
-            // O ícone permanece verde claro sempre ("apenas o texto" foi alterado)
+            // O ícone permanece verde claro sempre
             child: const Icon(Icons.add, color: lightGreen),
           ),
           const SizedBox(height: 8),
@@ -71,93 +71,102 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
-    final titleColor = isDark ? const Color(0xFFa7c957) : const Color(0xFF3A5A40);
+    // AnimatedBuilder escuta as mudanças no ThemeService e reconstrói a tela
+    return AnimatedBuilder(
+      animation: ThemeService.instance,
+      builder: (context, child) {
+        final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
+        
+        // Lógica do Título "Meu Jardim":
+        // Tema Claro -> Verde Escuro (0xFF3A5A40)
+        // Tema Escuro -> Verde Claro (0xFFa7c957)
+        final titleColor = isDark ? const Color(0xFFa7c957) : const Color(0xFF3A5A40);
 
-    return Scaffold(
-      extendBody: true,
-      backgroundColor: const Color(0xFFa7c957),
-      body: Column(
-        children: [
-          Expanded(
-            child: curvedBackground(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 20),
-                    Text(
-                      'Meu Jardim',
-                      style: TextStyle(
-                        color: titleColor,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-                    Expanded(
-                      child: StreamBuilder<List<Planta>>(
-                        stream: _plantaService.getMinhasPlantas(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                              child: CircularProgressIndicator(
-                                color: Color(0xFF3A5A40),
-                              ),
-                            );
-                          }
+        return Scaffold(
+          extendBody: true,
+          backgroundColor: const Color(0xFFa7c957),
+          body: Column(
+            children: [
+              Expanded(
+                child: curvedBackground(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 20),
+                        Text(
+                          'Meu Jardim',
+                          style: TextStyle(
+                            color: titleColor,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        Expanded(
+                          child: StreamBuilder<List<Planta>>(
+                            stream: _plantaService.getMinhasPlantas(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Color(0xFF3A5A40),
+                                  ),
+                                );
+                              }
 
-                          if (snapshot.hasError) {
-                            return const Center(
-                                child: Text('Erro ao carregar jardim.'));
-                          }
+                              if (snapshot.hasError) {
+                                return const Center(
+                                    child: Text('Erro ao carregar jardim.'));
+                              }
 
-                          final plantas = snapshot.data ?? [];
+                              final plantas = snapshot.data ?? [];
 
-                          if (plantas.isEmpty) {
-                            return Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text("Seu jardim está vazio",
-                                    style: TextStyle(
-                                        color: Color(0xFF3A5A40),
-                                        fontSize: 18)),
-                                const SizedBox(height: 20),
-                                _buildAddPlantButton(context),
-                              ],
-                            );
-                          }
-
-                          return ListView.builder(
-                            itemCount: plantas.length + 1,
-                            padding: EdgeInsets.zero,
-                            itemBuilder: (context, index) {
-                              if (index == plantas.length) {
+                              if (plantas.isEmpty) {
                                 return Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
+                                    const Text("Seu jardim está vazio",
+                                        style: TextStyle(
+                                            color: Color(0xFF3A5A40),
+                                            fontSize: 18)),
                                     const SizedBox(height: 20),
                                     _buildAddPlantButton(context),
-                                    const SizedBox(height: 100),
                                   ],
                                 );
                               }
 
-                              final planta = plantas[index];
-                              return PlantCard(planta: planta);
+                              return ListView.builder(
+                                itemCount: plantas.length + 1,
+                                padding: EdgeInsets.zero,
+                                itemBuilder: (context, index) {
+                                  if (index == plantas.length) {
+                                    return Column(
+                                      children: [
+                                        const SizedBox(height: 20),
+                                        _buildAddPlantButton(context),
+                                        const SizedBox(height: 100),
+                                      ],
+                                    );
+                                  }
+
+                                  final planta = plantas[index];
+                                  return PlantCard(planta: planta);
+                                },
+                              );
                             },
-                          );
-                        },
-                      ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

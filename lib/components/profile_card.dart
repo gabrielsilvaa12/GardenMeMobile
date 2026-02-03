@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gardenme/components/gamification_modal.dart';
 import 'package:gardenme/pages/edit_profile_page.dart';
-import 'package:gardenme/services/theme_service.dart'; //
+import 'package:gardenme/services/theme_service.dart';
 
 class ProfileCard extends StatelessWidget {
   const ProfileCard({super.key});
@@ -37,16 +37,6 @@ class ProfileCard extends StatelessWidget {
     }
   }
 
-  // --- Lógica dos Subtítulos de Streak ---
-  String? _getStreakSubtitle(int streak) {
-    if (streak >= 45) return "Que Não Falha";
-    if (streak >= 35) return "Raízes Profundas";
-    if (streak >= 25) return "Implacável";
-    if (streak >= 15) return "Sempre Verde";
-    if (streak >= 5) return "Incansável";
-    return null;
-  }
-
   ImageProvider _getAvatarImage(String? fotoPath) {
     if (fotoPath != null && fotoPath.isNotEmpty) {
       try {
@@ -67,321 +57,338 @@ class ProfileCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
-    
-    // Verifica se o tema atual é escuro
-    final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
 
-    return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('usuarios')
-          .doc(uid)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    return AnimatedBuilder(
+      animation: ThemeService.instance,
+      builder: (context, child) {
+        final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
 
-        if (!snapshot.hasData || !snapshot.data!.exists) {
-          return const Center(
-            child: Text(
-              "Perfil não encontrado",
-              style: TextStyle(color: Colors.white),
-            ),
-          );
-        }
+        // --- DEFINIÇÃO DE CORES DINÂMICAS PARA O CARD DE NÍVEL ---
+        final levelCardBg =
+            isDark ? const Color(0xff344E41) : const Color(0xFFa7c957);
+        final levelCardText =
+            isDark ? const Color(0xFFa7c957) : const Color(0xff344E41);
 
-        var userData = snapshot.data!.data() as Map<String, dynamic>;
-        int pontos = userData['pontos'] ?? 0;
-        int diasSeguidos = userData['streak_atual'] ?? 0;
+        return StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('usuarios')
+              .doc(uid)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-        verificarStreak(uid, diasSeguidos);
+            if (!snapshot.hasData || !snapshot.data!.exists) {
+              return const Center(
+                child: Text(
+                  "Perfil não encontrado",
+                  style: TextStyle(color: Colors.white),
+                ),
+              );
+            }
 
-        // --- Lógica dos Níveis ---
-        String nivelNome;
-        int minPontos;
-        int maxPontos;
+            var userData = snapshot.data!.data() as Map<String, dynamic>;
+            int pontos = userData['pontos'] ?? 0;
+            int diasSeguidos = userData['streak_atual'] ?? 0;
 
-        if (pontos < 100) {
-          nivelNome = "Regador Iniciante";
-          minPontos = 0;
-          maxPontos = 100;
-        } else if (pontos < 200) {
-          nivelNome = "Dedo Verde em Treinamento";
-          minPontos = 100;
-          maxPontos = 200;
-        } else if (pontos < 400) {
-          nivelNome = "Encantador(a) de Plantas";
-          minPontos = 200;
-          maxPontos = 400;
-        } else if (pontos < 600) {
-          nivelNome = "Mago Verde Certificado";
-          minPontos = 400;
-          maxPontos = 600;
-        } else if (pontos < 800) {
-          nivelNome = "Guardião Supremo do Jardim";
-          minPontos = 600;
-          maxPontos = 800;
-        } else {
-          nivelNome = "Lenda do Dedo Verde";
-          minPontos = 800;
-          maxPontos = 800;
-        }
+            verificarStreak(uid, diasSeguidos);
 
-        double progressoVisivel = pontos >= 800
-            ? 1.0
-            : (pontos - minPontos) / (maxPontos - minPontos);
+            // --- Lógica dos Níveis ---
+            String nivelNome;
+            int minPontos;
+            int maxPontos;
 
-        progressoVisivel = progressoVisivel.clamp(0.0, 1.0);
-        int pontosFaltantes = pontos >= 800 ? 0 : maxPontos - pontos;
+            if (pontos < 100) {
+              nivelNome = "Regador Iniciante";
+              minPontos = 0;
+              maxPontos = 100;
+            } else if (pontos < 200) {
+              nivelNome = "Dedo Verde em Treinamento";
+              minPontos = 100;
+              maxPontos = 200;
+            } else if (pontos < 400) {
+              nivelNome = "Encantador(a) de Plantas";
+              minPontos = 200;
+              maxPontos = 400;
+            } else if (pontos < 600) {
+              nivelNome = "Mago Verde Certificado";
+              minPontos = 400;
+              maxPontos = 600;
+            } else if (pontos < 800) {
+              nivelNome = "Guardião Supremo do Jardim";
+              minPontos = 600;
+              maxPontos = 800;
+            } else {
+              nivelNome = "Lenda do Dedo Verde";
+              minPontos = 800;
+              maxPontos = 800;
+            }
 
-        final avatarImage = _getAvatarImage(userData['foto_url']);
+            double progressoVisivel = pontos >= 800
+                ? 1.0
+                : (pontos - minPontos) / (maxPontos - minPontos);
 
-        return Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: const Color(0xff588157),
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 10,
-                offset: const Offset(0, 5),
+            progressoVisivel = progressoVisivel.clamp(0.0, 1.0);
+            int pontosFaltantes = pontos >= 800 ? 0 : maxPontos - pontos;
+
+            final avatarImage = _getAvatarImage(userData['foto_url']);
+
+            return Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: const Color(0xff588157),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 10,
+                    offset: Offset(0, 5),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Stack(
-                alignment: Alignment.center,
-                clipBehavior: Clip.none,
+              child: Column(
                 children: [
-                  // FOTO DE PERFIL
-                  CircleAvatar(
-                    radius: 60,
-                    backgroundColor: const Color(0xFFa7c957).withOpacity(0.5),
-                    child: CircleAvatar(
-                      radius: 56,
-                      backgroundImage: avatarImage,
+                  Stack(
+                    alignment: Alignment.center,
+                    clipBehavior: Clip.none,
+                    children: [
+                      // FOTO DE PERFIL
+                      CircleAvatar(
+                        radius: 60,
+                        backgroundColor:
+                            const Color(0xFFa7c957).withOpacity(0.5),
+                        child: CircleAvatar(
+                          radius: 56,
+                          backgroundImage: avatarImage,
+                        ),
+                      ),
+
+                      // ÍCONE DE STREAK
+                      Positioned(
+                        right: -110,
+                        top: -15,
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.local_fire_department_rounded,
+                              color: diasSeguidos > 0
+                                  ? Colors.orange
+                                  : Colors.white24,
+                              size: 35,
+                            ),
+                            // Texto do contador
+                            Text(
+                              "$diasSeguidos d",
+                              style: TextStyle(
+                                color: diasSeguidos > 0
+                                    ? const Color(0xFFFF6D00)
+                                    : Colors.white24,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 16,
+                                shadows: [
+                                  BoxShadow(
+                                    color: Colors.orangeAccent.withOpacity(0.2),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    "${userData['nome']} ${userData['sobrenome'] ?? ''}",
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xfff2f2f2),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // --- CARD DE NÍVEL (CORRIGIDO HITBOX) ---
+                  Container(
+                    width: double.infinity,
+                    // REMOVIDO PADDING DAQUI PARA O STACK COBRIR TUDO
+                    // padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+                    decoration: BoxDecoration(
+                      color: levelCardBg,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        // CONTEÚDO COM PADDING INTERNO
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 32, // Mantendo a altura maior solicitada
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                nivelNome,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  color: levelCardText,
+                                  fontSize: 21,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: LinearProgressIndicator(
+                                  value: progressoVisivel,
+                                  backgroundColor:
+                                      levelCardText.withOpacity(0.3),
+                                  valueColor: AlwaysStoppedAnimation(
+                                    levelCardText,
+                                  ),
+                                  minHeight: 12,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                pontos >= 800
+                                    ? 'Nível Máximo Alcançado!'
+                                    : '$pontosFaltantes Pontos para o próximo nível!',
+                                style: TextStyle(
+                                  color: levelCardText,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // BOTÃO DE INFO (AGORA DENTRO DA ÁREA DO STACK)
+                        Positioned(
+                          top: 0, // Encostado no topo do Container
+                          right: 0, // Encostado na direita do Container
+                          child: IconButton(
+                            onPressed: () {
+                              showModalBottomSheet(
+                                context: context,
+                                backgroundColor: Colors.transparent,
+                                isScrollControlled: true,
+                                builder: (_) => const GamificationModal(),
+                              );
+                            },
+                            icon: Icon(
+                              Icons.info_outline_rounded,
+                              size: 24,
+                              color: levelCardText,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 
-                  // ÍCONE DE STREAK
-                  Positioned(
-                    right: -110,
-                    top: -15,
-                    child: Column(
+                  const SizedBox(height: 25),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildStatItem(
+                        userData['plantas_count']?.toString() ?? "0",
+                        "Plantas",
+                      ),
+                      _buildDivider(),
+                      _buildStatItem(pontos.toString(), "Pontos"),
+                      _buildDivider(),
+                      _buildStatItem(
+                        userData['regas_count']?.toString() ?? "0",
+                        "Regas",
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 15,
+                      horizontal: 20,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white10),
+                    ),
+                    child: Row(
                       children: [
-                        Icon(
-                          Icons.local_fire_department_rounded,
-                          color:
-                              diasSeguidos > 0 ? Colors.orange : Colors.white24,
-                          size: 35,
+                        const CircleAvatar(
+                          backgroundColor: Color(0xFFA7C957),
+                          child: Icon(
+                            Icons.emoji_events_rounded,
+                            color: Color(0xff344E41),
+                          ),
                         ),
-                        // Texto do contador
-                        Text(
-                          "$diasSeguidos d",
-                          style: TextStyle(
-                            color: diasSeguidos > 0
-                                ? const Color(0xFFFF6D00)
-                                : Colors.white24,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 16,
-                            shadows: [
-                              BoxShadow(
-                                color: Colors.orangeAccent.withOpacity(0.2),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              )
+                        const SizedBox(width: 15),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                "Recorde Pessoal",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                "Melhor sequência: ${userData['melhor_streak'] ?? 0} dias",
+                                style: const TextStyle(
+                                  color: Colors.white60,
+                                  fontSize: 13,
+                                ),
+                              ),
                             ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                "${userData['nome']} ${userData['sobrenome'] ?? ''}",
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xfff2f2f2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              
-              // --- CARD DE NÍVEL (CORES INVERTIDAS) ---
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 20,
-                ),
-                decoration: BoxDecoration(
-                  // Fundo Verde Escuro
-                  color: const Color(0xff344E41),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          nivelNome,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            // Texto Verde Claro
-                            color: Color(0xFFa7c957),
-                            fontSize: 21,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: LinearProgressIndicator(
-                            value: progressoVisivel,
-                            backgroundColor: const Color(0xFFa7c957).withOpacity(0.3),
-                            valueColor: const AlwaysStoppedAnimation(
-                              Color(0xFFa7c957),
-                            ),
-                            minHeight: 12,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          pontos >= 800
-                              ? 'Nível Máximo Alcançado!'
-                              : '$pontosFaltantes Pontos para o próximo nível!',
-                          style: const TextStyle(
-                            color: Color(0xFFa7c957),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Positioned(
-                      top: -18,
-                      right: -18,
-                      child: IconButton(
-                        onPressed: () {
-                          showModalBottomSheet(
-                            context: context,
-                            backgroundColor: Colors.transparent,
-                            isScrollControlled: true,
-                            builder: (_) => const GamificationModal(),
-                          );
-                        },
-                        icon: const Icon(
-                          Icons.info_outline_rounded,
-                          size: 24,
-                          color: Color(0xFFa7c957),
-                        ),
+                  const SizedBox(height: 30),
+
+                  // --- BOTÃO EDITAR PERFIL ---
+                  ElevatedButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => EditProfilePage(userData: userData),
                       ),
                     ),
-                  ],
-                ),
-              ),
-              
-              const SizedBox(height: 25),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildStatItem(
-                    userData['plantas_count']?.toString() ?? "0",
-                    "Plantas",
-                  ),
-                  _buildDivider(),
-                  _buildStatItem(pontos.toString(), "Pontos"),
-                  _buildDivider(),
-                  _buildStatItem(
-                    userData['regas_count']?.toString() ?? "0",
-                    "Regas",
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isDark
+                          ? const Color(0xFF344e41)
+                          : const Color(0xFFA7C957),
+                      foregroundColor: isDark
+                          ? const Color(0xFFA7C957)
+                          : const Color(0xFF344e41),
+                      minimumSize: const Size(double.infinity, 55),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: const Text(
+                      'Editar Perfil',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 30),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 15,
-                  horizontal: 20,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white10),
-                ),
-                child: Row(
-                  children: [
-                    const CircleAvatar(
-                      backgroundColor: Color(0xFFA7C957),
-                      child: Icon(
-                        Icons.emoji_events_rounded,
-                        color: Color(0xff344E41),
-                      ),
-                    ),
-                    const SizedBox(width: 15),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "Recorde Pessoal",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            "Melhor sequência: ${userData['melhor_streak'] ?? 0} dias",
-                            style: const TextStyle(
-                              color: Colors.white60,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 30),
-              
-              // --- BOTÃO EDITAR PERFIL ---
-              ElevatedButton(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => EditProfilePage(userData: userData),
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  // AQUI: Aplicação das cores condicionais para o tema escuro/claro
-                  backgroundColor: isDark 
-                      ? const Color(0xFF344e41) // Fundo Escuro no tema Escuro
-                      : const Color(0xFFA7C957), // Fundo Claro no tema Claro
-                  foregroundColor: isDark 
-                      ? const Color(0xFFA7C957) // Texto Claro no tema Escuro
-                      : const Color(0xFF344e41), // Texto Escuro no tema Claro
-                  minimumSize: const Size(double.infinity, 55),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-                child: const Text(
-                  'Editar Perfil',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

@@ -4,7 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:gardenme/components/curved_background.dart';
 import 'package:gardenme/models/planta.dart';
 import 'package:gardenme/services/planta_service.dart';
-import 'package:gardenme/services/theme_service.dart'; //
+import 'package:gardenme/services/theme_service.dart';
 
 class EditPlantPage extends StatefulWidget {
   final Planta planta;
@@ -36,7 +36,6 @@ class _EditPlantPageState extends State<EditPlantPage> {
     super.dispose();
   }
 
-  // ... (métodos _selecionarImagem, _mostrarOpcoesFoto, _getImagemProvider, _salvar iguais) ...
   Future<void> _selecionarImagem(ImageSource source) async {
     final ImagePicker picker = ImagePicker();
     try {
@@ -55,11 +54,13 @@ class _EditPlantPageState extends State<EditPlantPage> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      // isScrollControlled: true, // Opcional: Se quiser que o modal possa crescer mais se necessário
       builder: (context) {
-        return Container(
+        // CORREÇÃO: Removida a altura fixa e usado MainAxisSize.min
+        return Padding(
           padding: const EdgeInsets.all(20),
-          height: 180,
           child: Column(
+            mainAxisSize: MainAxisSize.min, // O modal ocupa apenas o espaço necessário
             children: [
               const Text("Alterar foto da planta", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 20),
@@ -79,6 +80,8 @@ class _EditPlantPageState extends State<EditPlantPage> {
                   _selecionarImagem(ImageSource.camera);
                 },
               ),
+              // Espaçamento extra para garantir que não fique colado na borda inferior
+              const SizedBox(height: 10), 
             ],
           ),
         );
@@ -225,7 +228,6 @@ class _EditPlantPageState extends State<EditPlantPage> {
 
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    // AQUI: Lógica de cores condicional
                     backgroundColor: isDark 
                         ? const Color(0xFF344e41) 
                         : const Color(0xFFA7C957),
