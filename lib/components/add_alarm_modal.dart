@@ -140,10 +140,12 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
               widget.alarmeParaEditar != null
                   ? "Alarme atualizado! 🔄"
                   : "Alarme salvo! ⏰",
+              // Cor do texto forçada: Verde Escuro
               style: const TextStyle(
                   color: Color(0xFF344e41), fontWeight: FontWeight.bold),
             ),
-            backgroundColor: const Color(0xFFA7C957), // Verde Claro
+            // Fundo forçado: Branco
+            backgroundColor: Colors.white,
           ),
         );
       }
@@ -174,7 +176,6 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            // AQUI: Texto alterado para branco, mantendo o emoji
             content: Text(
               "Alarme excluído! 🗑️",
               style:

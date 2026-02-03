@@ -31,15 +31,19 @@ class _DetailedPlantState extends State<DetailedPlant> {
   }
 
   Future<void> _toggleRega() async {
+    // REGRA DE CORES FIXA: Fundo Branco / Texto Verde Escuro
+    const Color snackBarBg = Colors.white;
+    const Color snackBarText = Color(0xFF344e41);
+
     if (_regaAtual) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
             'Você já cuidou desta planta hoje! 🌱',
-            style: TextStyle(color: Color(0xFF344e41), fontWeight: FontWeight.bold),
+            style: TextStyle(color: snackBarText, fontWeight: FontWeight.bold),
           ),
           duration: Duration(seconds: 2),
-          backgroundColor: Color(0xFFA7C957), // Verde Claro
+          backgroundColor: snackBarBg,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -60,10 +64,10 @@ class _DetailedPlantState extends State<DetailedPlant> {
         const SnackBar(
           content: Text(
             'Planta regada com amor! 💧 +10 XP',
-            style: TextStyle(color: Color(0xFF344e41), fontWeight: FontWeight.bold),
+            style: TextStyle(color: snackBarText, fontWeight: FontWeight.bold),
           ),
           duration: Duration(seconds: 2),
-          backgroundColor: Color(0xFFA7C957), // Verde Claro
+          backgroundColor: snackBarBg,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -139,7 +143,7 @@ class _DetailedPlantState extends State<DetailedPlant> {
       nome: _nomeExibido,
       imagemUrl: _imagemExibida,
       rega: _regaAtual,
-      dataCriacao: widget.planta.dataCriacao, // Mantém a data original
+      dataCriacao: widget.planta.dataCriacao,
       estacaoIdeal: widget.planta.estacaoIdeal,
       regaDica: widget.planta.regaDica,
       tipoTerra: widget.planta.tipoTerra,
@@ -218,13 +222,14 @@ class _DetailedPlantState extends State<DetailedPlant> {
       await _plantaService.removerPlanta(widget.planta);
       
       if (mounted) {
+        // SnackBar Vermelha (Erro/Exclusão) mantida inalterada
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
               'Planta excluída com sucesso!',
               style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             ),
-            backgroundColor: Color(0xFFbc4749), // Vermelho padrão do app
+            backgroundColor: Color(0xFFbc4749), 
             behavior: SnackBarBehavior.floating,
             duration: Duration(seconds: 2),
           ),
@@ -234,7 +239,6 @@ class _DetailedPlantState extends State<DetailedPlant> {
     }
   }
 
-  // Helper para formatar a data manualmente sem depender do 'intl'
   String _formatarData(DateTime data) {
     String dia = data.day.toString().padLeft(2, '0');
     String mes = data.month.toString().padLeft(2, '0');
@@ -448,7 +452,7 @@ class _DetailedPlantState extends State<DetailedPlant> {
             style: const TextStyle(
               color: Colors.white,
               fontSize: 16,
-              fontWeight: FontWeight.w500, // Peso médio para leitura agradável
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

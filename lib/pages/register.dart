@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gardenme/components/curved_background.dart';
 import 'package:gardenme/pages/login.dart';
-import 'package:gardenme/services/theme_service.dart'; //
+import 'package:gardenme/services/theme_service.dart';
 
 class RegisterAccount extends StatefulWidget {
   const RegisterAccount({super.key});
@@ -74,9 +74,11 @@ class _MyLoginState extends State<RegisterAccount> {
       });
 
       if (mounted) {
+        // SUCESSO: Fundo Branco e Texto Verde Escuro (Fixo para ambos os temas)
         _mostrarSnackBar(
           'Conta criada com sucesso!',
-          cor: const Color(0xff6a994e),
+          cor: Colors.white,
+          textoCor: darkGreen,
         );
 
         Navigator.pushAndRemoveUntil(
@@ -94,16 +96,24 @@ class _MyLoginState extends State<RegisterAccount> {
       } else if (e.code == 'invalid-email') {
         erro = 'O formato do e-mail é inválido.';
       }
+      // ERRO: Vermelho (Mantedo padrão)
       _mostrarSnackBar(erro, cor: Colors.redAccent);
     } catch (e) {
       _mostrarSnackBar('Erro inesperado: $e');
     }
   }
 
-  void _mostrarSnackBar(String mensagem, {Color cor = Colors.black87}) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(mensagem), backgroundColor: cor));
+  void _mostrarSnackBar(String mensagem,
+      {Color cor = Colors.black87, Color textoCor = Colors.white}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          mensagem,
+          style: TextStyle(color: textoCor, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: cor,
+      ),
+    );
   }
 
   @override
@@ -138,7 +148,6 @@ class _MyLoginState extends State<RegisterAccount> {
                   height: 200,
                 ),
                 const SizedBox(height: 20),
-
                 Column(
                   children: [
                     Row(
@@ -148,7 +157,6 @@ class _MyLoginState extends State<RegisterAccount> {
                           "Cadastro de usuário",
                           style: TextStyle(
                             fontSize: 20,
-                            // AQUI: Cor condicional baseada no tema (Mantida)
                             color: isDark ? highlightColor : darkGreen,
                           ),
                         ),
@@ -179,7 +187,6 @@ class _MyLoginState extends State<RegisterAccount> {
                                 fontWeight: FontWeight.bold,
                                 decoration: TextDecoration.underline,
                                 fontSize: 16,
-                                // AQUI: Texto alterado para branco fixo
                                 color: Colors.white,
                               ),
                             ),
@@ -189,9 +196,7 @@ class _MyLoginState extends State<RegisterAccount> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 20),
-
                 SizedBox(
                   width: 320,
                   child: TextField(
@@ -216,9 +221,7 @@ class _MyLoginState extends State<RegisterAccount> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
                 SizedBox(
                   width: 320,
                   child: TextField(
@@ -243,9 +246,7 @@ class _MyLoginState extends State<RegisterAccount> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
                 SizedBox(
                   width: 320,
                   child: TextField(
@@ -270,9 +271,7 @@ class _MyLoginState extends State<RegisterAccount> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
                 SizedBox(
                   width: 320,
                   child: TextField(
@@ -297,9 +296,7 @@ class _MyLoginState extends State<RegisterAccount> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
                 SizedBox(
                   width: 320,
                   child: TextField(
@@ -324,9 +321,7 @@ class _MyLoginState extends State<RegisterAccount> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
                 SizedBox(
                   width: 320,
                   child: TextField(
@@ -365,9 +360,7 @@ class _MyLoginState extends State<RegisterAccount> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
                 SizedBox(
                   width: 320,
                   child: TextField(
@@ -406,7 +399,6 @@ class _MyLoginState extends State<RegisterAccount> {
                     ),
                   ),
                 ),
-
                 Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
@@ -415,9 +407,7 @@ class _MyLoginState extends State<RegisterAccount> {
                         width: 200,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            // Fundo Verde Claro
                             backgroundColor: highlightColor,
-                            // Texto Verde Escuro (#344e41)
                             foregroundColor: darkGreen,
                           ),
                           onPressed: _cadastrarUsuario,

@@ -55,13 +55,11 @@ class _EditPlantPageState extends State<EditPlantPage> {
       context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) {
-        // Modal ajustado para não quebrar layout e com texto corrigido
         return Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
-            mainAxisSize: MainAxisSize.min, // Ocupa apenas o espaço necessário
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // TEXTO ATUALIZADO AQUI
               const Text("Escolha uma opção", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 20),
               ListTile(
@@ -132,9 +130,11 @@ class _EditPlantPageState extends State<EditPlantPage> {
           const SnackBar(
             content: Text(
               "Planta atualizada! 🌱",
+              // Cor do texto forçada: Verde Escuro
               style: TextStyle(color: Color(0xFF344e41), fontWeight: FontWeight.bold),
             ),
-            backgroundColor: Color(0xFFA7C957), // Verde Claro
+            // Fundo forçado: Branco
+            backgroundColor: Colors.white,
           )
         );
         
@@ -163,7 +163,7 @@ class _EditPlantPageState extends State<EditPlantPage> {
           curvedBackground(
             showHeader: true,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24), // Espaçamento padronizado
+              padding: const EdgeInsets.all(24),
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
@@ -253,7 +253,6 @@ class _EditPlantPageState extends State<EditPlantPage> {
               ),
             ),
           ),
-          // Botão de voltar
           Positioned(
             top: 40,
             left: 20,

@@ -186,9 +186,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
             const SnackBar(
               content: Text(
                 "Perfil atualizado com sucesso!",
+                // Cor do texto forçada: Verde Escuro
                 style: TextStyle(color: Color(0xFF344e41), fontWeight: FontWeight.bold),
               ),
-              backgroundColor: Color(0xFFA7C957), // Verde Claro
+              // Fundo forçado: Branco
+              backgroundColor: Colors.white,
             ),
         );
         Navigator.pop(context);
@@ -229,9 +231,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
           curvedBackground(
             showHeader: true,
             child: SingleChildScrollView(
-              // PADRONIZAÇÃO: Topo 24, Laterais 24.
-              // O Header do curvedBackground já ocupa o espaço inicial, então o padding 24
-              // dá o espaçamento exato entre o fim do Header e o card.
               padding: EdgeInsets.fromLTRB(
                   24, 24, 24, tecladoAltura > 0 ? tecladoAltura + 20 : 100),
               child: Container(
@@ -373,7 +372,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ),
             ),
           ),
-          // Botão de voltar padronizado
           Positioned(
             top: 40,
             left: 20,

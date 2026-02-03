@@ -73,12 +73,14 @@ class _AddPlantModalState extends State<AddPlantModal> {
       SnackBar(
         content: Text(
           msg,
+          // Cor do texto forçada: Verde Escuro
           style: const TextStyle(
-            color: Color(0xff386641), // Texto Verde Escuro
+            color: Color(0xff386641), 
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: const Color(0xffa7c957), // Fundo Verde Claro
+        // Fundo forçado: Branco (independente do tema)
+        backgroundColor: Colors.white,
       ),
     );
   }
