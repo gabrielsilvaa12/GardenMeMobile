@@ -1,9 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gardenme/components/curved_background.dart';
-import 'package:gardenme/pages/login.dart'; // ADICIONE ESTE IMPORT
-
-enum ThemeOption { claro, escuro, folha }
+import 'package:gardenme/pages/login.dart';
+import 'package:gardenme/services/notification_service.dart';
+import 'package:gardenme/services/alarme_service.dart';
+import 'package:gardenme/services/theme_service.dart';
 
 class Settings extends StatefulWidget {
   const Settings({super.key});
@@ -13,11 +14,50 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
-  ThemeOption _selectedTheme = ThemeOption.folha;
-  bool _notificacoesAtivas = true;
-  bool _alertasClimaticos = true;
+  bool _notificacoesAtivas = false;
+  // REMOVIDO: bool _alertasClimaticos = true;
+  bool _carregando = true;
 
-  // --- Widgets Auxiliares ---
+  @override
+  void initState() {
+    super.initState();
+    _carregarPreferencias();
+  }
+
+  Future<void> _carregarPreferencias() async {
+    bool ativoNoApp = await NotificationService().getAppNotificationStatus();
+    bool permitidoSistema =
+        await NotificationService().verificarPermissoesSistema();
+
+    if (mounted) {
+      setState(() {
+        _notificacoesAtivas = ativoNoApp && permitidoSistema;
+        _carregando = false;
+      });
+    }
+  }
+
+  Future<void> _handleNotificationToggle(bool newValue) async {
+    if (newValue) {
+      bool permitido = await NotificationService().verificarPermissoesSistema();
+
+      if (!permitido) {
+        permitido = await NotificationService().solicitarPermissoes();
+      }
+
+      if (permitido) {
+        await NotificationService().setAppNotificationStatus(true);
+        setState(() => _notificacoesAtivas = true);
+        await AlarmeService().reagendarTodosAlarmes();
+      } else {
+        setState(() => _notificacoesAtivas = false);
+      }
+    } else {
+      await NotificationService().setAppNotificationStatus(false);
+      setState(() => _notificacoesAtivas = false);
+      await NotificationService().cancelarTodasNotificacoes();
+    }
+  }
 
   Widget _buildSectionTitle(String title) {
     return Padding(
@@ -25,10 +65,9 @@ class _SettingsState extends State<Settings> {
       child: Text(
         title,
         style: const TextStyle(
-          color: Color(0xfff2f2f2),
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
+            color: Color(0xfff2f2f2),
+            fontSize: 20,
+            fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -48,35 +87,32 @@ class _SettingsState extends State<Settings> {
         style: const TextStyle(color: Color(0xfff2f2f2), fontSize: 16),
       ),
       value: value,
-      groupValue: _selectedTheme,
+      groupValue: ThemeService.instance.currentTheme,
       onChanged: (ThemeOption? newValue) {
         if (newValue != null) {
-          setState(() => _selectedTheme = newValue);
+          ThemeService.instance.setTheme(newValue);
+          setState(() {});
         }
       },
       activeColor: const Color(0xfff2f2f2),
-      fillColor: WidgetStateProperty.resolveWith(
-        (states) => const Color(0xfff2f2f2),
-      ),
+      fillColor:
+          WidgetStateProperty.resolveWith((states) => const Color(0xfff2f2f2)),
       visualDensity: VisualDensity.compact,
       contentPadding: EdgeInsets.zero,
     );
   }
 
   Widget _buildNotificationOption(
-    String title,
-    bool value,
-    ValueChanged<bool> onChanged,
-  ) {
+      String title, bool value, ValueChanged<bool> onChanged) {
+    
     return SwitchListTile(
       title: Text(
         title,
         style: const TextStyle(color: Color(0xfff2f2f2), fontSize: 16),
       ),
       value: value,
-      onChanged: (bool newValue) {
-        setState(() => onChanged(newValue));
-      },
+      onChanged: onChanged,
+      // TOGGLES AGORA SEMPRE VERDE CLARO QUANDO ATIVOS
       activeTrackColor: const Color(0xFFA7C957),
       activeColor: const Color(0xfff2f2f2),
       inactiveThumbColor: const Color(0xfff2f2f2),
@@ -86,12 +122,8 @@ class _SettingsState extends State<Settings> {
     );
   }
 
-  Widget _buildLinkText(
-    String text,
-    VoidCallback onTap, {
-    Color color = const Color(0xFFA7C957),
-    IconData? icone,
-  }) {
+  Widget _buildLinkText(String text, VoidCallback onTap,
+      {Color color = const Color(0xFFA7C957), IconData? icone}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: GestureDetector(
@@ -101,17 +133,14 @@ class _SettingsState extends State<Settings> {
           children: [
             if (icone != null) ...[
               Icon(icone, color: color, size: 20),
-              const SizedBox(width: 8),
+              const SizedBox(width: 8)
             ],
-            Text(
-              text,
-              style: TextStyle(
-                color: color,
-                decoration: TextDecoration.underline,
-                decorationColor: color,
-                fontSize: 16,
-              ),
-            ),
+            Text(text,
+                style: TextStyle(
+                    color: color,
+                    decoration: TextDecoration.underline,
+                    decorationColor: color,
+                    fontSize: 16)),
           ],
         ),
       ),
@@ -133,47 +162,30 @@ class _SettingsState extends State<Settings> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 40,
-              height: 5,
-              decoration: BoxDecoration(
-                color: Colors.white24,
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
+                width: 40,
+                height: 5,
+                decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(10))),
             const SizedBox(height: 30),
-            Text(
-              titulo,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            Text(titulo,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
-            Text(
-              conteudo,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 16,
-                height: 1.5,
-              ),
-            ),
+            Text(conteudo,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    color: Colors.white70, fontSize: 16, height: 1.5)),
             const SizedBox(height: 30),
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFA7C957),
-                foregroundColor: const Color(0xFF3A5A40),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                minimumSize: const Size(150, 45),
-              ),
-              child: const Text(
-                "Entendi",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+                  backgroundColor: const Color(0xFFA7C957),
+                  foregroundColor: const Color(0xFF3A5A40)),
+              child: const Text("Entendi",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -184,96 +196,82 @@ class _SettingsState extends State<Settings> {
   @override
   Widget build(BuildContext context) {
     return curvedBackground(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(25, 24, 25, 150),
-        child: Center(
-          child: Container(
-            width: 364,
-            decoration: BoxDecoration(
-              color: const Color(0xff588157),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 10,
-                  offset: const Offset(0, 5),
+      child: _carregando
+          ? const Center(child: CircularProgressIndicator(color: Colors.white))
+          : SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(25, 24, 25, 150),
+              child: Center(
+                child: Container(
+                  width: 364,
+                  decoration: BoxDecoration(
+                    color: const Color(0xff588157),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5)),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 32),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionTitle("Tema"),
+                        _buildThemeOption(ThemeOption.claro, "Claro"),
+                        _buildThemeOption(ThemeOption.escuro, "Escuro"),
+                        _buildDivider(),
+
+                        _buildSectionTitle("Notificações"),
+                        _buildNotificationOption(
+                          "Ativar notificações",
+                          _notificacoesAtivas,
+                          _handleNotificationToggle,
+                        ),
+                        // REMOVIDO: Botão de Alertas Climáticos
+                        
+                        _buildDivider(),
+
+                        _buildSectionTitle("Sobre o GardenMe"),
+                        _buildLinkText(
+                            "Termos de Uso",
+                            () => _mostrarInfoModal(
+                                context, "Termos de Uso", "Ao utilizar o GardenMe...")),
+                        _buildLinkText(
+                            "Política de Privacidade",
+                            () => _mostrarInfoModal(
+                                context, "Privacidade", "Os teus dados...")),
+                        const SizedBox(height: 25),
+                        Center(
+                          child: _buildLinkText(
+                            "Sair da Conta",
+                            () async {
+                              await FirebaseAuth.instance.signOut();
+                              if (context.mounted) {
+                                Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute(
+                                      builder: (context) => const MyLogin()),
+                                  (route) => false,
+                                );
+                              }
+                            },
+                            color: Colors.redAccent,
+                            icone: Icons.logout,
+                          ),
+                        ),
+                        const SizedBox(height: 25),
+                        const Center(
+                            child: Text("Versão 1.0.0",
+                                style: TextStyle(
+                                    color: Colors.white38, fontSize: 12))),
+                      ],
+                    ),
+                  ),
                 ),
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSectionTitle("Tema"),
-                  _buildThemeOption(ThemeOption.claro, "Claro"),
-                  _buildThemeOption(ThemeOption.escuro, "Escuro"),
-                  _buildThemeOption(ThemeOption.folha, "Folha"),
-
-                  _buildDivider(),
-
-                  _buildSectionTitle("Notificações"),
-                  _buildNotificationOption(
-                    "Ativar notificações",
-                    _notificacoesAtivas,
-                    (v) => setState(() => _notificacoesAtivas = v),
-                  ),
-                  _buildNotificationOption(
-                    "Alertas climáticos",
-                    _alertasClimaticos,
-                    (v) => setState(() => _alertasClimaticos = v),
-                  ),
-
-                  _buildDivider(),
-
-                  _buildSectionTitle("Sobre o GardenMe"),
-                  _buildLinkText("Termos de Uso", () {
-                    _mostrarInfoModal(
-                      context,
-                      "Termos de Uso",
-                      "Ao utilizar o GardenMe, concordas em cuidar bem das tuas plantas e espalhar o verde pela comunidade.",
-                    );
-                  }),
-                  _buildLinkText("Política de Privacidade", () {
-                    _mostrarInfoModal(
-                      context,
-                      "Privacidade",
-                      "Os teus dados são encriptados e utilizados apenas para melhorar a tua experiência de jardinagem.",
-                    );
-                  }),
-
-                  const SizedBox(height: 25),
-                  Center(
-                    child: _buildLinkText(
-                      "Sair da Conta",
-                      () async {
-                        await FirebaseAuth.instance.signOut();
-                        // Força a volta para a tela de login ao sair
-                        if (context.mounted) {
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(builder: (context) => const MyLogin()),
-                            (route) => false,
-                          );
-                        }
-                      },
-                      color: Colors.redAccent,
-                      icone: Icons.logout,
-                    ),
-                  ),
-
-                  const SizedBox(height: 25),
-                  const Center(
-                    child: Text(
-                      "Versão 1.0.0",
-                      style: TextStyle(color: Colors.white38, fontSize: 12),
-                    ),
-                  ),
-                ],
               ),
             ),
-          ),
-        ),
-      ),
     );
   }
 }

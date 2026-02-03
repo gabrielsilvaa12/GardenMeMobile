@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:gardenme/components/curved_background.dart';
 import 'package:gardenme/models/planta.dart';
 import 'package:gardenme/services/planta_service.dart';
+import 'package:gardenme/services/theme_service.dart';
 
 class EditPlantPage extends StatefulWidget {
   final Planta planta;
@@ -21,7 +22,7 @@ class _EditPlantPageState extends State<EditPlantPage> {
   File? _novaImagemLocal;
   String? _caminhoImagemAtual;
   bool _estaCarregando = false;
-
+  
   @override
   void initState() {
     super.initState();
@@ -54,12 +55,12 @@ class _EditPlantPageState extends State<EditPlantPage> {
       context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) {
-        return Container(
+        return Padding(
           padding: const EdgeInsets.all(20),
-          height: 180,
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Text("Alterar foto da planta", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const Text("Escolha uma opção", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 20),
               ListTile(
                 leading: const Icon(Icons.photo_library, color: Color(0xFF386641)),
@@ -77,6 +78,7 @@ class _EditPlantPageState extends State<EditPlantPage> {
                   _selecionarImagem(ImageSource.camera);
                 },
               ),
+              const SizedBox(height: 10),
             ],
           ),
         );
@@ -113,7 +115,6 @@ class _EditPlantPageState extends State<EditPlantPage> {
     try {
       String? caminhoFinal = _caminhoImagemAtual;
 
-      // Se selecionou nova imagem, usamos o novo caminho local
       if (_novaImagemLocal != null) {
         caminhoFinal = _novaImagemLocal!.path;
       }
@@ -125,8 +126,18 @@ class _EditPlantPageState extends State<EditPlantPage> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Planta atualizada! 🌱")));
-        // Retorna os novos dados para a tela anterior atualizar imediatamente
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Planta atualizada! 🌱",
+              // Cor do texto forçada: Verde Escuro
+              style: TextStyle(color: Color(0xFF344e41), fontWeight: FontWeight.bold),
+            ),
+            // Fundo forçado: Branco
+            backgroundColor: Colors.white,
+          )
+        );
+        
         Navigator.pop(context, {
           'novoNome': _nomeController.text.trim(),
           'novaImagem': caminhoFinal
@@ -143,96 +154,117 @@ class _EditPlantPageState extends State<EditPlantPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
+
     return Scaffold(
       backgroundColor: const Color(0xFFa7c957),
-      body: curvedBackground(
-        showHeader: true,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: const Color(0xff588157),
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.35), blurRadius: 15, offset: const Offset(0, 10))],
-            ),
-            child: Column(
-              children: [
-                const Text("Editar Planta", style: TextStyle(color: Color(0xFFf2f2f2), fontSize: 24, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 30),
-
-                GestureDetector(
-                  onTap: _mostrarOpcoesFoto,
-                  child: Stack(
-                    children: [
-                      Container(
-                        height: 150,
-                        width: 150,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFa7c957).withOpacity(0.5),
-                          shape: BoxShape.circle,
-                          image: DecorationImage(
-                            image: _getImagemProvider(),
-                            fit: BoxFit.cover,
-                          ),
-                          border: Border.all(color: const Color(0xfff2f2f2), width: 3),
-                        ),
-                      ),
-                      const Positioned(
-                        bottom: 0, right: 0,
-                        child: CircleAvatar(
-                          backgroundColor: Color(0xff386641),
-                          radius: 20,
-                          child: Icon(Icons.camera_alt, color: Color(0xfff2f2f2), size: 20),
-                        ),
-                      ),
-                    ],
-                  ),
+      body: Stack(
+        children: [
+          curvedBackground(
+            showHeader: true,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: const Color(0xff588157),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.35), blurRadius: 15, offset: const Offset(0, 10))],
                 ),
-
-                const SizedBox(height: 35),
-                
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Column(
                   children: [
-                    const Text("Nome da Planta", style: TextStyle(color: Color(0xFFf2f2f2), fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _nomeController,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.white.withOpacity(0.9),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(25), borderSide: BorderSide.none),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    const Text("Editar Planta", style: TextStyle(color: Color(0xFFf2f2f2), fontSize: 24, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 30),
+
+                    GestureDetector(
+                      onTap: _mostrarOpcoesFoto,
+                      child: Stack(
+                        children: [
+                          Container(
+                            height: 150,
+                            width: 150,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFa7c957).withOpacity(0.5),
+                              shape: BoxShape.circle,
+                              image: DecorationImage(
+                                image: _getImagemProvider(),
+                                fit: BoxFit.cover,
+                              ),
+                              border: Border.all(color: const Color(0xfff2f2f2), width: 3),
+                            ),
+                          ),
+                          const Positioned(
+                            bottom: 0, right: 0,
+                            child: CircleAvatar(
+                              backgroundColor: Color(0xff386641),
+                              radius: 20,
+                              child: Icon(Icons.camera_alt, color: Color(0xfff2f2f2), size: 20),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+
+                    const SizedBox(height: 35),
+                    
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("Nome da Planta", style: TextStyle(color: Color(0xFFf2f2f2), fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _nomeController,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white.withOpacity(0.9),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(25), borderSide: BorderSide.none),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 40),
+
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isDark 
+                            ? const Color(0xFF344e41) 
+                            : const Color(0xFFA7C957),
+                        foregroundColor: isDark 
+                            ? const Color(0xFFA7C957) 
+                            : const Color(0xFF344e41),
+                        minimumSize: const Size(double.infinity, 55),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                      ),
+                      onPressed: _estaCarregando ? null : _salvar,
+                      child: _estaCarregando
+                          ? const CircularProgressIndicator(color: Color(0xFFA7C957))
+                          : const Text("Salvar Alterações", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    ),
+                    
+                    const SizedBox(height: 15),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Cancelar", style: TextStyle(color: Color(0xfff2f2f2))),
+                    )
                   ],
                 ),
-
-                const SizedBox(height: 40),
-
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFA7C957),
-                    foregroundColor: const Color(0xFF3A5A40),
-                    minimumSize: const Size(double.infinity, 55),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                  ),
-                  onPressed: _estaCarregando ? null : _salvar,
-                  child: _estaCarregando
-                      ? const CircularProgressIndicator(color: Color(0xFF3A5A40))
-                      : const Text("Salvar Alterações", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                ),
-                
-                const SizedBox(height: 15),
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text("Cancelar", style: TextStyle(color: Color(0xfff2f2f2))),
-                )
-              ],
+              ),
             ),
           ),
-        ),
+          Positioned(
+            top: 40,
+            left: 20,
+            child: CircleAvatar(
+              backgroundColor: Colors.white.withOpacity(0.2),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

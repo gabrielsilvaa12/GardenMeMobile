@@ -4,6 +4,7 @@ import 'package:gardenme/models/planta.dart';
 import 'package:gardenme/pages/alarms_page.dart';
 import 'package:gardenme/pages/edit_plant_page.dart';
 import 'package:gardenme/services/planta_service.dart';
+import 'package:gardenme/services/theme_service.dart';
 
 class DetailedPlant extends StatefulWidget {
   final Planta planta;
@@ -19,12 +20,58 @@ class _DetailedPlantState extends State<DetailedPlant> {
   
   late String _nomeExibido;
   late String? _imagemExibida;
+  late bool _regaAtual; 
 
   @override
   void initState() {
     super.initState();
     _nomeExibido = widget.planta.nome;
     _imagemExibida = widget.planta.imagemUrl;
+    _regaAtual = widget.planta.rega; 
+  }
+
+  Future<void> _toggleRega() async {
+    // REGRA DE CORES FIXA: Fundo Branco / Texto Verde Escuro
+    const Color snackBarBg = Colors.white;
+    const Color snackBarText = Color(0xFF344e41);
+
+    if (_regaAtual) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Você já cuidou desta planta hoje! 🌱',
+            style: TextStyle(color: snackBarText, fontWeight: FontWeight.bold),
+          ),
+          duration: Duration(seconds: 2),
+          backgroundColor: snackBarBg,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return; 
+    }
+
+    await _plantaService.atualizarStatus(
+      widget.planta.id, 
+      rega: true,
+    );
+    
+    setState(() {
+      _regaAtual = true;
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Planta regada com amor! 💧 +10 XP',
+            style: TextStyle(color: snackBarText, fontWeight: FontWeight.bold),
+          ),
+          duration: Duration(seconds: 2),
+          backgroundColor: snackBarBg,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Widget _buildPlantImage() {
@@ -91,12 +138,12 @@ class _DetailedPlantState extends State<DetailedPlant> {
   }
 
   Future<void> _abrirTelaEdicao() async {
-    // CORRIGIDO: Passando os campos individuais corretamente
     final plantaAtual = Planta(
       id: widget.planta.id,
       nome: _nomeExibido,
       imagemUrl: _imagemExibida,
-      rega: widget.planta.rega,
+      rega: _regaAtual,
+      dataCriacao: widget.planta.dataCriacao,
       estacaoIdeal: widget.planta.estacaoIdeal,
       regaDica: widget.planta.regaDica,
       tipoTerra: widget.planta.tipoTerra,
@@ -131,22 +178,72 @@ class _DetailedPlantState extends State<DetailedPlant> {
   }
 
   Future<void> _excluirPlanta() async {
+    final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
+
     bool confirm = await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text("Excluir planta?"),
-        content: const Text("Isso apagará a planta e seus alarmes permanentemente."),
+        backgroundColor: isDark ? const Color(0xFF344e41) : const Color(0xfff2f2f2),
+        title: Text(
+          "Excluir planta?",
+          style: TextStyle(
+            color: isDark ? const Color(0xfff2f2f2) : const Color(0xFF344e41),
+            fontWeight: FontWeight.bold
+          ),
+        ),
+        content: Text(
+          "Isso apagará a planta e seus alarmes permanentemente.",
+          style: TextStyle(
+            color: isDark ? Colors.white : Colors.black87
+          ),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("Cancelar")),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text("Excluir", style: TextStyle(color: Colors.red))),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              "Cancelar",
+              style: TextStyle(
+                color: isDark ? const Color(0xFFA7C957) : const Color(0xFF344e41)
+              ),
+            )
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text(
+              "Excluir", 
+              style: TextStyle(color: Color(0xFFbc4749), fontWeight: FontWeight.bold)
+            )
+          ),
         ],
       ),
     ) ?? false;
 
     if (confirm) {
       await _plantaService.removerPlanta(widget.planta);
-      if (mounted) Navigator.pop(context); 
+      
+      if (mounted) {
+        // SnackBar Vermelha (Erro/Exclusão) mantida inalterada
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Planta excluída com sucesso!',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: Color(0xFFbc4749), 
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        Navigator.pop(context); 
+      }
     }
+  }
+
+  String _formatarData(DateTime data) {
+    String dia = data.day.toString().padLeft(2, '0');
+    String mes = data.month.toString().padLeft(2, '0');
+    String ano = data.year.toString();
+    return "$dia/$mes/$ano";
   }
 
   @override
@@ -155,6 +252,8 @@ class _DetailedPlantState extends State<DetailedPlant> {
     final umidade = widget.planta.regaDica ?? 'Verifique a umidade do solo regularmente.';
     final terra = widget.planta.tipoTerra ?? 'Terra vegetal preta rica em matéria orgânica.';
     final fertilizante = widget.planta.dicaFertilizante ?? 'Adubo orgânico ou NPK 10-10-10.';
+    
+    final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
 
     return Column(
       children: [
@@ -180,58 +279,80 @@ class _DetailedPlantState extends State<DetailedPlant> {
                   Positioned(
                     top: 16,
                     right: 16,
-                    child: InkWell(
-                      onTap: _irParaAlarmes,
-                      borderRadius: BorderRadius.circular(50),
-                      child: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: const Color(0xfff2f2f2),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
+                    child: Column(
+                      children: [
+                        // Botão Alarmes
+                        InkWell(
+                          onTap: _irParaAlarmes,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: const Color(0xfff2f2f2),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
-                          ],
+                            child: const Icon(
+                              Icons.notifications_none_outlined,
+                              color: Color(0xFF588157), 
+                              size: 24
+                            ),
+                          ),
                         ),
-                        child: const Icon(Icons.alarm, color: Color(0xFF588157), size: 24),
-                      ),
+                        
+                        const SizedBox(height: 12),
+                        
+                        // Botão Rega
+                        InkWell(
+                          onTap: _toggleRega,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            width: 50,
+                            height: 50, 
+                            decoration: BoxDecoration(
+                              color: _regaAtual
+                                  ? const Color(0xFF81D4FA) 
+                                  : const Color(0xFF81D4FA).withOpacity(0.5), 
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(Icons.water_drop_outlined, size: 24, color: Color(0xfff2f2f2)),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-
+              
               Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const SizedBox(width: 32), 
-                        Expanded(
-                          child: Text(
-                            _nomeExibido,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Color(0xfff2f2f2),
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                    Center(
+                      child: Text(
+                        _nomeExibido,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Color(0xfff2f2f2),
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
                         ),
-                        IconButton(
-                          onPressed: _abrirTelaEdicao,
-                          icon: const Icon(Icons.edit, color: Colors.white54, size: 22),
-                          tooltip: "Editar planta",
-                          splashRadius: 24,
-                        ),
-                      ],
+                      ),
                     ),
 
                     const SizedBox(height: 24),
@@ -271,17 +392,47 @@ class _DetailedPlantState extends State<DetailedPlant> {
 
                     SizedBox(
                       width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _abrirTelaEdicao,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isDark 
+                              ? const Color(0xFF344e41) 
+                              : const Color(0xFFA7C957),
+                          foregroundColor: isDark 
+                              ? const Color(0xFFA7C957) 
+                              : const Color(0xFF344e41),
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          elevation: 4, 
+                        ),
+                        child: const Text(
+                          "Editar Planta",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 15),
+
+                    SizedBox(
+                      width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: _excluirPlanta,
                         icon: const Icon(Icons.delete_outline, size: 26),
-                        label: const Text("Excluir Planta", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        label: const Text(
+                          "Excluir Planta", 
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFbc4749),
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
                           elevation: 4,
-                          shadowColor: const Color(0xFFbc4749).withOpacity(0.5),
                         ),
                       ),
                     ),
@@ -291,6 +442,20 @@ class _DetailedPlantState extends State<DetailedPlant> {
             ],
           ),
         ),
+
+        // --- EXIBIÇÃO DA DATA DE CRIAÇÃO ---
+        if (widget.planta.dataCriacao != null) ...[
+          const SizedBox(height: 20),
+          Text(
+            "Adicionada em ${_formatarData(widget.planta.dataCriacao!)}",
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ],
     );
   }

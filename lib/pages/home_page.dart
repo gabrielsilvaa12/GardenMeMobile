@@ -4,8 +4,8 @@ import 'package:gardenme/components/curved_background.dart';
 import 'package:gardenme/components/plant_card.dart';
 import 'package:gardenme/models/planta.dart';
 import 'package:gardenme/services/planta_service.dart';
+import 'package:gardenme/services/theme_service.dart';
 
-// ALTERAÇÃO 1: Mudamos para StatefulWidget para poder iniciar a verificação de alarmes
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
@@ -14,14 +14,11 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // Instância do serviço
   final PlantaService _plantaService = PlantaService();
 
   @override
   void initState() {
     super.initState();
-    // LÓGICA VITAL: Verifica se algum alarme venceu ao abrir a Home.
-    // Se venceu, a planta fica com status 'false' (Laranja) e permite regar novamente para ganhar pontos.
     _plantaService.verificarAlarmesVencidos();
   }
 
@@ -35,6 +32,19 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     }
 
+    // Verifica o tema atual para definir a cor do ícone
+    final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
+
+    // Cores
+    const Color lightGreen = Color(0xFFa7c957);
+    const Color darkGreen = Color(0xFF3A5A40);
+    
+    // Cor fixa branca para o texto
+    const Color fixedWhiteColor = Color(0xfff2f2f2);
+
+    // Lógica do ícone: Verde Claro no tema Claro / Verde Escuro no tema Escuro
+    final Color iconColor = isDark ? darkGreen : lightGreen;
+
     return InkWell(
       onTap: _abrirModal,
       borderRadius: BorderRadius.circular(50),
@@ -43,13 +53,13 @@ class _MyHomePageState extends State<MyHomePage> {
           CircleAvatar(
             radius: 30,
             backgroundColor: const Color(0xfff2f2f2),
-            child: const Icon(Icons.add, color: Color(0xff386641)),
+            child: Icon(Icons.add, color: iconColor),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Adicionar Planta',
             style: TextStyle(
-              color: Color(0xff386641),
+              color: fixedWhiteColor,
               fontWeight: FontWeight.bold,
               fontSize: 16,
             ),
@@ -61,95 +71,104 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
-      backgroundColor: const Color(0xFFa7c957),
-      body: Column(
-        children: [
-          Expanded(
-            child: curvedBackground(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Meu Jardim',
-                      style: TextStyle(
-                        color: Color(0xFF3A5A40),
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-                    Expanded(
-                      child: StreamBuilder<List<Planta>>(
-                        stream: _plantaService.getMinhasPlantas(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                              child: CircularProgressIndicator(
-                                color: Color(0xFF3A5A40),
-                              ),
-                            );
-                          }
+    return AnimatedBuilder(
+      animation: ThemeService.instance,
+      builder: (context, child) {
+        final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
+        
+        // Lógica de Cor para Títulos e Textos de destaque:
+        // Tema Claro -> Verde Escuro (0xFF3A5A40)
+        // Tema Escuro -> Verde Claro (0xFFa7c957)
+        final dynamicTextColor = isDark ? const Color(0xFFa7c957) : const Color(0xFF3A5A40);
 
-                          if (snapshot.hasError) {
-                            return const Center(
-                                child: Text('Erro ao carregar jardim.'));
-                          }
+        return Scaffold(
+          extendBody: true,
+          backgroundColor: const Color(0xFFa7c957),
+          body: Column(
+            children: [
+              Expanded(
+                child: curvedBackground(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 20),
+                        Text(
+                          'Meu Jardim',
+                          style: TextStyle(
+                            color: dynamicTextColor,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        Expanded(
+                          child: StreamBuilder<List<Planta>>(
+                            stream: _plantaService.getMinhasPlantas(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Color(0xFF3A5A40),
+                                  ),
+                                );
+                              }
 
-                          final plantas = snapshot.data ?? [];
+                              if (snapshot.hasError) {
+                                return const Center(
+                                    child: Text('Erro ao carregar jardim.'));
+                              }
 
-                          if (plantas.isEmpty) {
-                            return Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text("Seu jardim está vazio",
-                                    style: TextStyle(
-                                        color: Color(0xFF3A5A40),
-                                        fontSize: 18)),
-                                const SizedBox(height: 20),
-                                _buildAddPlantButton(context),
-                              ],
-                            );
-                          }
+                              final plantas = snapshot.data ?? [];
 
-                          return ListView.builder(
-                            itemCount: plantas.length +
-                                1, // +1 para o botão adicionar no final
-                            padding: EdgeInsets.zero,
-                            itemBuilder: (context, index) {
-                              // Se for o último item, renderiza o botão
-                              if (index == plantas.length) {
+                              if (plantas.isEmpty) {
                                 return Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
+                                    Text(
+                                      "Seu jardim está vazio",
+                                      style: TextStyle(
+                                          color: dynamicTextColor,
+                                          fontSize: 18),
+                                    ),
                                     const SizedBox(height: 20),
                                     _buildAddPlantButton(context),
-                                    const SizedBox(
-                                        height:
-                                            100), // Espaço extra para o menu inferior
                                   ],
                                 );
                               }
 
-                              final planta = plantas[index];
-                              // Este Card já contém a lógica de clique -> Atualizar Pontos
-                              return PlantCard(planta: planta);
+                              return ListView.builder(
+                                itemCount: plantas.length + 1,
+                                padding: EdgeInsets.zero,
+                                itemBuilder: (context, index) {
+                                  if (index == plantas.length) {
+                                    return Column(
+                                      children: [
+                                        const SizedBox(height: 20),
+                                        _buildAddPlantButton(context),
+                                        // AUMENTADO DE 100 PARA 180 PARA EVITAR QUE A NAVBAR CUBRA O BOTÃO
+                                        const SizedBox(height: 180),
+                                      ],
+                                    );
+                                  }
+
+                                  final planta = plantas[index];
+                                  return PlantCard(planta: planta);
+                                },
+                              );
                             },
-                          );
-                        },
-                      ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

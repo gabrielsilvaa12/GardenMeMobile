@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:gardenme/pages/login.dart';
 import 'package:gardenme/pages/main_page.dart';
 import 'package:gardenme/services/notification_service.dart';
+import 'package:gardenme/services/theme_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,54 +12,71 @@ void main() async {
   // Inicializa o Firebase
   await Firebase.initializeApp();
 
-  await Firebase.initializeApp();
-
+  // Inicializa o serviço de notificações
   final notificationService = NotificationService();
   await notificationService.init();
 
-  // É recomendável pedir permissões aqui ou na tela inicial.
-  // Mantendo aqui conforme seu código original:
-  await notificationService.requestPermissions();
+  // Pede permissão logo ao abrir
+  await notificationService.solicitarPermissoes();
 
-  // A CORREÇÃO PRINCIPAL ESTÁ AQUI:
-  // Você precisa chamar runApp para iniciar a interface do aplicativo
+  // Carrega o tema salvo ANTES de rodar a UI
+  await ThemeService.instance.loadTheme();
+
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+// Transformado em StatefulWidget para manter o estado do stream de autenticação
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  // Cache do stream para evitar recarregamento (flicker) ao mudar o tema
+  late final Stream<User?> _authStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _authStream = FirebaseAuth.instance.authStateChanges();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'GardenMe',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF3A5A40),
-        ),
-        useMaterial3: true,
-      ),
-      home: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(
-                  color: Color(0xFF3A5A40),
-                ),
-              ),
-            );
-          }
+    return ListenableBuilder(
+      listenable: ThemeService.instance,
+      builder: (context, child) {
+        return MaterialApp(
+          title: 'GardenMe',
+          debugShowCheckedModeBanner: false,
+          
+          theme: ThemeService.instance.getThemeData(),
 
-          if (snapshot.hasData) {
-            return const MainPage();
-          }
+          home: StreamBuilder<User?>(
+            // Usa o stream armazenado no estado
+            stream: _authStream,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFF3A5A40),
+                    ),
+                  ),
+                );
+              }
 
-          return const MyLogin();
-        },
-      ),
+              if (snapshot.hasData) {
+                return const MainPage();
+              }
+
+              return const MyLogin();
+            },
+          ),
+        );
+      },
     );
   }
 }

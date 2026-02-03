@@ -26,7 +26,6 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
   late String _tipoSelecionado;
   late List<int> _diasSelecionados;
 
-  // REMOVIDO "Poda" da lista
   final List<String> _tipos = ['Rega', 'Fertilização'];
 
   final Map<int, String> _diasMap = {
@@ -47,12 +46,7 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
     if (widget.alarmeParaEditar != null) {
       final a = widget.alarmeParaEditar!;
       _selectedTime = TimeOfDay(hour: a.hora, minute: a.minuto);
-
-      // Se estiver editando um alarme antigo que por acaso seja "Poda",
-      // ele manterá o tipo original até o usuário mudar, ou mudará para Rega se preferir forçar.
-      // Aqui mantemos o original para evitar erros visuais, mas a opção de selecionar "Poda" sumiu.
       _tipoSelecionado = a.tipo;
-
       _diasSelecionados = List.from(a.diasSemana);
     } else {
       _selectedTime = TimeOfDay.now();
@@ -62,7 +56,7 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
   }
 
   Future<void> _pedirPermissao() async {
-    await NotificationService().requestPermissions();
+    await NotificationService().solicitarPermissoes();
   }
 
   Future<void> _pickTime() async {
@@ -74,23 +68,19 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
           data: ThemeData(
             useMaterial3: true,
             colorScheme: const ColorScheme.light(
-              primary:
-                  Color(0xFFa7c957), // 🌱 Cor principal (Ponteiro e Seleção)
-              onPrimary:
-                  Color(0xFFf2f2f2), // Cor do texto sobre o verde principal
-              surface: Color(0xFFf2f2f2), // Fundo do modal
-              onSurface: Color(0xFFf2f2f2), // Texto comum e números do relógio
+              primary: Color(0xFFa7c957),
+              onPrimary: Color(0xFFf2f2f2),
+              surface: Color(0xFFf2f2f2),
+              onSurface: Color(0xFFf2f2f2),
             ),
             timePickerTheme: const TimePickerThemeData(
-              backgroundColor: Color(0xFF588157), // Fundo do modal
-              hourMinuteColor:
-                  Color(0xFF344e41), // Fundo dos retângulos de hora/minuto
-              hourMinuteTextColor: Color(0xFFf2f2f2), // Texto da hora/minuto
-              dialBackgroundColor:
-                  Color(0xFF588157), // Fundo do círculo do relógio
-              dialHandColor: Color(0xFFa7c957), // Cor do ponteiro
-              dialTextColor: Color(0xFFf2f2f2), // Cor dos números no círculo
-              entryModeIconColor: Color(0xFFa7c957), // Ícone de teclado
+              backgroundColor: Color(0xFF588157),
+              hourMinuteColor: Color(0xFF344e41),
+              hourMinuteTextColor: Color(0xFFf2f2f2),
+              dialBackgroundColor: Color(0xFF588157),
+              dialHandColor: Color(0xFFa7c957),
+              dialTextColor: Color(0xFFf2f2f2),
+              entryModeIconColor: Color(0xFFa7c957),
             ),
           ),
           child: child!,
@@ -146,10 +136,17 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(widget.alarmeParaEditar != null
+            content: Text(
+              widget.alarmeParaEditar != null
                   ? "Alarme atualizado! 🔄"
-                  : "Alarme salvo! ⏰"),
-              backgroundColor: const Color(0xFF386641)),
+                  : "Alarme salvo! ⏰",
+              // Cor do texto forçada: Verde Escuro
+              style: const TextStyle(
+                  color: Color(0xFF344e41), fontWeight: FontWeight.bold),
+            ),
+            // Fundo forçado: Branco
+            backgroundColor: Colors.white,
+          ),
         );
       }
     } catch (e) {
@@ -179,7 +176,11 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("Alarme excluído! 🗑️"),
+            content: Text(
+              "Alarme excluído! 🗑️",
+              style:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -252,7 +253,6 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
 
           const SizedBox(height: 20),
 
-          // Chips de Tipo (Agora sem Poda)
           Row(
             children: _tipos.map((tipo) {
               final isSelected = _tipoSelecionado == tipo;
@@ -262,9 +262,12 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
                   label: Text(tipo),
                   selected: isSelected,
                   selectedColor: const Color(0xFFA7C957),
+                  backgroundColor: Colors.white,
+                  side: BorderSide.none,
                   labelStyle: TextStyle(
-                      color:
-                          isSelected ? const Color(0xFF344e41) : Colors.black54,
+                      color: isSelected
+                          ? const Color(0xFF344e41)
+                          : Colors.grey,
                       fontWeight: FontWeight.bold),
                   onSelected: (bool selected) {
                     if (selected) setState(() => _tipoSelecionado = tipo);
@@ -282,9 +285,8 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
               decoration: BoxDecoration(
-                color: Color(0xFF344e41),
+                color: const Color(0xFF344e41),
                 borderRadius: BorderRadius.circular(15),
-                // border: Border.all(color: const Color(0xFFA7C957)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -331,12 +333,13 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
                     border: Border.all(
                         color: isSelected
                             ? const Color(0xFFA7C957)
-                            : Color(0xFF344e41)),
+                            : const Color(0xFF344e41)),
                   ),
                   child: Text(
                     letra,
                     style: TextStyle(
-                      color: isSelected ? Color(0xFF344e41) : Colors.black54,
+                      color:
+                          isSelected ? const Color(0xFF344e41) : Colors.black54,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

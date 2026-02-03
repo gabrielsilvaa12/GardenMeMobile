@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import necessário para o Firebase
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gardenme/components/curved_background.dart';
 import 'package:gardenme/pages/login.dart';
+import 'package:gardenme/services/theme_service.dart'; //
 
 class PasswordRecover extends StatefulWidget {
   const PasswordRecover({super.key});
@@ -11,11 +12,14 @@ class PasswordRecover extends StatefulWidget {
 }
 
 class _PasswordRecoverState extends State<PasswordRecover> {
-  // Controller para capturar o e-mail digitado
   final _emailController = TextEditingController();
   bool _estaCarregando = false;
 
-  // Função que envia o e-mail de recuperação
+  // Cor de destaque solicitada (Verde Claro)
+  final Color highlightColor = const Color(0xFFA7C957);
+  // Cor padrão do tema escuro (Verde Escuro)
+  final Color darkGreen = const Color(0xFF344e41);
+
   Future<void> _enviarEmailRecuperacao() async {
     final email = _emailController.text.trim();
 
@@ -32,12 +36,10 @@ class _PasswordRecoverState extends State<PasswordRecover> {
     setState(() => _estaCarregando = true);
 
     try {
-      // Comando do Firebase para reset de senha
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
 
       if (!mounted) return;
 
-      // Modal de aviso que o e-mail foi enviado
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -52,11 +54,11 @@ class _PasswordRecoverState extends State<PasswordRecover> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context); // Fecha o modal
+                Navigator.pop(context);
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => const MyLogin()),
-                ); // Volta para o Login
+                );
               },
               child: const Text(
                 "Entendi",
@@ -93,6 +95,9 @@ class _PasswordRecoverState extends State<PasswordRecover> {
 
   @override
   Widget build(BuildContext context) {
+    // Verifica o tema atual
+    final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
+
     return curvedBackground(
       showHeader: false,
       child: Container(
@@ -111,7 +116,7 @@ class _PasswordRecoverState extends State<PasswordRecover> {
                 SizedBox(
                   width: 320,
                   child: TextField(
-                    controller: _emailController, // Conectando o controller
+                    controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
                       filled: true,
@@ -140,13 +145,14 @@ class _PasswordRecoverState extends State<PasswordRecover> {
                     children: [
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
-                        child: const Text(
+                        child: Text(
                           " voltar ",
                           style: TextStyle(
                             decoration: TextDecoration.underline,
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
-                            color: Color(0xFFf2f2f2),
+                            // AQUI: Texto branco, mas mantendo o destaque (negrito/sublinhado)
+                            color: Colors.white,
                           ),
                         ),
                       ),
@@ -162,19 +168,21 @@ class _PasswordRecoverState extends State<PasswordRecover> {
                   width: 200,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xff3A5A40),
+                      // Lógica de cor condicional para o botão (MANTIDA)
+                      backgroundColor: isDark ? highlightColor : darkGreen,
+                      foregroundColor: isDark ? darkGreen : highlightColor,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                     onPressed: _estaCarregando
                         ? null
-                        : _enviarEmailRecuperacao, // Chamando a função
+                        : _enviarEmailRecuperacao,
                     child: _estaCarregando
                         ? const CircularProgressIndicator(color: Colors.white)
                         : const Text(
                             "Recuperar",
                             style: TextStyle(
-                              color: Color(0xFFf2f2f2),
                               fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                   ),

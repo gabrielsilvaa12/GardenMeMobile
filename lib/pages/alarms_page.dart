@@ -35,8 +35,6 @@ class _AlarmsPageState extends State<AlarmsPage> {
       7: 'Dom'
     };
 
-    // CORREÇÃO: Cria uma cópia da lista antes de ordenar para evitar erro de "UnmodifiableList"
-    // e garante que usamos a cópia ordenada localmente sem alterar o objeto original.
     final diasOrdenados = List<int>.from(dias)..sort();
 
     return diasOrdenados.map((d) => mapaDias[d] ?? '').join(', ');
@@ -147,110 +145,135 @@ class _AlarmsPageState extends State<AlarmsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFa7c957),
-      body: curvedBackground(
-        showHeader: true,
-        child: StreamBuilder<List<Alarme>>(
-          stream: _alarmeService.getAlarmesDaPlanta(widget.plantaId),
-          builder: (context, snapshot) {
-            final alarmes = snapshot.data ?? [];
-            final alarmesAgrupados = _agruparAlarmesPorTipo(alarmes);
+      body: Stack(
+        children: [
+          curvedBackground(
+            showHeader: true,
+            child: StreamBuilder<List<Alarme>>(
+              stream: _alarmeService.getAlarmesDaPlanta(widget.plantaId),
+              builder: (context, snapshot) {
+                final alarmes = snapshot.data ?? [];
+                final alarmesAgrupados = _agruparAlarmesPorTipo(alarmes);
 
-            final tiposOrdenados = alarmesAgrupados.keys.toList()
-              ..sort((a, b) =>
-                  _getPrioridadeTipo(a).compareTo(_getPrioridadeTipo(b)));
+                final tiposOrdenados = alarmesAgrupados.keys.toList()
+                  ..sort((a, b) =>
+                      _getPrioridadeTipo(a).compareTo(_getPrioridadeTipo(b)));
 
-            return SingleChildScrollView(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
-              child: Container(
-                padding: const EdgeInsets.all(20.0),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF588157),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Text(
-                          'Alarmes: ',
-                          style: TextStyle(
-                            color: Color(0xfff2e8cf),
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            widget.plantName,
-                            style: const TextStyle(
-                                color: Color(0xFFa7c957), fontSize: 20),
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                // Ordenação por horário
+                for (var lista in alarmesAgrupados.values) {
+                  lista.sort((a, b) {
+                    int cmpHora = a.hora.compareTo(b.hora);
+                    if (cmpHora != 0) return cmpHora;
+                    return a.minuto.compareTo(b.minuto);
+                  });
+                }
+
+                return SingleChildScrollView(
+                  // PADRONIZAÇÃO: 24 em todas as direções (Horizontal e Topo)
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+                  child: Container(
+                    padding: const EdgeInsets.all(20.0),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF588157),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Divider(
-                        color: const Color(0xfff2e8cf).withOpacity(0.5),
-                        height: 2,
-                        thickness: 2,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    if (snapshot.connectionState == ConnectionState.waiting)
-                      const Center(
-                          child: CircularProgressIndicator(
-                              color: Color(0xFFf2f2f2)))
-                    else if (alarmes.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20),
-                        child: Center(
-                          child: Text(
-                            "Nenhum alarme configurado.\nToque em + para adicionar.",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                color: Color(0xFFf2f2f2), fontSize: 16),
-                          ),
-                        ),
-                      )
-                    else
-                      ...tiposOrdenados.map((tipo) {
-                        final listaAlarmes = alarmesAgrupados[tipo]!;
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
-                            Text(
-                              tipo,
-                              style: const TextStyle(
-                                color: Color(0xfff2f2f2),
-                                fontSize: 20,
-                                fontWeight: FontWeight.w500,
+                            const Text(
+                              'Alarmes: ',
+                              style: TextStyle(
+                                color: Color(0xfff2e8cf),
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 16),
-                            ...listaAlarmes
-                                .map((alarme) => _buildAlarmCard(alarme)),
-                            const SizedBox(height: 20),
+                            Expanded(
+                              child: Text(
+                                widget.plantName,
+                                style: const TextStyle(
+                                    color: Color(0xFFa7c957), fontSize: 20),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                           ],
-                        );
-                      }),
-                  ],
-                ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Divider(
+                            color: const Color(0xfff2e8cf).withOpacity(0.5),
+                            height: 2,
+                            thickness: 2,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        if (snapshot.connectionState == ConnectionState.waiting)
+                          const Center(
+                              child: CircularProgressIndicator(
+                                  color: Color(0xFFf2f2f2)))
+                        else if (alarmes.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: Center(
+                              child: Text(
+                                "Nenhum alarme configurado.\nToque em + para adicionar.",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: Color(0xFFf2f2f2), fontSize: 16),
+                              ),
+                            ),
+                          )
+                        else
+                          ...tiposOrdenados.map((tipo) {
+                            final listaAlarmes = alarmesAgrupados[tipo]!;
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  tipo,
+                                  style: const TextStyle(
+                                    color: Color(0xfff2f2f2),
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                ...listaAlarmes
+                                    .map((alarme) => _buildAlarmCard(alarme)),
+                                const SizedBox(height: 20),
+                              ],
+                            );
+                          }),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          // Botão de voltar padronizado
+          Positioned(
+            top: 40,
+            left: 20,
+            child: CircleAvatar(
+              backgroundColor: Colors.white.withOpacity(0.2),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
               ),
-            );
-          },
-        ),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openAddAlarmModal(context),

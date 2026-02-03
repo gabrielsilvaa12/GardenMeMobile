@@ -13,8 +13,9 @@ class ProfilePage extends StatelessWidget {
       backgroundColor: const Color(0xFFa7c957),
       body: curvedBackground(
         child: const SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(20, 24, 20, 150),
-          child: ProfileCard(), // O conteúdo dinâmico está aqui
+          // PADRONIZAÇÃO: Laterais alteradas de 20 para 24. Topo mantido em 24.
+          padding: EdgeInsets.fromLTRB(24, 24, 24, 150),
+          child: ProfileCard(),
         ),
       ),
     );
