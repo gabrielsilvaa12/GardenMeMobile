@@ -35,8 +35,6 @@ class _AlarmsPageState extends State<AlarmsPage> {
       7: 'Dom'
     };
 
-    // CORREÇÃO: Cria uma cópia da lista antes de ordenar para evitar erro de "UnmodifiableList"
-    // e garante que usamos a cópia ordenada localmente sem alterar o objeto original.
     final diasOrdenados = List<int>.from(dias)..sort();
 
     return diasOrdenados.map((d) => mapaDias[d] ?? '').join(', ');
@@ -154,6 +152,17 @@ class _AlarmsPageState extends State<AlarmsPage> {
           builder: (context, snapshot) {
             final alarmes = snapshot.data ?? [];
             final alarmesAgrupados = _agruparAlarmesPorTipo(alarmes);
+
+            // AQUI: Ordena os alarmes dentro de cada grupo por horário (Cedo -> Tarde)
+            for (var lista in alarmesAgrupados.values) {
+              lista.sort((a, b) {
+                // Compara Hora
+                int cmpHora = a.hora.compareTo(b.hora);
+                if (cmpHora != 0) return cmpHora;
+                // Se hora for igual, compara Minuto
+                return a.minuto.compareTo(b.minuto);
+              });
+            }
 
             final tiposOrdenados = alarmesAgrupados.keys.toList()
               ..sort((a, b) =>
