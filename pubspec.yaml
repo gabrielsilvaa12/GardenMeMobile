@@ -24,8 +24,11 @@ dependencies:
   path: ^1.9.1
   flutter_local_notifications: ^17.0.0
   timezone: ^0.9.2
-  permission_handler: ^11.3.0 # Gerencia permissões
-  shared_preferences: ^2.2.2  # Salva configurações (Ligado/Desligado)
+  permission_handler: ^11.3.0
+  shared_preferences: ^2.2.2
+  # NOVAS DEPENDÊNCIAS:
+  screenshot: ^3.0.0
+  share_plus: ^10.0.0
 
 flutter_native_splash:
   color: "#3a5a40"

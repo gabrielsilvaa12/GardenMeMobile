@@ -1,10 +1,18 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gardenme/models/planta.dart';
 import 'package:gardenme/pages/alarms_page.dart';
 import 'package:gardenme/pages/my_plant.dart';
 import 'package:gardenme/services/planta_service.dart';
 import 'package:gardenme/services/theme_service.dart';
+
+// Imports para o compartilhamento
+import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:gardenme/components/plant_share_card.dart';
 
 class PlantCard extends StatefulWidget {
   final Planta planta;
@@ -17,6 +25,9 @@ class PlantCard extends StatefulWidget {
 
 class _PlantCardState extends State<PlantCard> {
   final PlantaService _plantaService = PlantaService();
+  
+  // Controlador para capturar a imagem
+  final ScreenshotController _screenshotController = ScreenshotController();
 
   Future<void> _toggleRega() async {
     if (widget.planta.rega) {
@@ -27,7 +38,7 @@ class _PlantCardState extends State<PlantCard> {
             style: TextStyle(color: Color(0xFF344e41), fontWeight: FontWeight.bold),
           ),
           duration: Duration(seconds: 2),
-          backgroundColor: Color(0xFFA7C957), // Verde Claro
+          backgroundColor: Colors.white,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -47,10 +58,109 @@ class _PlantCardState extends State<PlantCard> {
             style: TextStyle(color: Color(0xFF344e41), fontWeight: FontWeight.bold),
           ),
           duration: Duration(seconds: 2),
-          backgroundColor: Color(0xFFA7C957), // Verde Claro
+          backgroundColor: Colors.white,
           behavior: SnackBarBehavior.floating,
         ),
       );
+    }
+  }
+
+  // Função para buscar dados do usuário e compartilhar
+  Future<void> _compartilharPlanta() async {
+    // 1. Mostrar loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(child: CircularProgressIndicator(color: Colors.white));
+      },
+    );
+
+    try {
+      // 2. Buscar dados do usuário no Firebase
+      final user = FirebaseAuth.instance.currentUser;
+      String nomeUsuario = "Jardineiro";
+      String nivelUsuario = "Iniciante";
+
+      if (user != null) {
+        final doc = await FirebaseFirestore.instance
+            .collection('usuarios')
+            .doc(user.uid)
+            .get();
+        
+        if (doc.exists) {
+          final data = doc.data()!;
+          nomeUsuario = data['nome'] ?? "Jardineiro";
+          nivelUsuario = data['nivel'] ?? "Iniciante";
+        }
+      }
+
+      // Fecha o loading inicial (circular progress)
+      if (mounted) Navigator.pop(context);
+
+      // 3. Montar o Widget de Compartilhamento (Invisível para o usuário, mas visível para o Screenshot)
+      if (!mounted) return;
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Screenshot(
+                  controller: _screenshotController,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    // AQUI ESTÁ A CORREÇÃO: Passando os dados do usuário
+                    child: PlantShareCard(
+                      planta: widget.planta,
+                      nomeUsuario: nomeUsuario,
+                      nivelUsuario: nivelUsuario,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  "Gerando imagem...",
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                )
+              ],
+            ),
+          );
+        },
+      );
+
+      // Pequeno delay para renderização do widget
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // 4. Capturar e Compartilhar
+      final imageBytes = await _screenshotController.capture();
+
+      if (mounted) Navigator.pop(context); // Fecha o dialog de geração
+
+      if (imageBytes != null) {
+        final directory = await getTemporaryDirectory();
+        final imagePath = await File('${directory.path}/gardenme_share.png').create();
+        await imagePath.writeAsBytes(imageBytes);
+
+        await Share.shareXFiles(
+          [XFile(imagePath.path)],
+          text: 'Veja minha ${widget.planta.nome} no GardenMe! 🌿',
+        );
+      }
+
+    } catch (e) {
+      // Garante que fecha qualquer dialog aberto se der erro
+      if (mounted && Navigator.canPop(context)) Navigator.pop(context);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erro ao compartilhar: $e")),
+        );
+      }
     }
   }
 
@@ -162,8 +272,9 @@ class _PlantCardState extends State<PlantCard> {
                       backgroundColor: const Color.fromARGB(255, 30, 56, 35).withOpacity(0.4),
                       iconColor: const Color(0xfff2f2f2),
                     ),
+                    // BOTÃO COMPARTILHAR
                     _buildActionButton(
-                      function: () {},
+                      function: _compartilharPlanta,
                       icon: Icons.share_outlined,
                       backgroundColor: const Color(0xFFE0E0E0),
                       iconColor: Colors.black87,
