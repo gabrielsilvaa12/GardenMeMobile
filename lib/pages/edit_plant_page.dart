@@ -54,15 +54,15 @@ class _EditPlantPageState extends State<EditPlantPage> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      // isScrollControlled: true, // Opcional: Se quiser que o modal possa crescer mais se necessário
       builder: (context) {
-        // CORREÇÃO: Removida a altura fixa e usado MainAxisSize.min
+        // Modal ajustado para não quebrar layout e com texto corrigido
         return Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
-            mainAxisSize: MainAxisSize.min, // O modal ocupa apenas o espaço necessário
+            mainAxisSize: MainAxisSize.min, // Ocupa apenas o espaço necessário
             children: [
-              const Text("Alterar foto da planta", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              // TEXTO ATUALIZADO AQUI
+              const Text("Escolha uma opção", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 20),
               ListTile(
                 leading: const Icon(Icons.photo_library, color: Color(0xFF386641)),
@@ -80,8 +80,7 @@ class _EditPlantPageState extends State<EditPlantPage> {
                   _selecionarImagem(ImageSource.camera);
                 },
               ),
-              // Espaçamento extra para garantir que não fique colado na borda inferior
-              const SizedBox(height: 10), 
+              const SizedBox(height: 10),
             ],
           ),
         );
@@ -155,103 +154,118 @@ class _EditPlantPageState extends State<EditPlantPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Verifica tema escuro
     final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
 
     return Scaffold(
       backgroundColor: const Color(0xFFa7c957),
-      body: curvedBackground(
-        showHeader: true,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: const Color(0xff588157),
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.35), blurRadius: 15, offset: const Offset(0, 10))],
-            ),
-            child: Column(
-              children: [
-                const Text("Editar Planta", style: TextStyle(color: Color(0xFFf2f2f2), fontSize: 24, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 30),
-
-                GestureDetector(
-                  onTap: _mostrarOpcoesFoto,
-                  child: Stack(
-                    children: [
-                      Container(
-                        height: 150,
-                        width: 150,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFa7c957).withOpacity(0.5),
-                          shape: BoxShape.circle,
-                          image: DecorationImage(
-                            image: _getImagemProvider(),
-                            fit: BoxFit.cover,
-                          ),
-                          border: Border.all(color: const Color(0xfff2f2f2), width: 3),
-                        ),
-                      ),
-                      const Positioned(
-                        bottom: 0, right: 0,
-                        child: CircleAvatar(
-                          backgroundColor: Color(0xff386641),
-                          radius: 20,
-                          child: Icon(Icons.camera_alt, color: Color(0xfff2f2f2), size: 20),
-                        ),
-                      ),
-                    ],
-                  ),
+      body: Stack(
+        children: [
+          curvedBackground(
+            showHeader: true,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24), // Espaçamento padronizado
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: const Color(0xff588157),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.35), blurRadius: 15, offset: const Offset(0, 10))],
                 ),
-
-                const SizedBox(height: 35),
-                
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Column(
                   children: [
-                    const Text("Nome da Planta", style: TextStyle(color: Color(0xFFf2f2f2), fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _nomeController,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.white.withOpacity(0.9),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(25), borderSide: BorderSide.none),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    const Text("Editar Planta", style: TextStyle(color: Color(0xFFf2f2f2), fontSize: 24, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 30),
+
+                    GestureDetector(
+                      onTap: _mostrarOpcoesFoto,
+                      child: Stack(
+                        children: [
+                          Container(
+                            height: 150,
+                            width: 150,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFa7c957).withOpacity(0.5),
+                              shape: BoxShape.circle,
+                              image: DecorationImage(
+                                image: _getImagemProvider(),
+                                fit: BoxFit.cover,
+                              ),
+                              border: Border.all(color: const Color(0xfff2f2f2), width: 3),
+                            ),
+                          ),
+                          const Positioned(
+                            bottom: 0, right: 0,
+                            child: CircleAvatar(
+                              backgroundColor: Color(0xff386641),
+                              radius: 20,
+                              child: Icon(Icons.camera_alt, color: Color(0xfff2f2f2), size: 20),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+
+                    const SizedBox(height: 35),
+                    
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("Nome da Planta", style: TextStyle(color: Color(0xFFf2f2f2), fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _nomeController,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white.withOpacity(0.9),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(25), borderSide: BorderSide.none),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 40),
+
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isDark 
+                            ? const Color(0xFF344e41) 
+                            : const Color(0xFFA7C957),
+                        foregroundColor: isDark 
+                            ? const Color(0xFFA7C957) 
+                            : const Color(0xFF344e41),
+                        minimumSize: const Size(double.infinity, 55),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                      ),
+                      onPressed: _estaCarregando ? null : _salvar,
+                      child: _estaCarregando
+                          ? const CircularProgressIndicator(color: Color(0xFFA7C957))
+                          : const Text("Salvar Alterações", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    ),
+                    
+                    const SizedBox(height: 15),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Cancelar", style: TextStyle(color: Color(0xfff2f2f2))),
+                    )
                   ],
                 ),
-
-                const SizedBox(height: 40),
-
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isDark 
-                        ? const Color(0xFF344e41) 
-                        : const Color(0xFFA7C957),
-                    foregroundColor: isDark 
-                        ? const Color(0xFFA7C957) 
-                        : const Color(0xFF344e41),
-                    minimumSize: const Size(double.infinity, 55),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                  ),
-                  onPressed: _estaCarregando ? null : _salvar,
-                  child: _estaCarregando
-                      ? const CircularProgressIndicator(color: Color(0xFFA7C957))
-                      : const Text("Salvar Alterações", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                ),
-                
-                const SizedBox(height: 15),
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text("Cancelar", style: TextStyle(color: Color(0xfff2f2f2))),
-                )
-              ],
+              ),
             ),
           ),
-        ),
+          // Botão de voltar
+          Positioned(
+            top: 40,
+            left: 20,
+            child: CircleAvatar(
+              backgroundColor: Colors.white.withOpacity(0.2),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
