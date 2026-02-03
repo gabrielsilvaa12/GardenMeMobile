@@ -37,6 +37,26 @@ class ProfileCard extends StatelessWidget {
     }
   }
 
+  // --- FUNÇÃO DE TESTE: ADICIONAR STREAK E ATUALIZAR RECORDE ---
+  Future<void> _adicionarStreakTeste(String uid, int streakAtual, int melhorStreakAtual) async {
+    int novoStreak = streakAtual + 1;
+    Map<String, dynamic> updates = {'streak_atual': novoStreak};
+
+    // Lógica para atualizar o Recorde Pessoal em tempo real no banco
+    if (novoStreak > melhorStreakAtual) {
+      updates['melhor_streak'] = novoStreak;
+    }
+
+    await FirebaseFirestore.instance.collection('usuarios').doc(uid).update(updates);
+  }
+
+  // --- FUNÇÃO DE TESTE: RESETAR STREAK ---
+  Future<void> _resetarStreakTeste(String uid) async {
+    await FirebaseFirestore.instance.collection('usuarios').doc(uid).update({
+      'streak_atual': 0,
+    });
+  }
+
   ImageProvider _getAvatarImage(String? fotoPath) {
     if (fotoPath != null && fotoPath.isNotEmpty) {
       try {
@@ -54,6 +74,17 @@ class ProfileCard extends StatelessWidget {
     return const AssetImage('assets/images/garden.png');
   }
 
+  // --- LÓGICA DO SUBTÍTULO DE STREAK ---
+  String? _obterSubtituloStreak(int dias) {
+    if (dias >= 60) return "Que Não Falha";
+    if (dias >= 45) return "Em Sintonia";
+    if (dias >= 35) return "Raízes Profundas";
+    if (dias >= 25) return "Implacável";
+    if (dias >= 15) return "Sempre Verde";
+    if (dias >= 5) return "Incansável";
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
@@ -63,7 +94,6 @@ class ProfileCard extends StatelessWidget {
       builder: (context, child) {
         final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
 
-        // --- DEFINIÇÃO DE CORES DINÂMICAS PARA O CARD DE NÍVEL ---
         final levelCardBg =
             isDark ? const Color(0xff344E41) : const Color(0xFFa7c957);
         final levelCardText =
@@ -91,8 +121,13 @@ class ProfileCard extends StatelessWidget {
             var userData = snapshot.data!.data() as Map<String, dynamic>;
             int pontos = userData['pontos'] ?? 0;
             int diasSeguidos = userData['streak_atual'] ?? 0;
+            // Recupera o melhor streak para passar para a função de teste
+            int melhorStreak = userData['melhor_streak'] ?? 0;
 
             verificarStreak(uid, diasSeguidos);
+
+            // Calcula o subtítulo baseado na streak atual
+            String? subtituloStreak = _obterSubtituloStreak(diasSeguidos);
 
             // --- Lógica dos Níveis ---
             String nivelNome;
@@ -211,11 +246,9 @@ class ProfileCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
 
-                  // --- CARD DE NÍVEL (CORRIGIDO HITBOX) ---
+                  // --- CARD DE NÍVEL ---
                   Container(
                     width: double.infinity,
-                    // REMOVIDO PADDING DAQUI PARA O STACK COBRIR TUDO
-                    // padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
                     decoration: BoxDecoration(
                       color: levelCardBg,
                       borderRadius: BorderRadius.circular(15),
@@ -227,7 +260,7 @@ class ProfileCard extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 20,
-                            vertical: 32, // Mantendo a altura maior solicitada
+                            vertical: 32,
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
@@ -242,6 +275,30 @@ class ProfileCard extends StatelessWidget {
                                   letterSpacing: 0.3,
                                 ),
                               ),
+
+                              // --- NOVO: EXIBIÇÃO DO SUBTÍTULO DE STREAK ---
+                              if (subtituloStreak != null) ...[
+                                const SizedBox(height: 6), // Aumentei um pouco o espaçamento
+                                Text(
+                                  subtituloStreak,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFFFF6D00), // Laranja
+                                    fontSize: 18, // Fonte maior (antes era 14)
+                                    fontStyle: FontStyle.italic,
+                                    shadows: [
+                                      Shadow(
+                                        color: Colors.black.withOpacity(0.1), // Sombra clara/fraca
+                                        offset: const Offset(1, 1),
+                                        blurRadius: 2,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                              // ----------------------------------------------
+
                               const SizedBox(height: 6),
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(10),
@@ -269,10 +326,10 @@ class ProfileCard extends StatelessWidget {
                             ],
                           ),
                         ),
-                        // BOTÃO DE INFO (AGORA DENTRO DA ÁREA DO STACK)
+                        // BOTÃO DE INFO
                         Positioned(
-                          top: 0, // Encostado no topo do Container
-                          right: 0, // Encostado na direita do Container
+                          top: 0,
+                          right: 0,
                           child: IconButton(
                             onPressed: () {
                               showModalBottomSheet(
@@ -345,7 +402,7 @@ class ProfileCard extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                "Melhor sequência: ${userData['melhor_streak'] ?? 0} dias",
+                                "Melhor sequência: $melhorStreak dias",
                                 style: const TextStyle(
                                   color: Colors.white60,
                                   fontSize: 13,
@@ -383,6 +440,51 @@ class ProfileCard extends StatelessWidget {
                       'Editar Perfil',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+
+                  // --- BOTÃO DE TESTE: +1 STREAK ---
+                  const SizedBox(height: 15),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () =>
+                          _adicionarStreakTeste(uid, diasSeguidos, melhorStreak),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF6D00), // Laranja
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      icon: const Icon(Icons.add_circle_outline),
+                      label: const Text(
+                        "TESTE: +1 Dia de Streak",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+
+                  // --- BOTÃO DE TESTE: RESETAR STREAK ---
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => _resetarStreakTeste(uid),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent, // Vermelho
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      icon: const Icon(Icons.refresh),
+                      label: const Text(
+                        "TESTE: Resetar Streak para 0",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
                 ],
