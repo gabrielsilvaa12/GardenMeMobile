@@ -4,7 +4,7 @@ import 'package:gardenme/models/planta.dart';
 import 'package:gardenme/pages/alarms_page.dart';
 import 'package:gardenme/pages/edit_plant_page.dart';
 import 'package:gardenme/services/planta_service.dart';
-import 'package:gardenme/services/theme_service.dart'; //
+import 'package:gardenme/services/theme_service.dart';
 
 class DetailedPlant extends StatefulWidget {
   final Planta planta;
@@ -30,7 +30,6 @@ class _DetailedPlantState extends State<DetailedPlant> {
     _regaAtual = widget.planta.rega; 
   }
 
-  // ... (métodos _toggleRega, _buildPlantImage, _buildPlaceholder, _buildInfoSection, _abrirTelaEdicao, _irParaAlarmes, _excluirPlanta iguais) ...
   Future<void> _toggleRega() async {
     if (_regaAtual) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -140,6 +139,7 @@ class _DetailedPlantState extends State<DetailedPlant> {
       nome: _nomeExibido,
       imagemUrl: _imagemExibida,
       rega: _regaAtual,
+      dataCriacao: widget.planta.dataCriacao, // Mantém a data original
       estacaoIdeal: widget.planta.estacaoIdeal,
       regaDica: widget.planta.regaDica,
       tipoTerra: widget.planta.tipoTerra,
@@ -174,7 +174,6 @@ class _DetailedPlantState extends State<DetailedPlant> {
   }
 
   Future<void> _excluirPlanta() async {
-    // Verifica se o tema é escuro
     final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
 
     bool confirm = await showDialog(
@@ -235,6 +234,14 @@ class _DetailedPlantState extends State<DetailedPlant> {
     }
   }
 
+  // Helper para formatar a data manualmente sem depender do 'intl'
+  String _formatarData(DateTime data) {
+    String dia = data.day.toString().padLeft(2, '0');
+    String mes = data.month.toString().padLeft(2, '0');
+    String ano = data.year.toString();
+    return "$dia/$mes/$ano";
+  }
+
   @override
   Widget build(BuildContext context) {
     final estacao = widget.planta.estacaoIdeal ?? 'Ano todo';
@@ -242,7 +249,6 @@ class _DetailedPlantState extends State<DetailedPlant> {
     final terra = widget.planta.tipoTerra ?? 'Terra vegetal preta rica em matéria orgânica.';
     final fertilizante = widget.planta.dicaFertilizante ?? 'Adubo orgânico ou NPK 10-10-10.';
     
-    // Verifica tema escuro
     final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
 
     return Column(
@@ -385,7 +391,6 @@ class _DetailedPlantState extends State<DetailedPlant> {
                       child: ElevatedButton(
                         onPressed: _abrirTelaEdicao,
                         style: ElevatedButton.styleFrom(
-                          // AQUI: Lógica de cores condicional
                           backgroundColor: isDark 
                               ? const Color(0xFF344e41) 
                               : const Color(0xFFA7C957),
@@ -433,6 +438,20 @@ class _DetailedPlantState extends State<DetailedPlant> {
             ],
           ),
         ),
+
+        // --- EXIBIÇÃO DA DATA DE CRIAÇÃO ---
+        if (widget.planta.dataCriacao != null) ...[
+          const SizedBox(height: 20),
+          Text(
+            "Adicionada em ${_formatarData(widget.planta.dataCriacao!)}",
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w500, // Peso médio para leitura agradável
+            ),
+          ),
+        ],
       ],
     );
   }

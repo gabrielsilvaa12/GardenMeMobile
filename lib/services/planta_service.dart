@@ -29,6 +29,7 @@ class PlantaService {
       nome: nome,
       imagemUrl: imagemUrl,
       rega: false, // Começa como "Não regada" (Laranja)
+      dataCriacao: DateTime.now(), // Salva a data de criação atual
       estacaoIdeal: dadosExtras?['estacao_ideal'],
       regaDica: dadosExtras?['rega_dica'],
       tipoTerra: dadosExtras?['tipo_terra'],
@@ -191,11 +192,22 @@ class PlantaService {
   Stream<List<Planta>> getMinhasPlantas() {
     if (_userId == null) return const Stream.empty();
     return _plantasRef.snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
+      final plantas = snapshot.docs.map((doc) {
         var data = doc.data() as Map<String, dynamic>;
         data['id'] = doc.id; 
         return Planta.fromMap(data);
       }).toList();
+
+      // Ordenação no Cliente: Mais Antigas (Top) -> Mais Novas (Bottom)
+      // Se a dataCriacao for null (plantas antigas), elas aparecem primeiro.
+      plantas.sort((a, b) {
+        if (a.dataCriacao == null && b.dataCriacao == null) return 0;
+        if (a.dataCriacao == null) return -1; // Sem data vem antes
+        if (b.dataCriacao == null) return 1;
+        return a.dataCriacao!.compareTo(b.dataCriacao!);
+      });
+
+      return plantas;
     });
   }
 }
