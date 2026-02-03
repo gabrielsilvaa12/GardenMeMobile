@@ -4,7 +4,7 @@ import 'package:gardenme/components/curved_background.dart';
 import 'package:gardenme/components/plant_card.dart';
 import 'package:gardenme/models/planta.dart';
 import 'package:gardenme/services/planta_service.dart';
-import 'package:gardenme/services/theme_service.dart'; // Importação do ThemeService
+import 'package:gardenme/services/theme_service.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -32,17 +32,18 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     }
 
-    // Verifica o tema atual diretamente do serviço para reatividade
+    // Verifica o tema atual para definir a cor do ícone
     final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
 
     // Cores
     const Color lightGreen = Color(0xFFa7c957);
-    const Color whiteColor = Color(0xfff2f2f2);
+    const Color darkGreen = Color(0xFF3A5A40);
+    
+    // Cor fixa branca para o texto
+    const Color fixedWhiteColor = Color(0xfff2f2f2);
 
-    // LÓGICA SOLICITADA:
-    // Tema Claro -> Texto Branco (#f2f2f2)
-    // Tema Escuro -> Mantém o Verde Claro (#a7c957)
-    final Color textColor = isDark ? lightGreen : whiteColor;
+    // Lógica do ícone: Verde Claro no tema Claro / Verde Escuro no tema Escuro
+    final Color iconColor = isDark ? darkGreen : lightGreen;
 
     return InkWell(
       onTap: _abrirModal,
@@ -52,14 +53,13 @@ class _MyHomePageState extends State<MyHomePage> {
           CircleAvatar(
             radius: 30,
             backgroundColor: const Color(0xfff2f2f2),
-            // O ícone permanece verde claro sempre
-            child: const Icon(Icons.add, color: lightGreen),
+            child: Icon(Icons.add, color: iconColor),
           ),
           const SizedBox(height: 8),
           Text(
             'Adicionar Planta',
             style: TextStyle(
-              color: textColor, // Cor dinâmica aplicada aqui
+              color: fixedWhiteColor,
               fontWeight: FontWeight.bold,
               fontSize: 16,
             ),
@@ -71,16 +71,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // AnimatedBuilder escuta as mudanças no ThemeService e reconstrói a tela
     return AnimatedBuilder(
       animation: ThemeService.instance,
       builder: (context, child) {
         final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
         
-        // Lógica do Título "Meu Jardim":
+        // Lógica de Cor para Títulos e Textos de destaque:
         // Tema Claro -> Verde Escuro (0xFF3A5A40)
         // Tema Escuro -> Verde Claro (0xFFa7c957)
-        final titleColor = isDark ? const Color(0xFFa7c957) : const Color(0xFF3A5A40);
+        final dynamicTextColor = isDark ? const Color(0xFFa7c957) : const Color(0xFF3A5A40);
 
         return Scaffold(
           extendBody: true,
@@ -97,7 +96,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         Text(
                           'Meu Jardim',
                           style: TextStyle(
-                            color: titleColor,
+                            color: dynamicTextColor,
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
@@ -127,10 +126,12 @@ class _MyHomePageState extends State<MyHomePage> {
                                 return Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Text("Seu jardim está vazio",
-                                        style: TextStyle(
-                                            color: Color(0xFF3A5A40),
-                                            fontSize: 18)),
+                                    Text(
+                                      "Seu jardim está vazio",
+                                      style: TextStyle(
+                                          color: dynamicTextColor,
+                                          fontSize: 18),
+                                    ),
                                     const SizedBox(height: 20),
                                     _buildAddPlantButton(context),
                                   ],
@@ -146,7 +147,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                       children: [
                                         const SizedBox(height: 20),
                                         _buildAddPlantButton(context),
-                                        const SizedBox(height: 100),
+                                        // AUMENTADO DE 100 PARA 180 PARA EVITAR QUE A NAVBAR CUBRA O BOTÃO
+                                        const SizedBox(height: 180),
                                       ],
                                     );
                                   }
