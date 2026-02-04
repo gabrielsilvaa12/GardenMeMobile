@@ -26,7 +26,6 @@ class PlantCard extends StatefulWidget {
 class _PlantCardState extends State<PlantCard> {
   final PlantaService _plantaService = PlantaService();
   
-  // Controlador para capturar a imagem
   final ScreenshotController _screenshotController = ScreenshotController();
 
   Future<void> _toggleRega() async {
@@ -65,7 +64,6 @@ class _PlantCardState extends State<PlantCard> {
     }
   }
 
-  // --- LÓGICA DO SUBTÍTULO DE STREAK (Mesma do ProfileCard) ---
   String? _obterSubtituloStreak(int dias) {
     if (dias >= 60) return "Que Não Falha";
     if (dias >= 45) return "Em Sintonia";
@@ -76,9 +74,7 @@ class _PlantCardState extends State<PlantCard> {
     return null;
   }
 
-  // Função para buscar dados do usuário e compartilhar
   Future<void> _compartilharPlanta() async {
-    // 1. Mostrar loading
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -88,11 +84,10 @@ class _PlantCardState extends State<PlantCard> {
     );
 
     try {
-      // 2. Buscar dados atualizados do usuário no Firebase
       final user = FirebaseAuth.instance.currentUser;
       String nomeUsuario = "Jardineiro";
       String nivelUsuario = "Iniciante";
-      String? subtituloStreak; // Variável para o subtítulo
+      String? subtituloStreak;
 
       if (user != null) {
         final doc = await FirebaseFirestore.instance
@@ -103,20 +98,15 @@ class _PlantCardState extends State<PlantCard> {
         if (doc.exists) {
           final data = doc.data()!;
           nomeUsuario = data['nome'] ?? "Jardineiro";
-          // Recalcular nível pode ser necessário se o banco não estiver atualizado, 
-          // mas por enquanto usaremos o campo salvo.
           nivelUsuario = data['nivel'] ?? "Iniciante";
           
-          // Buscar streak e calcular subtítulo
           int streakAtual = data['streak_atual'] ?? 0;
           subtituloStreak = _obterSubtituloStreak(streakAtual);
         }
       }
 
-      // Fecha o loading inicial
       if (mounted) Navigator.pop(context);
 
-      // 3. Montar o Widget de Compartilhamento
       if (!mounted) return;
 
       showDialog(
@@ -137,7 +127,7 @@ class _PlantCardState extends State<PlantCard> {
                       planta: widget.planta,
                       nomeUsuario: nomeUsuario,
                       nivelUsuario: nivelUsuario,
-                      subtituloStreak: subtituloStreak, // Passando o subtítulo calculado
+                      subtituloStreak: subtituloStreak, 
                     ),
                   ),
                 ),
@@ -152,13 +142,11 @@ class _PlantCardState extends State<PlantCard> {
         },
       );
 
-      // Pequeno delay para renderização
       await Future.delayed(const Duration(milliseconds: 500));
 
-      // 4. Capturar e Compartilhar
       final imageBytes = await _screenshotController.capture();
 
-      if (mounted) Navigator.pop(context); // Fecha o dialog de geração
+      if (mounted) Navigator.pop(context); 
 
       if (imageBytes != null) {
         final directory = await getTemporaryDirectory();
@@ -268,9 +256,10 @@ class _PlantCardState extends State<PlantCard> {
                     _buildActionButton(
                       function: _toggleRega,
                       icon: Icons.water_drop_outlined,
+                      // ALTERAÇÃO: Azul Vivo se Regado, Azul Apagado se Pendente
                       backgroundColor: statusRega
                           ? const Color(0xFF81D4FA)
-                          : const Color.fromARGB(255, 30, 56, 35).withAlpha(102),
+                          : const Color(0xFF81D4FA).withOpacity(0.5),
                       iconColor: const Color(0xfff2f2f2),
                     ),
                     _buildActionButton(
@@ -289,7 +278,6 @@ class _PlantCardState extends State<PlantCard> {
                       backgroundColor: const Color.fromARGB(255, 30, 56, 35).withOpacity(0.4),
                       iconColor: const Color(0xfff2f2f2),
                     ),
-                    // BOTÃO COMPARTILHAR
                     _buildActionButton(
                       function: _compartilharPlanta,
                       icon: Icons.share_outlined,
