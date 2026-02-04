@@ -65,6 +65,17 @@ class _PlantCardState extends State<PlantCard> {
     }
   }
 
+  // --- LÓGICA DO SUBTÍTULO DE STREAK (Mesma do ProfileCard) ---
+  String? _obterSubtituloStreak(int dias) {
+    if (dias >= 60) return "Que Não Falha";
+    if (dias >= 45) return "Em Sintonia";
+    if (dias >= 35) return "Raízes Profundas";
+    if (dias >= 25) return "Implacável";
+    if (dias >= 15) return "Sempre Verde";
+    if (dias >= 5) return "Incansável";
+    return null;
+  }
+
   // Função para buscar dados do usuário e compartilhar
   Future<void> _compartilharPlanta() async {
     // 1. Mostrar loading
@@ -77,10 +88,11 @@ class _PlantCardState extends State<PlantCard> {
     );
 
     try {
-      // 2. Buscar dados do usuário no Firebase
+      // 2. Buscar dados atualizados do usuário no Firebase
       final user = FirebaseAuth.instance.currentUser;
       String nomeUsuario = "Jardineiro";
       String nivelUsuario = "Iniciante";
+      String? subtituloStreak; // Variável para o subtítulo
 
       if (user != null) {
         final doc = await FirebaseFirestore.instance
@@ -91,14 +103,20 @@ class _PlantCardState extends State<PlantCard> {
         if (doc.exists) {
           final data = doc.data()!;
           nomeUsuario = data['nome'] ?? "Jardineiro";
+          // Recalcular nível pode ser necessário se o banco não estiver atualizado, 
+          // mas por enquanto usaremos o campo salvo.
           nivelUsuario = data['nivel'] ?? "Iniciante";
+          
+          // Buscar streak e calcular subtítulo
+          int streakAtual = data['streak_atual'] ?? 0;
+          subtituloStreak = _obterSubtituloStreak(streakAtual);
         }
       }
 
-      // Fecha o loading inicial (circular progress)
+      // Fecha o loading inicial
       if (mounted) Navigator.pop(context);
 
-      // 3. Montar o Widget de Compartilhamento (Invisível para o usuário, mas visível para o Screenshot)
+      // 3. Montar o Widget de Compartilhamento
       if (!mounted) return;
 
       showDialog(
@@ -115,11 +133,11 @@ class _PlantCardState extends State<PlantCard> {
                   controller: _screenshotController,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(24),
-                    // AQUI ESTÁ A CORREÇÃO: Passando os dados do usuário
                     child: PlantShareCard(
                       planta: widget.planta,
                       nomeUsuario: nomeUsuario,
                       nivelUsuario: nivelUsuario,
+                      subtituloStreak: subtituloStreak, // Passando o subtítulo calculado
                     ),
                   ),
                 ),
@@ -134,7 +152,7 @@ class _PlantCardState extends State<PlantCard> {
         },
       );
 
-      // Pequeno delay para renderização do widget
+      // Pequeno delay para renderização
       await Future.delayed(const Duration(milliseconds: 500));
 
       // 4. Capturar e Compartilhar
@@ -154,7 +172,6 @@ class _PlantCardState extends State<PlantCard> {
       }
 
     } catch (e) {
-      // Garante que fecha qualquer dialog aberto se der erro
       if (mounted && Navigator.canPop(context)) Navigator.pop(context);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

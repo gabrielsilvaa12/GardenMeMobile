@@ -140,11 +140,9 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
               widget.alarmeParaEditar != null
                   ? "Alarme atualizado! 🔄"
                   : "Alarme salvo! ⏰",
-              // Cor do texto forçada: Verde Escuro
               style: const TextStyle(
                   color: Color(0xFF344e41), fontWeight: FontWeight.bold),
             ),
-            // Fundo forçado: Branco
             backgroundColor: Colors.white,
           ),
         );
@@ -195,9 +193,12 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.alarmeParaEditar != null;
+    // Captura o padding inferior seguro (ex: área de gestos do iPhone)
+    final double bottomPadding = MediaQuery.of(context).viewPadding.bottom;
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      // Padding dinâmico: 24 padrão + área segura
+      padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + bottomPadding),
       decoration: const BoxDecoration(
         color: Color(0xFF588157),
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
@@ -370,7 +371,7 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          // Sem SizedBox extra, o padding do Container já resolve
         ],
       ),
     );
