@@ -372,9 +372,9 @@ class _DetailedPlantState extends State<DetailedPlant> {
   @override
   Widget build(BuildContext context) {
     final estacao = widget.planta.estacaoIdeal ?? 'Ano todo';
-    final umidade = widget.planta.regaDica ?? 'Verifique a umidade do solo regularmente.';
+    final umidade = widget.planta.regaDica ?? 'Mantenha a terra úmida.';
     final terra = widget.planta.tipoTerra ?? 'Terra vegetal preta rica em matéria orgânica.';
-    final fertilizante = widget.planta.dicaFertilizante ?? 'Adubo orgânico ou NPK 10-10-10.';
+    final fertilizante = widget.planta.dicaFertilizante ?? 'Rico em Nitrogênio ou Húmus de Minhoca';
     
     final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
 
