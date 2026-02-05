@@ -84,7 +84,7 @@ class _DetailedPlantState extends State<DetailedPlant> {
     }
   }
 
-  // --- LÓGICA DE COMPARTILHAMENTO (Igual ao PlantCard) ---
+  // --- LÓGICA DE COMPARTILHAMENTO ---
 
   String? _obterSubtituloStreak(int dias) {
     if (dias >= 60) return "Que Não Falha";
@@ -404,35 +404,7 @@ class _DetailedPlantState extends State<DetailedPlant> {
                     right: 16,
                     child: Column(
                       children: [
-                        // Botão Alarmes
-                        InkWell(
-                          onTap: _irParaAlarmes,
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            width: 50,
-                            height: 50,
-                            decoration: BoxDecoration(
-                              color: const Color(0xfff2f2f2),
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.3),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.notifications_none_outlined,
-                              color: Color(0xFF588157), 
-                              size: 24
-                            ),
-                          ),
-                        ),
-                        
-                        const SizedBox(height: 12),
-                        
-                        // Botão Rega
+                        // 1º - TOPO: Botão Rega
                         InkWell(
                           onTap: _toggleRega,
                           borderRadius: BorderRadius.circular(12),
@@ -440,7 +412,7 @@ class _DetailedPlantState extends State<DetailedPlant> {
                             width: 50,
                             height: 50, 
                             decoration: BoxDecoration(
-                              // CORREÇÃO: Azul apagado (inativo) e Azul vivo (ativo)
+                              // Azul
                               color: _regaAtual
                                   ? const Color(0xFF81D4FA) 
                                   : const Color(0xFF81D4FA).withOpacity(0.5), 
@@ -459,7 +431,36 @@ class _DetailedPlantState extends State<DetailedPlant> {
 
                         const SizedBox(height: 12),
 
-                        // NOVO: Botão Compartilhar
+                        // 2º - MEIO: Botão Alarmes
+                        InkWell(
+                          onTap: _irParaAlarmes,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              // COR SÓLIDA AGORA (Sem Opacidade)
+                              color: const Color.fromARGB(255, 30, 56, 35).withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.notifications_none_outlined,
+                              color: Color(0xfff2f2f2), 
+                              size: 24
+                            ),
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 12),
+
+                        // 3º - BAIXO: Botão Compartilhar
                         InkWell(
                           onTap: _compartilharPlanta,
                           borderRadius: BorderRadius.circular(12),
