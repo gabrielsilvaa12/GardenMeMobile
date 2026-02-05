@@ -37,7 +37,8 @@ class ProfileCard extends StatelessWidget {
     }
   }
 
-  // --- FUNÇÃO DE TESTE: ADICIONAR STREAK E ATUALIZAR RECORDE ---
+  // --- FUNÇÕES DE TESTE COMENTADAS PARA APRESENTAÇÃO ---
+  /*
   Future<void> _adicionarStreakTeste(String uid, int streakAtual, int melhorStreakAtual) async {
     int novoStreak = streakAtual + 1;
     Map<String, dynamic> updates = {'streak_atual': novoStreak};
@@ -50,12 +51,12 @@ class ProfileCard extends StatelessWidget {
     await FirebaseFirestore.instance.collection('usuarios').doc(uid).update(updates);
   }
 
-  // --- FUNÇÃO DE TESTE: RESETAR STREAK ---
   Future<void> _resetarStreakTeste(String uid) async {
     await FirebaseFirestore.instance.collection('usuarios').doc(uid).update({
       'streak_atual': 0,
     });
   }
+  */
 
   ImageProvider _getAvatarImage(String? fotoPath) {
     if (fotoPath != null && fotoPath.isNotEmpty) {
@@ -276,20 +277,20 @@ class ProfileCard extends StatelessWidget {
                                 ),
                               ),
 
-                              // --- NOVO: EXIBIÇÃO DO SUBTÍTULO DE STREAK ---
+                              // --- SUBTÍTULO DE STREAK ---
                               if (subtituloStreak != null) ...[
-                                const SizedBox(height: 6), // Aumentei um pouco o espaçamento
+                                const SizedBox(height: 6),
                                 Text(
                                   subtituloStreak,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: const Color(0xFFFF6D00), // Laranja
-                                    fontSize: 18, // Fonte maior (antes era 14)
+                                    fontSize: 18,
                                     fontStyle: FontStyle.italic,
                                     shadows: [
                                       Shadow(
-                                        color: Colors.black.withOpacity(0.1), // Sombra clara/fraca
+                                        color: Colors.black.withOpacity(0.1),
                                         offset: const Offset(1, 1),
                                         blurRadius: 2,
                                       ),
@@ -297,7 +298,6 @@ class ProfileCard extends StatelessWidget {
                                   ),
                                 ),
                               ],
-                              // ----------------------------------------------
 
                               const SizedBox(height: 6),
                               ClipRRect(
@@ -443,50 +443,7 @@ class ProfileCard extends StatelessWidget {
                     ),
                   ),
 
-                  // --- BOTÃO DE TESTE: +1 STREAK ---
-                  const SizedBox(height: 15),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () =>
-                          _adicionarStreakTeste(uid, diasSeguidos, melhorStreak),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF6D00), // Laranja
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
-                      icon: const Icon(Icons.add_circle_outline),
-                      label: const Text(
-                        "TESTE: +1 Dia de Streak",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-
-                  // --- BOTÃO DE TESTE: RESETAR STREAK ---
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () => _resetarStreakTeste(uid),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.redAccent, // Vermelho
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
-                      icon: const Icon(Icons.refresh),
-                      label: const Text(
-                        "TESTE: Resetar Streak para 0",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
+                  // BOTÕES DE TESTE REMOVIDOS PARA APRESENTAÇÃO
                 ],
               ),
             );
