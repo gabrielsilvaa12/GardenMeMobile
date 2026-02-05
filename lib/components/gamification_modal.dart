@@ -5,8 +5,12 @@ class GamificationModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Captura a área segura inferior
+    final double bottomPadding = MediaQuery.of(context).viewPadding.bottom;
+
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
+      // Padding dinâmico: 40 (padrão) + área segura do celular
+      padding: EdgeInsets.fromLTRB(24, 12, 24, 40 + bottomPadding),
       decoration: const BoxDecoration(
         color: Color(0xff588157),
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),

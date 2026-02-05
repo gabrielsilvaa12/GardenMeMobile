@@ -193,12 +193,12 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.alarmeParaEditar != null;
-    // Captura o padding inferior seguro (ex: área de gestos do iPhone)
+    // Captura o padding inferior seguro
     final double bottomPadding = MediaQuery.of(context).viewPadding.bottom;
 
     return Container(
-      // Padding dinâmico: 24 padrão + área segura
-      padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + bottomPadding),
+      // Padding dinâmico: Aumentado de 24 para 40 + área segura
+      padding: EdgeInsets.fromLTRB(24, 24, 24, 40 + bottomPadding),
       decoration: const BoxDecoration(
         color: Color(0xFF588157),
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
@@ -371,7 +371,7 @@ class _AddAlarmModalState extends State<AddAlarmModal> {
               ),
             ),
           ),
-          // Sem SizedBox extra, o padding do Container já resolve
+          // Sem SizedBox extra, o padding dinâmico resolve
         ],
       ),
     );
