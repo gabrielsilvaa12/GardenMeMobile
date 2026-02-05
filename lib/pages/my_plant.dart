@@ -19,15 +19,13 @@ class MinhaPlantaPage extends StatelessWidget {
         children: [
           curvedBackground(
             child: ListView(
-              // CORREÇÃO: Padding top alterado de 80 para 24
-              // Agora está igual ao da AlarmsPage (24px de distância do Header)
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
+              // AJUSTE: Padding bottom 150 para subir a data final
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 150),
               children: [
                 DetailedPlant(planta: planta),
               ],
             ),
           ),
-          // Botão de voltar mantido (ficou bom)
           Positioned(
             top: 40,
             left: 20,

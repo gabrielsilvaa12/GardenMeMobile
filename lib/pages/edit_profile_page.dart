@@ -77,32 +77,37 @@ class _EditProfilePageState extends State<EditProfilePage> {
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text("Escolha uma opção",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              const SizedBox(height: 20),
-              ListTile(
-                leading:
-                    const Icon(Icons.photo_library, color: Color(0xFF386641)),
-                title: const Text("Galeria"),
-                onTap: () {
-                  Navigator.pop(context);
-                  _selecionarImagem(ImageSource.gallery);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.camera_alt, color: Color(0xFF386641)),
-                title: const Text("Câmera"),
-                onTap: () {
-                  Navigator.pop(context);
-                  _selecionarImagem(ImageSource.camera);
-                },
-              ),
-            ],
+        // AJUSTE: SafeArea e Padding maior para "subir" o conteúdo
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 50),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text("Escolha uma opção",
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 20),
+                ListTile(
+                  leading: const Icon(Icons.photo_library,
+                      color: Color(0xFF386641)),
+                  title: const Text("Galeria"),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _selecionarImagem(ImageSource.gallery);
+                  },
+                ),
+                ListTile(
+                  leading:
+                      const Icon(Icons.camera_alt, color: Color(0xFF386641)),
+                  title: const Text("Câmera"),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _selecionarImagem(ImageSource.camera);
+                  },
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -133,8 +138,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
     if (user == null) return;
 
     if (_nomeController.text.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("O nome é obrigatório.")));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("O nome é obrigatório.")));
       return;
     }
 
@@ -183,15 +188,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                "Perfil atualizado com sucesso!",
-                // Cor do texto forçada: Verde Escuro
-                style: TextStyle(color: Color(0xFF344e41), fontWeight: FontWeight.bold),
-              ),
-              // Fundo forçado: Branco
-              backgroundColor: Colors.white,
+          const SnackBar(
+            content: Text(
+              "Perfil atualizado com sucesso!",
+              style: TextStyle(
+                  color: Color(0xFF344e41), fontWeight: FontWeight.bold),
             ),
+            backgroundColor: Colors.white,
+          ),
         );
         Navigator.pop(context);
       }
@@ -287,7 +291,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     const SizedBox(height: 35),
                     _buildInput(_nomeController, "Nome"),
                     const SizedBox(height: 15),
-                    _buildInput(_sobrenomeController, "Sobrenome (opcional)"),
+                    _buildInput(
+                        _sobrenomeController, "Sobrenome (opcional)"),
                     const SizedBox(height: 15),
                     _buildInput(_telefoneController, "Telefone",
                         teclado: TextInputType.phone),
@@ -327,7 +332,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               setState(() => _mostrarSenha = !_mostrarSenha),
                         )),
                     const SizedBox(height: 15),
-                    _buildInput(_confirmarSenhaController, "Confirmar nova senha",
+                    _buildInput(
+                        _confirmarSenhaController, "Confirmar nova senha",
                         obscure: !_mostrarSenha,
                         sufixo: IconButton(
                           icon: Icon(
@@ -341,11 +347,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     const SizedBox(height: 40),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isDark 
-                            ? const Color(0xFF344e41) 
+                        backgroundColor: isDark
+                            ? const Color(0xFF344e41)
                             : const Color(0xFFA7C957),
-                        foregroundColor: isDark 
-                            ? const Color(0xFFA7C957) 
+                        foregroundColor: isDark
+                            ? const Color(0xFFA7C957)
                             : const Color(0xFF344e41),
                         minimumSize: const Size(double.infinity, 55),
                         shape: RoundedRectangleBorder(
@@ -357,15 +363,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               color: Color(0xFFA7C957))
                           : const Text("Salvar Alterações",
                               style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold)),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold)),
                     ),
                     const SizedBox(height: 15),
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text(
-                        "Cancelar", 
-                        style: TextStyle(color: Color(0xfff2f2f2))
-                      ),
+                      child: const Text("Cancelar",
+                          style: TextStyle(color: Color(0xfff2f2f2))),
                     ),
                   ],
                 ),

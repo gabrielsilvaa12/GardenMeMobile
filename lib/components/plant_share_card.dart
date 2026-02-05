@@ -6,12 +6,14 @@ class PlantShareCard extends StatelessWidget {
   final Planta planta;
   final String nomeUsuario;
   final String nivelUsuario;
+  final String? subtituloStreak;
 
   const PlantShareCard({
     super.key, 
     required this.planta,
     required this.nomeUsuario,
     required this.nivelUsuario,
+    this.subtituloStreak,
   });
 
   ImageProvider _getImagemProvider() {
@@ -27,17 +29,15 @@ class PlantShareCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Container principal que simula o visual do details_plant
     return Container(
-      width: 350, // Largura fixa para garantir consistência no compartilhamento
-      decoration: BoxDecoration(
-        color: const Color(0xFFa7c957), // Fundo da tela (verde claro)
+      width: 350,
+      decoration: const BoxDecoration(
+        color: Color(0xFFa7c957),
       ),
       padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Card Verde Escuro (Igual ao DetailedPlant)
           Container(
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
@@ -75,14 +75,14 @@ class PlantShareCard extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Color(0xfff2f2f2),
-                          fontSize: 28,
+                          fontSize: 22, 
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       
                       const SizedBox(height: 24),
 
-                      // Box do Usuário (Estilo parecido com "Melhor época")
+                      // Box do Usuário
                       Container(
                         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                         decoration: BoxDecoration(
@@ -93,16 +93,11 @@ class PlantShareCard extends StatelessWidget {
                           ),
                         ),
                         child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center, 
                           children: [
-                            const CircleAvatar(
-                              backgroundColor: Color(0xFFa7c957),
-                              radius: 20,
-                              child: Icon(Icons.person, color: Color(0xFF344e41)),
-                            ),
-                            const SizedBox(width: 12),
                             Expanded(
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center, 
                                 children: [
                                   const Text(
                                     "Jardineiro(a):", 
@@ -125,6 +120,19 @@ class PlantShareCard extends StatelessWidget {
                                       fontWeight: FontWeight.bold
                                     )
                                   ),
+                                  
+                                  if (subtituloStreak != null) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      subtituloStreak!,
+                                      style: const TextStyle(
+                                        color: Color(0xFFFF6D00),
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -134,19 +142,24 @@ class PlantShareCard extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
-                      // Logo ou Marca d'água
+                      // Rodapé com Logo Aumentado
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center, // Alinha verticalmente
                         children: [
-                          const Icon(Icons.spa, color: Colors.white54, size: 16),
-                          const SizedBox(width: 8),
                           Text(
-                            "Compartilhado via GardenMe",
+                            "Compartilhado via ",
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.7),
-                              fontSize: 12,
-                              letterSpacing: 1.1
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
                             ),
+                          ),
+                          const SizedBox(width: 6),
+                          // Logo do GardenMe - Aumentado para 35
+                          Image.asset(
+                            'assets/images/logoGarden.png',
+                            height: 30, 
                           ),
                         ],
                       ),

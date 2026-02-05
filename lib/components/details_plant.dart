@@ -1,10 +1,18 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gardenme/models/planta.dart';
 import 'package:gardenme/pages/alarms_page.dart';
 import 'package:gardenme/pages/edit_plant_page.dart';
 import 'package:gardenme/services/planta_service.dart';
 import 'package:gardenme/services/theme_service.dart';
+
+// Imports para o compartilhamento
+import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:gardenme/components/plant_share_card.dart';
 
 class DetailedPlant extends StatefulWidget {
   final Planta planta;
@@ -17,6 +25,9 @@ class DetailedPlant extends StatefulWidget {
 
 class _DetailedPlantState extends State<DetailedPlant> {
   final PlantaService _plantaService = PlantaService();
+  
+  // Controlador para capturar a imagem
+  final ScreenshotController _screenshotController = ScreenshotController();
   
   late String _nomeExibido;
   late String? _imagemExibida;
@@ -31,7 +42,6 @@ class _DetailedPlantState extends State<DetailedPlant> {
   }
 
   Future<void> _toggleRega() async {
-    // REGRA DE CORES FIXA: Fundo Branco / Texto Verde Escuro
     const Color snackBarBg = Colors.white;
     const Color snackBarText = Color(0xFF344e41);
 
@@ -73,6 +83,120 @@ class _DetailedPlantState extends State<DetailedPlant> {
       );
     }
   }
+
+  // --- LÓGICA DE COMPARTILHAMENTO (Igual ao PlantCard) ---
+
+  String? _obterSubtituloStreak(int dias) {
+    if (dias >= 60) return "Que Não Falha";
+    if (dias >= 45) return "Em Sintonia";
+    if (dias >= 35) return "Raízes Profundas";
+    if (dias >= 25) return "Implacável";
+    if (dias >= 15) return "Sempre Verde";
+    if (dias >= 5) return "Incansável";
+    return null;
+  }
+
+  Future<void> _compartilharPlanta() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(child: CircularProgressIndicator(color: Colors.white));
+      },
+    );
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      String nomeUsuario = "Jardineiro";
+      String nivelUsuario = "Iniciante";
+      String? subtituloStreak;
+
+      if (user != null) {
+        final doc = await FirebaseFirestore.instance
+            .collection('usuarios')
+            .doc(user.uid)
+            .get();
+        
+        if (doc.exists) {
+          final data = doc.data()!;
+          nomeUsuario = data['nome'] ?? "Jardineiro";
+          nivelUsuario = data['nivel'] ?? "Iniciante";
+          int streakAtual = data['streak_atual'] ?? 0;
+          subtituloStreak = _obterSubtituloStreak(streakAtual);
+        }
+      }
+
+      if (mounted) Navigator.pop(context);
+
+      if (!mounted) return;
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Screenshot(
+                  controller: _screenshotController,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: PlantShareCard(
+                      planta: Planta(
+                        id: widget.planta.id,
+                        nome: _nomeExibido, // Usa o nome atualizado
+                        imagemUrl: _imagemExibida, // Usa a imagem atualizada
+                        rega: _regaAtual,
+                        dataCriacao: widget.planta.dataCriacao,
+                      ),
+                      nomeUsuario: nomeUsuario,
+                      nivelUsuario: nivelUsuario,
+                      subtituloStreak: subtituloStreak,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  "Gerando imagem...",
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                )
+              ],
+            ),
+          );
+        },
+      );
+
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      final imageBytes = await _screenshotController.capture();
+
+      if (mounted) Navigator.pop(context);
+
+      if (imageBytes != null) {
+        final directory = await getTemporaryDirectory();
+        final imagePath = await File('${directory.path}/gardenme_share.png').create();
+        await imagePath.writeAsBytes(imageBytes);
+
+        await Share.shareXFiles(
+          [XFile(imagePath.path)],
+          text: 'Veja minha $_nomeExibido no GardenMe! 🌿',
+        );
+      }
+
+    } catch (e) {
+      if (mounted && Navigator.canPop(context)) Navigator.pop(context);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erro ao compartilhar: $e")),
+        );
+      }
+    }
+  }
+
+  // --------------------------------------------------------
 
   Widget _buildPlantImage() {
     final imagePath = _imagemExibida ?? '';
@@ -222,7 +346,6 @@ class _DetailedPlantState extends State<DetailedPlant> {
       await _plantaService.removerPlanta(widget.planta);
       
       if (mounted) {
-        // SnackBar Vermelha (Erro/Exclusão) mantida inalterada
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -317,6 +440,7 @@ class _DetailedPlantState extends State<DetailedPlant> {
                             width: 50,
                             height: 50, 
                             decoration: BoxDecoration(
+                              // CORREÇÃO: Azul apagado (inativo) e Azul vivo (ativo)
                               color: _regaAtual
                                   ? const Color(0xFF81D4FA) 
                                   : const Color(0xFF81D4FA).withOpacity(0.5), 
@@ -330,6 +454,30 @@ class _DetailedPlantState extends State<DetailedPlant> {
                               ],
                             ),
                             child: const Icon(Icons.water_drop_outlined, size: 24, color: Color(0xfff2f2f2)),
+                          ),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // NOVO: Botão Compartilhar
+                        InkWell(
+                          onTap: _compartilharPlanta,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            width: 50,
+                            height: 50, 
+                            decoration: BoxDecoration(
+                              color: const Color(0xfff2f2f2),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(Icons.share_outlined, size: 24, color: Color(0xFF588157)),
                           ),
                         ),
                       ],
@@ -443,7 +591,6 @@ class _DetailedPlantState extends State<DetailedPlant> {
           ),
         ),
 
-        // --- EXIBIÇÃO DA DATA DE CRIAÇÃO ---
         if (widget.planta.dataCriacao != null) ...[
           const SizedBox(height: 20),
           Text(
@@ -455,6 +602,7 @@ class _DetailedPlantState extends State<DetailedPlant> {
               fontWeight: FontWeight.w500,
             ),
           ),
+          const SizedBox(height: 10),
         ],
       ],
     );

@@ -18,11 +18,11 @@ class EditPlantPage extends StatefulWidget {
 class _EditPlantPageState extends State<EditPlantPage> {
   final PlantaService _plantaService = PlantaService();
   late TextEditingController _nomeController;
-  
+
   File? _novaImagemLocal;
   String? _caminhoImagemAtual;
   bool _estaCarregando = false;
-  
+
   @override
   void initState() {
     super.initState();
@@ -39,7 +39,8 @@ class _EditPlantPageState extends State<EditPlantPage> {
   Future<void> _selecionarImagem(ImageSource source) async {
     final ImagePicker picker = ImagePicker();
     try {
-      final XFile? image = await picker.pickImage(source: source, imageQuality: 50);
+      final XFile? image =
+          await picker.pickImage(source: source, imageQuality: 50);
       if (image != null) {
         setState(() {
           _novaImagemLocal = File(image.path);
@@ -53,33 +54,41 @@ class _EditPlantPageState extends State<EditPlantPage> {
   void _mostrarOpcoesFoto() {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text("Escolha uma opção", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              const SizedBox(height: 20),
-              ListTile(
-                leading: const Icon(Icons.photo_library, color: Color(0xFF386641)),
-                title: const Text("Galeria"),
-                onTap: () {
-                  Navigator.pop(context);
-                  _selecionarImagem(ImageSource.gallery);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.camera_alt, color: Color(0xFF386641)),
-                title: const Text("Câmera"),
-                onTap: () {
-                  Navigator.pop(context);
-                  _selecionarImagem(ImageSource.camera);
-                },
-              ),
-              const SizedBox(height: 10),
-            ],
+        // AJUSTE: SafeArea e padding maior
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 50),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text("Escolha uma opção",
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 20),
+                ListTile(
+                  leading: const Icon(Icons.photo_library,
+                      color: Color(0xFF386641)),
+                  title: const Text("Galeria"),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _selecionarImagem(ImageSource.gallery);
+                  },
+                ),
+                ListTile(
+                  leading:
+                      const Icon(Icons.camera_alt, color: Color(0xFF386641)),
+                  title: const Text("Câmera"),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _selecionarImagem(ImageSource.camera);
+                  },
+                ),
+                const SizedBox(height: 10),
+              ],
+            ),
           ),
         );
       },
@@ -90,7 +99,7 @@ class _EditPlantPageState extends State<EditPlantPage> {
     if (_novaImagemLocal != null) {
       return FileImage(_novaImagemLocal!);
     }
-    
+
     if (_caminhoImagemAtual != null && _caminhoImagemAtual!.isNotEmpty) {
       if (_caminhoImagemAtual!.startsWith('http')) {
         return NetworkImage(_caminhoImagemAtual!);
@@ -106,7 +115,8 @@ class _EditPlantPageState extends State<EditPlantPage> {
 
   Future<void> _salvar() async {
     if (_nomeController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("O nome é obrigatório.")));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("O nome é obrigatório.")));
       return;
     }
 
@@ -120,24 +130,18 @@ class _EditPlantPageState extends State<EditPlantPage> {
       }
 
       await _plantaService.atualizarPlanta(
-        widget.planta.id, 
-        _nomeController.text.trim(), 
-        caminhoFinal
-      );
+          widget.planta.id, _nomeController.text.trim(), caminhoFinal);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              "Planta atualizada! 🌱",
-              // Cor do texto forçada: Verde Escuro
-              style: TextStyle(color: Color(0xFF344e41), fontWeight: FontWeight.bold),
-            ),
-            // Fundo forçado: Branco
-            backgroundColor: Colors.white,
-          )
-        );
-        
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+            "Planta atualizada! 🌱",
+            style: TextStyle(
+                color: Color(0xFF344e41), fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: Colors.white,
+        ));
+
         Navigator.pop(context, {
           'novoNome': _nomeController.text.trim(),
           'novaImagem': caminhoFinal
@@ -145,7 +149,8 @@ class _EditPlantPageState extends State<EditPlantPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erro ao salvar: $e")));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Erro ao salvar: $e")));
       }
     } finally {
       if (mounted) setState(() => _estaCarregando = false);
@@ -169,13 +174,21 @@ class _EditPlantPageState extends State<EditPlantPage> {
                 decoration: BoxDecoration(
                   color: const Color(0xff588157),
                   borderRadius: BorderRadius.circular(24),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.35), blurRadius: 15, offset: const Offset(0, 10))],
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withOpacity(0.35),
+                        blurRadius: 15,
+                        offset: const Offset(0, 10))
+                  ],
                 ),
                 child: Column(
                   children: [
-                    const Text("Editar Planta", style: TextStyle(color: Color(0xFFf2f2f2), fontSize: 24, fontWeight: FontWeight.bold)),
+                    const Text("Editar Planta",
+                        style: TextStyle(
+                            color: Color(0xFFf2f2f2),
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold)),
                     const SizedBox(height: 30),
-
                     GestureDetector(
                       onTap: _mostrarOpcoesFoto,
                       child: Stack(
@@ -190,63 +203,73 @@ class _EditPlantPageState extends State<EditPlantPage> {
                                 image: _getImagemProvider(),
                                 fit: BoxFit.cover,
                               ),
-                              border: Border.all(color: const Color(0xfff2f2f2), width: 3),
+                              border: Border.all(
+                                  color: const Color(0xfff2f2f2), width: 3),
                             ),
                           ),
                           const Positioned(
-                            bottom: 0, right: 0,
+                            bottom: 0,
+                            right: 0,
                             child: CircleAvatar(
                               backgroundColor: Color(0xff386641),
                               radius: 20,
-                              child: Icon(Icons.camera_alt, color: Color(0xfff2f2f2), size: 20),
+                              child: Icon(Icons.camera_alt,
+                                  color: Color(0xfff2f2f2), size: 20),
                             ),
                           ),
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 35),
-                    
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("Nome da Planta", style: TextStyle(color: Color(0xFFf2f2f2), fontWeight: FontWeight.w600)),
+                        const Text("Nome da Planta",
+                            style: TextStyle(
+                                color: Color(0xFFf2f2f2),
+                                fontWeight: FontWeight.w600)),
                         const SizedBox(height: 8),
                         TextField(
                           controller: _nomeController,
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: Colors.white.withOpacity(0.9),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(25), borderSide: BorderSide.none),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(25),
+                                borderSide: BorderSide.none),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 12),
                           ),
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 40),
-
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isDark 
-                            ? const Color(0xFF344e41) 
+                        backgroundColor: isDark
+                            ? const Color(0xFF344e41)
                             : const Color(0xFFA7C957),
-                        foregroundColor: isDark 
-                            ? const Color(0xFFA7C957) 
+                        foregroundColor: isDark
+                            ? const Color(0xFFA7C957)
                             : const Color(0xFF344e41),
                         minimumSize: const Size(double.infinity, 55),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30)),
                       ),
                       onPressed: _estaCarregando ? null : _salvar,
                       child: _estaCarregando
-                          ? const CircularProgressIndicator(color: Color(0xFFA7C957))
-                          : const Text("Salvar Alterações", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          ? const CircularProgressIndicator(
+                              color: Color(0xFFA7C957))
+                          : const Text("Salvar Alterações",
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold)),
                     ),
-                    
                     const SizedBox(height: 15),
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text("Cancelar", style: TextStyle(color: Color(0xfff2f2f2))),
+                      child: const Text("Cancelar",
+                          style: TextStyle(color: Color(0xfff2f2f2))),
                     )
                   ],
                 ),

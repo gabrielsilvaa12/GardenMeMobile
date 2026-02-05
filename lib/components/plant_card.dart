@@ -26,7 +26,6 @@ class PlantCard extends StatefulWidget {
 class _PlantCardState extends State<PlantCard> {
   final PlantaService _plantaService = PlantaService();
   
-  // Controlador para capturar a imagem
   final ScreenshotController _screenshotController = ScreenshotController();
 
   Future<void> _toggleRega() async {
@@ -65,9 +64,17 @@ class _PlantCardState extends State<PlantCard> {
     }
   }
 
-  // Função para buscar dados do usuário e compartilhar
+  String? _obterSubtituloStreak(int dias) {
+    if (dias >= 60) return "Que Não Falha";
+    if (dias >= 45) return "Em Sintonia";
+    if (dias >= 35) return "Raízes Profundas";
+    if (dias >= 25) return "Implacável";
+    if (dias >= 15) return "Sempre Verde";
+    if (dias >= 5) return "Incansável";
+    return null;
+  }
+
   Future<void> _compartilharPlanta() async {
-    // 1. Mostrar loading
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -77,10 +84,10 @@ class _PlantCardState extends State<PlantCard> {
     );
 
     try {
-      // 2. Buscar dados do usuário no Firebase
       final user = FirebaseAuth.instance.currentUser;
       String nomeUsuario = "Jardineiro";
       String nivelUsuario = "Iniciante";
+      String? subtituloStreak;
 
       if (user != null) {
         final doc = await FirebaseFirestore.instance
@@ -92,13 +99,14 @@ class _PlantCardState extends State<PlantCard> {
           final data = doc.data()!;
           nomeUsuario = data['nome'] ?? "Jardineiro";
           nivelUsuario = data['nivel'] ?? "Iniciante";
+          
+          int streakAtual = data['streak_atual'] ?? 0;
+          subtituloStreak = _obterSubtituloStreak(streakAtual);
         }
       }
 
-      // Fecha o loading inicial (circular progress)
       if (mounted) Navigator.pop(context);
 
-      // 3. Montar o Widget de Compartilhamento (Invisível para o usuário, mas visível para o Screenshot)
       if (!mounted) return;
 
       showDialog(
@@ -115,11 +123,11 @@ class _PlantCardState extends State<PlantCard> {
                   controller: _screenshotController,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(24),
-                    // AQUI ESTÁ A CORREÇÃO: Passando os dados do usuário
                     child: PlantShareCard(
                       planta: widget.planta,
                       nomeUsuario: nomeUsuario,
                       nivelUsuario: nivelUsuario,
+                      subtituloStreak: subtituloStreak, 
                     ),
                   ),
                 ),
@@ -134,13 +142,11 @@ class _PlantCardState extends State<PlantCard> {
         },
       );
 
-      // Pequeno delay para renderização do widget
       await Future.delayed(const Duration(milliseconds: 500));
 
-      // 4. Capturar e Compartilhar
       final imageBytes = await _screenshotController.capture();
 
-      if (mounted) Navigator.pop(context); // Fecha o dialog de geração
+      if (mounted) Navigator.pop(context); 
 
       if (imageBytes != null) {
         final directory = await getTemporaryDirectory();
@@ -154,7 +160,6 @@ class _PlantCardState extends State<PlantCard> {
       }
 
     } catch (e) {
-      // Garante que fecha qualquer dialog aberto se der erro
       if (mounted && Navigator.canPop(context)) Navigator.pop(context);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -251,9 +256,10 @@ class _PlantCardState extends State<PlantCard> {
                     _buildActionButton(
                       function: _toggleRega,
                       icon: Icons.water_drop_outlined,
+                      // ALTERAÇÃO: Azul Vivo se Regado, Azul Apagado se Pendente
                       backgroundColor: statusRega
                           ? const Color(0xFF81D4FA)
-                          : const Color.fromARGB(255, 30, 56, 35).withAlpha(102),
+                          : const Color(0xFF81D4FA).withOpacity(0.5),
                       iconColor: const Color(0xfff2f2f2),
                     ),
                     _buildActionButton(
@@ -272,7 +278,6 @@ class _PlantCardState extends State<PlantCard> {
                       backgroundColor: const Color.fromARGB(255, 30, 56, 35).withOpacity(0.4),
                       iconColor: const Color(0xfff2f2f2),
                     ),
-                    // BOTÃO COMPARTILHAR
                     _buildActionButton(
                       function: _compartilharPlanta,
                       icon: Icons.share_outlined,
