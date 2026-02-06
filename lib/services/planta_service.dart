@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:gardenme/models/alarme.dart'; // Import necessário
+import 'package:gardenme/models/alarme.dart';
 import 'package:gardenme/models/planta.dart';
-import 'package:gardenme/services/alarme_service.dart'; // Import necessário
+import 'package:gardenme/services/alarme_service.dart';
 
 class PlantaService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -15,7 +15,6 @@ class PlantaService {
     return _firestore.collection('usuarios').doc(_userId).collection('plantas');
   }
 
-  // Busca alarmes para verificar vencimento e exclusão
   CollectionReference get _alarmesRef {
     if (_userId == null) throw Exception("Usuário não logado");
     return _firestore.collection('usuarios').doc(_userId).collection('alarmes');
@@ -28,18 +27,17 @@ class PlantaService {
       id: docRef.id,
       nome: nome,
       imagemUrl: imagemUrl,
-      rega: false, // Começa como "Não regada" (Laranja)
-      dataCriacao: DateTime.now(), // Salva a data de criação atual
+      rega: false,
+      dataUltimaRega: null,
+      dataCriacao: DateTime.now(),
       estacaoIdeal: dadosExtras?['estacao_ideal'],
       regaDica: dadosExtras?['rega_dica'],
       tipoTerra: dadosExtras?['tipo_terra'],
       dicaFertilizante: dadosExtras?['dica_fertilizante'],
     );
 
-    // 1. Salva a planta
     await docRef.set(planta.toMap());
 
-    // 2. Atualiza a contagem de plantas no perfil do usuário (+1)
     if (_userId != null) {
       await _firestore.collection('usuarios').doc(_userId).update({
         'plantas_count': FieldValue.increment(1),
@@ -47,44 +45,42 @@ class PlantaService {
     }
   }
 
-  // --- ATUALIZADO: NOVOS NÍVEIS DE GAMEFICAÇÃO (6 NÍVEIS) ---
   String _calcularNivelNome(int pontos) {
     if (pontos < 100) return "Regador Iniciante";
     if (pontos < 200) return "Dedo Verde em Treinamento";
     if (pontos < 400) return "Encantador(a) de Plantas";
     if (pontos < 600) return "Mago Verde Certificado";
     if (pontos < 800) return "Guardião Supremo do Jardim";
-    return "Lenda do Dedo Verde"; // 800+ pontos
+    return "Lenda do Dedo Verde"; 
   }
 
   Future<void> atualizarStatus(String plantaId, {required bool rega}) async {
     if (_userId == null) return;
 
-    // 1. Atualiza status da planta
-    await _plantasRef.doc(plantaId).update({'rega': rega});
+    // 1. Atualiza status da planta salvando o MOMENTO da rega
+    await _plantasRef.doc(plantaId).update({
+      'rega': rega,
+      'data_ultima_rega': rega ? DateTime.now() : null, 
+    });
 
     // 2. Gamificação
     final userDoc = _firestore.collection('usuarios').doc(_userId);
     String hoje = DateTime.now().toString().split(' ')[0];
 
-    // Se for REGA (True), processa pontos e níveis
     if (rega) {
       final snapshot = await userDoc.get();
       if (!snapshot.exists) return;
 
       final data = snapshot.data() as Map<String, dynamic>;
       
-      // Recupera dados atuais
       String? ultimaRega = data['ultima_rega_data'];
       int currentStreak = data['streak_atual'] ?? 0;
       int bestStreak = data['melhor_streak'] ?? 0;
       int pontosAtuais = data['pontos'] ?? 0;
 
-      // Calcula novos valores
       int novosPontos = pontosAtuais + 10;
       String novoNivel = _calcularNivelNome(novosPontos);
 
-      // Lógica de Streak (Contagem de dias seguidos)
       int newStreak = 1; 
       if (ultimaRega != null) {
          DateTime agora = DateTime.now();
@@ -94,11 +90,11 @@ class PlantaService {
          int diffDias = dataHojeSemHora.difference(ultimaDataSemHora).inDays;
 
          if (diffDias == 0) {
-           newStreak = currentStreak; // Já regou hoje, mantém
+           newStreak = currentStreak; 
          } else if (diffDias == 1) {
-           newStreak = currentStreak + 1; // Sequência
+           newStreak = currentStreak + 1; 
          } else {
-           newStreak = 1; // Quebrou sequência
+           newStreak = 1; 
          }
       }
 
@@ -118,48 +114,56 @@ class PlantaService {
     } 
   }
 
-  // --- Verifica se o horário do alarme já passou para resetar a planta ---
-  Future<void> verificarAlarmesVencidos() async {
+  // --- NOVA LÓGICA: Resetar as plantas às 01:00 AM ---
+  Future<void> verificarRegasDiarias() async {
     if (_userId == null) return;
 
     try {
-      final alarmesSnap = await _alarmesRef.get();
+      final plantasSnap = await _plantasRef.get();
       final agora = DateTime.now();
       
-      for (var doc in alarmesSnap.docs) {
-        var data = doc.data() as Map<String, dynamic>;
-        String plantaId = data['plantaId'];
-        int hora = data['hora'];
-        int minuto = data['minuto'];
-        List<dynamic> dias = data['diasSemana'] ?? [];
+      // Define o "horário de corte" (01:00 AM de hoje)
+      DateTime corteHoje = DateTime(agora.year, agora.month, agora.day, 1, 0, 0);
 
-        if (dias.contains(agora.weekday)) {
-          final horaAlarme = DateTime(agora.year, agora.month, agora.day, hora, minuto);
-          if (agora.isAfter(horaAlarme) && agora.difference(horaAlarme).inHours < 12) {
-             await _plantasRef.doc(plantaId).update({'rega': false});
+      // Se agora ainda for cedo (ex: 00:30), o corte relevante é 01:00 de ONTEM
+      if (agora.isBefore(corteHoje)) {
+        corteHoje = corteHoje.subtract(const Duration(days: 1));
+      }
+
+      for (var doc in plantasSnap.docs) {
+        var data = doc.data() as Map<String, dynamic>;
+        bool estaRegada = data['rega'] ?? false;
+        
+        DateTime? ultimaRega;
+        if (data['data_ultima_rega'] != null) {
+          if (data['data_ultima_rega'] is Timestamp) {
+            ultimaRega = (data['data_ultima_rega'] as Timestamp).toDate();
+          } else if (data['data_ultima_rega'] is String) {
+            ultimaRega = DateTime.tryParse(data['data_ultima_rega']);
+          }
+        }
+
+        // Se a última rega foi ANTES do corte das 01:00, reseta para Laranja (false)
+        if (estaRegada) {
+          if (ultimaRega == null || ultimaRega.isBefore(corteHoje)) {
+             await _plantasRef.doc(doc.id).update({'rega': false});
           }
         }
       }
     } catch (e) {
-      print("Erro ao verificar alarmes: $e");
+      print("Erro ao verificar reset diário das plantas: $e");
     }
   }
 
-  /// CORRIGIDO: Agora deleta os alarmes e cancela notificações ANTES de apagar a planta
   Future<void> removerPlanta(Planta planta) async {
     if (_userId == null) return;
-    
-    // 1. Instancia o serviço de alarmes
     final AlarmeService alarmeService = AlarmeService();
 
     try {
-      // 2. Busca todos os alarmes vinculados a esta planta
       final alarmesSnapshot = await _alarmesRef
           .where('planta_id', isEqualTo: planta.id)
           .get();
 
-      // 3. Deleta cada alarme um por um
-      // (O método deletarAlarme do AlarmeService já cuida de cancelar a notificação local)
       for (var doc in alarmesSnapshot.docs) {
         final alarme = Alarme.fromMap(doc.data() as Map<String, dynamic>);
         await alarmeService.deletarAlarme(alarme);
@@ -168,10 +172,7 @@ class PlantaService {
       print("Erro ao limpar alarmes da planta: $e");
     }
 
-    // 4. Remove a planta do banco
     await _plantasRef.doc(planta.id).delete();
-
-    // 5. Atualiza a contagem de plantas no perfil do usuário (-1)
     await _firestore.collection('usuarios').doc(_userId).update({
       'plantas_count': FieldValue.increment(-1),
     });
@@ -198,11 +199,9 @@ class PlantaService {
         return Planta.fromMap(data);
       }).toList();
 
-      // Ordenação no Cliente: Mais Antigas (Top) -> Mais Novas (Bottom)
-      // Se a dataCriacao for null (plantas antigas), elas aparecem primeiro.
       plantas.sort((a, b) {
         if (a.dataCriacao == null && b.dataCriacao == null) return 0;
-        if (a.dataCriacao == null) return -1; // Sem data vem antes
+        if (a.dataCriacao == null) return -1;
         if (b.dataCriacao == null) return 1;
         return a.dataCriacao!.compareTo(b.dataCriacao!);
       });

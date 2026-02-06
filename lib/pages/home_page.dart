@@ -19,7 +19,8 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _plantaService.verificarAlarmesVencidos();
+    // AQUI ESTAVA O ERRO: Atualizado para o novo método
+    _plantaService.verificarRegasDiarias();
   }
 
   Widget _buildAddPlantButton(BuildContext context) {
@@ -32,17 +33,10 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     }
 
-    // Verifica o tema atual para definir a cor do ícone
     final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
-
-    // Cores
     const Color lightGreen = Color(0xFFa7c957);
     const Color darkGreen = Color(0xFF3A5A40);
-    
-    // Cor fixa branca para o texto
     const Color fixedWhiteColor = Color(0xfff2f2f2);
-
-    // Lógica do ícone: Verde Claro no tema Claro / Verde Escuro no tema Escuro
     final Color iconColor = isDark ? darkGreen : lightGreen;
 
     return InkWell(
@@ -75,10 +69,6 @@ class _MyHomePageState extends State<MyHomePage> {
       animation: ThemeService.instance,
       builder: (context, child) {
         final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
-        
-        // Lógica de Cor para Títulos e Textos de destaque:
-        // Tema Claro -> Verde Escuro (0xFF3A5A40)
-        // Tema Escuro -> Verde Claro (0xFFa7c957)
         final dynamicTextColor = isDark ? const Color(0xFFa7c957) : const Color(0xFF3A5A40);
 
         return Scaffold(
@@ -147,7 +137,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                       children: [
                                         const SizedBox(height: 20),
                                         _buildAddPlantButton(context),
-                                        // AUMENTADO DE 100 PARA 180 PARA EVITAR QUE A NAVBAR CUBRA O BOTÃO
                                         const SizedBox(height: 180),
                                       ],
                                     );

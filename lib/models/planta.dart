@@ -4,8 +4,9 @@ class Planta {
   final String id;
   final String nome;
   final String? imagemUrl;
-  final bool rega; // Status do checkbox
-  final DateTime? dataCriacao; // Novo campo para ordenação
+  final bool rega; // Status do checkbox (Verde/Laranja)
+  final DateTime? dataUltimaRega; // NOVO: Data exata da última rega
+  final DateTime? dataCriacao; 
   
   // Campos vindos da API
   final String? estacaoIdeal;
@@ -18,6 +19,7 @@ class Planta {
     required this.nome,
     this.imagemUrl,
     this.rega = false,
+    this.dataUltimaRega,
     this.dataCriacao,
     this.estacaoIdeal,
     this.regaDica,
@@ -40,6 +42,7 @@ class Planta {
       nome: map['nome'] ?? '',
       imagemUrl: map['imagem_url'],
       rega: map['rega'] ?? false,
+      dataUltimaRega: parseDate(map['data_ultima_rega']), // Recupera do banco
       dataCriacao: parseDate(map['data_criacao']),
       estacaoIdeal: map['estacao_ideal'],
       regaDica: map['rega_dica'],
@@ -55,7 +58,8 @@ class Planta {
       'nome': nome,
       'imagem_url': imagemUrl,
       'rega': rega,
-      'data_criacao': dataCriacao, // O Firestore converte automaticamente para Timestamp
+      'data_ultima_rega': dataUltimaRega, // Salva no banco
+      'data_criacao': dataCriacao, 
       'estacao_ideal': estacaoIdeal,
       'rega_dica': regaDica,
       'tipo_terra': tipoTerra,

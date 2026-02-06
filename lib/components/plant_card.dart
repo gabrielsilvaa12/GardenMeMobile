@@ -1,3 +1,4 @@
+import 'dart:async'; 
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -25,8 +26,165 @@ class PlantCard extends StatefulWidget {
 
 class _PlantCardState extends State<PlantCard> {
   final PlantaService _plantaService = PlantaService();
-  
   final ScreenshotController _screenshotController = ScreenshotController();
+  
+  // Estado local - Inicia Laranja por padrão
+  Color _corBorda = Colors.orange; 
+  
+  // Cache dos alarmes e Streams
+  List<Map<String, dynamic>> _alarmesCache = [];
+  StreamSubscription? _alarmesSubscription;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    // 1. Inicia a escuta dos alarmes em tempo real
+    _iniciarStreamAlarmes();
+    
+    // 2. Timer rápido de 1 segundo para garantir a mudança "em tempo real"
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _calcularCorBorda();
+    });
+    
+    // 3. Calcula imediatamente
+    _calcularCorBorda();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _alarmesSubscription?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(PlantCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Se a planta mudar (ex: regada, ou ID mudou), reinicia a lógica
+    if (oldWidget.planta.rega != widget.planta.rega || oldWidget.planta.id != widget.planta.id) {
+      if (oldWidget.planta.id != widget.planta.id) {
+        _iniciarStreamAlarmes();
+      } else {
+        _calcularCorBorda();
+      }
+    }
+  }
+
+  /// Escuta os alarmes dessa planta no Firebase em tempo real
+  void _iniciarStreamAlarmes() {
+    _alarmesSubscription?.cancel(); 
+
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return;
+
+    _alarmesSubscription = FirebaseFirestore.instance
+        .collection('usuarios')
+        .doc(userId)
+        .collection('alarmes')
+        .where('planta_id', isEqualTo: widget.planta.id)
+        .snapshots()
+        .listen((snapshot) {
+      if (mounted) {
+        setState(() {
+          _alarmesCache = snapshot.docs.map((doc) => doc.data()).toList();
+        });
+        _calcularCorBorda();
+      }
+    }, onError: (e) {
+      print("Erro no stream de alarmes: $e");
+    });
+  }
+
+  /// Lógica PURA para definir a cor baseada no cache e na hora atual
+  void _calcularCorBorda() {
+    if (!mounted) return;
+
+    // Regra 1: Se já está regada (Verde), prioridade máxima
+    if (widget.planta.rega) {
+      if (_corBorda != const Color(0xFFAFF695)) {
+        setState(() {
+          _corBorda = const Color(0xFFAFF695); // Verde
+        });
+      }
+      return;
+    }
+
+    // Regra 2: Se não tem alarmes, é Laranja
+    if (_alarmesCache.isEmpty) {
+      if (_corBorda != Colors.orange) {
+        setState(() {
+          _corBorda = Colors.orange;
+        });
+      }
+      return;
+    }
+
+    // Regra 3: Verifica atraso com tolerância de 1 minuto
+    bool estaAtrasada = false;
+    final agora = DateTime.now();
+    
+    // Se nunca foi regada, usamos uma data antiga como referência
+    final ultimaRega = widget.planta.dataUltimaRega ?? DateTime(2000);
+
+    // Validação de segurança para a data de criação
+    final dataCriacao = widget.planta.dataCriacao ?? DateTime(2000);
+
+    for (var data in _alarmesCache) {
+      final diasSemana = List<int>.from(data['dias_semana'] ?? []); 
+      final hora = data['hora'] as int;
+      final minuto = data['minuto'] as int;
+      final ativo = data['ativo'] ?? true;
+
+      if (!ativo) continue;
+
+      for (int diaSemana in diasSemana) {
+        DateTime ocorrenciaBase = _obterUltimaOcorrencia(diaSemana, hora, minuto, agora);
+        
+        // Tolerância de 1 minuto
+        DateTime limiteTolerancia = ocorrenciaBase.add(const Duration(minutes: 1));
+
+        // Se JÁ PASSOU da tolerância...
+        if (agora.isAfter(limiteTolerancia)) {
+          // ...E essa ocorrência foi DEPOIS da última vez que eu reguei
+          // ...E essa ocorrência foi DEPOIS que a planta foi criada!
+          if (ocorrenciaBase.isAfter(ultimaRega) && ocorrenciaBase.isAfter(dataCriacao)) {
+            estaAtrasada = true;
+            break; 
+          }
+        }
+      }
+      if (estaAtrasada) break;
+    }
+
+    // MUDANÇA AQUI: De Colors.red para Colors.redAccent
+    final novaCor = estaAtrasada ? Colors.redAccent : Colors.orange;
+
+    if (_corBorda != novaCor) {
+      setState(() {
+        _corBorda = novaCor;
+      });
+    }
+  }
+
+  /// Helper: Retorna a data/hora exata que esse alarme deveria ter tocado (hoje ou passado)
+  DateTime _obterUltimaOcorrencia(int diaAlvo, int hora, int minuto, DateTime agora) {
+    DateTime dataTeste = DateTime(agora.year, agora.month, agora.day, hora, minuto);
+
+    if (agora.weekday == diaAlvo) {
+      // É hoje.
+      if (agora.isAfter(dataTeste) || agora.isAtSameMomentAs(dataTeste)) {
+        return dataTeste; // Foi hoje
+      } else {
+        return dataTeste.subtract(const Duration(days: 7)); // Foi semana passada
+      }
+    } else {
+      // Não é hoje. Calcula a data passada correta.
+      int diff = (agora.weekday - diaAlvo) % 7;
+      if (diff < 0) diff += 7;
+      return dataTeste.subtract(Duration(days: diff));
+    }
+  }
 
   Future<void> _toggleRega() async {
     if (widget.planta.rega) {
@@ -49,6 +207,13 @@ class _PlantCardState extends State<PlantCard> {
       rega: true,
     );
     
+    // Feedback visual imediato forçado
+    if (mounted) {
+       setState(() {
+         _corBorda = const Color(0xFFAFF695);
+       });
+    }
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -63,6 +228,8 @@ class _PlantCardState extends State<PlantCard> {
       );
     }
   }
+
+  // --- MÉTODOS AUXILIARES ---
 
   String? _obterSubtituloStreak(int dias) {
     if (dias >= 60) return "Que Não Falha";
@@ -226,9 +393,7 @@ class _PlantCardState extends State<PlantCard> {
         children: [
           CircleAvatar(
             radius: 45,
-            backgroundColor: statusRega
-                ? const Color(0xFFAFF695)
-                : Colors.orange,
+            backgroundColor: _corBorda,
             child: CircleAvatar(
               radius: 40,
               backgroundImage: _getImagemProvider(),
@@ -256,7 +421,6 @@ class _PlantCardState extends State<PlantCard> {
                     _buildActionButton(
                       function: _toggleRega,
                       icon: Icons.water_drop_outlined,
-                      // ALTERAÇÃO: Azul Vivo se Regado, Azul Apagado se Pendente
                       backgroundColor: statusRega
                           ? const Color(0xFF81D4FA)
                           : const Color(0xFF81D4FA).withOpacity(0.5),

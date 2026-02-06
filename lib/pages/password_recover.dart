@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gardenme/components/curved_background.dart';
 import 'package:gardenme/pages/login.dart';
-import 'package:gardenme/services/theme_service.dart'; //
+import 'package:gardenme/services/theme_service.dart';
 
 class PasswordRecover extends StatefulWidget {
   const PasswordRecover({super.key});
@@ -15,10 +15,10 @@ class _PasswordRecoverState extends State<PasswordRecover> {
   final _emailController = TextEditingController();
   bool _estaCarregando = false;
 
-  // Cor de destaque solicitada (Verde Claro)
+  // Cor de destaque (Verde Claro)
   final Color highlightColor = const Color(0xFFA7C957);
-  // Cor padrão do tema escuro (Verde Escuro)
-  final Color darkGreen = const Color(0xFF344e41);
+  // Cor padrão (Verde Escuro - Ajustado para 0xFF386641)
+  final Color darkGreen = const Color(0xFF386641);
 
   Future<void> _enviarEmailRecuperacao() async {
     final email = _emailController.text.trim();
@@ -60,10 +60,10 @@ class _PasswordRecoverState extends State<PasswordRecover> {
                   MaterialPageRoute(builder: (context) => const MyLogin()),
                 );
               },
-              child: const Text(
+              child: Text(
                 "Entendi",
                 style: TextStyle(
-                    color: Color(0xFF386641), fontWeight: FontWeight.bold),
+                    color: darkGreen, fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -98,10 +98,21 @@ class _PasswordRecoverState extends State<PasswordRecover> {
     // Verifica o tema atual
     final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
 
+    // Altura do teclado para ajuste de padding
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    // Altura da safe area inferior
+    final safeAreaBottom = MediaQuery.of(context).padding.bottom;
+
     return curvedBackground(
       showHeader: false,
       child: Container(
-        padding: const EdgeInsets.all(20),
+        // Padding dinâmico para evitar que o teclado cubra o input
+        padding: EdgeInsets.only(
+          left: 20,
+          top: 20,
+          right: 20,
+          bottom: 20 + bottomInset + safeAreaBottom + 50,
+        ),
         child: Center(
           child: SingleChildScrollView(
             child: Column(
@@ -122,18 +133,18 @@ class _PasswordRecoverState extends State<PasswordRecover> {
                       filled: true,
                       fillColor: const Color(0xFFf2f2f2),
                       label: const Text("E-mail de usuário"),
-                      labelStyle: const TextStyle(color: Color(0xFF386641)),
+                      labelStyle: TextStyle(color: darkGreen),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
                         borderSide: const BorderSide(color: Colors.black),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: const BorderSide(color: Color(0xFF386641)),
+                        borderSide: BorderSide(color: darkGreen),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20.0),
-                        borderSide: const BorderSide(color: Color(0xFF386641)),
+                        borderSide: BorderSide(color: darkGreen),
                       ),
                     ),
                   ),
@@ -145,13 +156,12 @@ class _PasswordRecoverState extends State<PasswordRecover> {
                     children: [
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
-                        child: Text(
+                        child: const Text(
                           " voltar ",
                           style: TextStyle(
                             decoration: TextDecoration.underline,
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
-                            // AQUI: Texto branco, mas mantendo o destaque (negrito/sublinhado)
                             color: Colors.white,
                           ),
                         ),
@@ -165,25 +175,19 @@ class _PasswordRecoverState extends State<PasswordRecover> {
                 ),
                 const SizedBox(height: 30),
                 SizedBox(
-                  width: 200,
+                  width: 220, // Igual ao padrão (Login/Register)
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      // Lógica de cor condicional para o botão (MANTIDA)
-                      backgroundColor: isDark ? highlightColor : darkGreen,
-                      foregroundColor: isDark ? darkGreen : highlightColor,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: const Color(0xfff2f2f2), // Fundo padrão
                     ),
                     onPressed: _estaCarregando
                         ? null
                         : _enviarEmailRecuperacao,
                     child: _estaCarregando
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
+                        ? CircularProgressIndicator(color: darkGreen)
+                        : Text(
                             "Recuperar",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: TextStyle(color: darkGreen), // Texto padrão
                           ),
                   ),
                 ),

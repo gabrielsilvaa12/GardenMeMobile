@@ -26,8 +26,8 @@ class _MyLoginState extends State<RegisterAccount> {
 
   // Cor de destaque (Verde Claro)
   final Color highlightColor = const Color(0xFFA7C957);
-  // Cor padrão dos labels e textos escuros (Verde Escuro - Ajustado para #344e41)
-  final Color darkGreen = const Color(0xFF344e41);
+  // Cor padrão (Verde Escuro - Igual ao Login)
+  final Color darkGreen = const Color(0xFF386641);
 
   Future<void> _cadastrarUsuario() async {
     if (_nomeController.text.isEmpty ||
@@ -74,7 +74,7 @@ class _MyLoginState extends State<RegisterAccount> {
       });
 
       if (mounted) {
-        // SUCESSO: Fundo Branco e Texto Verde Escuro (Fixo para ambos os temas)
+        // SUCESSO: Fundo Branco e Texto Verde Escuro
         _mostrarSnackBar(
           'Conta criada com sucesso!',
           cor: Colors.white,
@@ -96,7 +96,7 @@ class _MyLoginState extends State<RegisterAccount> {
       } else if (e.code == 'invalid-email') {
         erro = 'O formato do e-mail é inválido.';
       }
-      // ERRO: Vermelho (Mantedo padrão)
+      // ERRO: Vermelho
       _mostrarSnackBar(erro, cor: Colors.redAccent);
     } catch (e) {
       _mostrarSnackBar('Erro inesperado: $e');
@@ -133,10 +133,23 @@ class _MyLoginState extends State<RegisterAccount> {
     // Verifica o tema atual
     final isDark = ThemeService.instance.currentTheme == ThemeOption.escuro;
 
+    // Altura do teclado
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    // Altura da barra de navegação/safe area inferior do sistema
+    final safeAreaBottom = MediaQuery.of(context).padding.bottom;
+
     return curvedBackground(
       showHeader: false,
       child: Container(
-        padding: const EdgeInsets.all(20),
+        // padding dinâmico:
+        // Topo e Laterais: 20
+        // Baixo: 20 (margem base) + Teclado + Safe Area + 50 (Espaço extra de segurança solicitado)
+        padding: EdgeInsets.only(
+          left: 20,
+          top: 20,
+          right: 20,
+          bottom: 20 + bottomInset + safeAreaBottom + 50,
+        ),
         child: Center(
           child: SingleChildScrollView(
             child: Column(
@@ -404,19 +417,15 @@ class _MyLoginState extends State<RegisterAccount> {
                   child: Column(
                     children: [
                       SizedBox(
-                        width: 200,
+                        width: 220,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: highlightColor,
-                            foregroundColor: darkGreen,
+                            backgroundColor: const Color(0xfff2f2f2),
                           ),
                           onPressed: _cadastrarUsuario,
-                          child: const Text(
+                          child: Text(
                             "Cadastrar",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: TextStyle(color: darkGreen),
                           ),
                         ),
                       ),
